@@ -35,6 +35,7 @@
 #include "utils/LogManager.h"
 #include "utils/Random.h"
 
+#include <list>
 #include <vector>
 
 const std::string RoomPortalWaveName = "PortalWave";
@@ -109,38 +110,6 @@ class RoomPortalWaveFactory : public RoomFactory
 // Register the factory
 static RoomRegister reg(new RoomPortalWaveFactory);
 }
-
-class TileSearch
-{
-public:
-    TileSearch() :
-        mTile(nullptr),
-        mRotationClockWise(false),
-        mRotationCounterClockWise(false)
-    {}
-
-    static std::pair<int,int> computeNextRotation(const std::pair<int,int>& currentRotation,
-        bool rotationClockWise)
-    {
-        if(rotationClockWise)
-        {
-            int newY = currentRotation.first;
-            int newX = currentRotation.second * -1;
-            return std::pair<int, int>(newX, newY);
-        }
-        else
-        {
-            int newY = currentRotation.first * -1;
-            int newX = currentRotation.second;
-            return std::pair<int, int>(newX, newY);
-        }
-    }
-
-    Tile* mTile;
-    bool mRotationClockWise;
-    bool mRotationCounterClockWise;
-    std::pair<int,int> mDirectionHit;
-};
 
 static const double CLAIMED_VALUE_PER_TILE = 1.0;
 
@@ -980,170 +949,32 @@ bool RoomPortalWave::findBestDiggablePath(Tile* tileStart, Tile* tileDest, Creat
         return false;
     }
 
-    std::vector<std::pair<int, int>> rotations;
-    std::vector<TileSearch> blockingTiles;
-    Tile* tile = tileStart;
-    Tile* lastTileBlocked = nullptr;
-    bool currentRotationClockWise = false;
-    while(true)
+    // The way is searched by the pathfinding allowed through diggable tiles, as the keeper
+    // AI does when it digs towards gold. The wall following search this replaces did not
+    // always end: around some layouts of rock, water and claimed walls it went round the
+    // same tiles forever, growing its list of tiles to dig until the game ran out of
+    // memory, while every creature in the game stood still waiting for the turn to end.
+    std::list<Tile*> path = getGameMap()->path(tileStart, tileDest, creature, creature->getSeat(), true);
+    if(path.empty())
+        return false;
+
+    for(Tile* tile : path)
     {
-        if(tile == tileDest)
-            return true;
-
-        if(tile == nullptr)
-        {
-            // We reach the end of the map.
-            // We try the last blocking tile we found in the other direction (if any)
-            lastTileBlocked = nullptr;
-            for(auto it = blockingTiles.rbegin(); it != blockingTiles.rend(); ++it)
-            {
-                TileSearch& tileSearch = *it;
-                if(tileSearch.mRotationClockWise &&
-                   tileSearch.mRotationCounterClockWise)
-                {
-                    continue;
-                }
-
-                lastTileBlocked = tileSearch.mTile;
-                if(tileSearch.mRotationClockWise)
-                {
-                    tileSearch.mRotationCounterClockWise = true;
-                    currentRotationClockWise = false;
-                }
-                else
-                {
-                    tileSearch.mRotationClockWise = true;
-                    currentRotationClockWise = true;
-                }
-
-                rotations.clear();
-                rotations.push_back(tileSearch.mDirectionHit);
-                rotations.push_back(TileSearch::computeNextRotation(rotations.back(), currentRotationClockWise));
-                break;
-            }
-
-            if(lastTileBlocked == nullptr)
-                return false;
-
-            tile = getGameMap()->getTile(lastTileBlocked->getX() + rotations.back().first, lastTileBlocked->getY() + rotations.back().second);
-        }
-
-        // A nullptr tile is possible if we are searching near the map border after applying the rotation
-        if(tile == nullptr)
+        // Tiles the creature can walk on do not need to be dug
+        if(creature->canGoThroughTile(tile))
             continue;
 
-        bool isTilePassable = false;
-        // If the tile is walkable, no need to dig it
-        if(creature->canGoThroughTile(tile))
+        if(!tile->isDiggable(creature->getSeat()))
         {
-            isTilePassable = true;
-        }
-        else if(tile->getMarkedForDigging(creature->getSeat()->getPlayer()))
-        {
-            isTilePassable = true;
-        }
-        else if(tile->isDiggable(creature->getSeat()))
-        {
-            tiles.push_back(tile);
-            isTilePassable = true;
+            OD_LOG_ERR("room=" + getName() + ", tile=" + Tile::displayAsString(tile));
+            tiles.clear();
+            return false;
         }
 
-        if(isTilePassable)
-        {
-            // The tile is passable. If we were rotating, we try the next rotation
-            // If not, we continue our way
-            if(!rotations.empty())
-                rotations.pop_back();
-
-            if(rotations.empty())
-            {
-                int diffX = tileDest->getX() - tile->getX();
-                int diffY = tileDest->getY() - tile->getY();
-                if(std::abs(diffX) > std::abs(diffY))
-                {
-                    if(diffX < 0)
-                        rotations.push_back(std::pair<int, int>(-1, 0));
-                    else
-                        rotations.push_back(std::pair<int, int>(1, 0));
-                }
-                else
-                {
-                    if(diffY < 0)
-                        rotations.push_back(std::pair<int, int>(0, -1));
-                    else
-                        rotations.push_back(std::pair<int, int>(0, 1));
-                }
-
-                // We are not blocked
-                lastTileBlocked = nullptr;
-            }
-            tile = getGameMap()->getTile(tile->getX() + rotations.back().first, tile->getY() + rotations.back().second);
-        }
-        else
-        {
-            // We start from the previous tile (that was good to go)
-            tile = getGameMap()->getTile(tile->getX() - rotations.back().first, tile->getY() - rotations.back().second);
-            if(tile == nullptr)
-            {
-                OD_LOG_ERR("room=" + getName());
-                return false;
-            }
-
-            // Tile is not passable. We try to go around. If we are not already following a wall, we start to
-            if(lastTileBlocked == nullptr)
-            {
-                // We check if we already hit this tile
-                bool isFound = false;
-                for(TileSearch& tileSearch : blockingTiles)
-                {
-                    if(tileSearch.mTile != tile)
-                        continue;
-
-                    // We already hit this tile. We stop searching this way
-                    isFound = true;
-                }
-
-                if(isFound)
-                {
-                    tile = nullptr;
-                    continue;
-                }
-
-                // We have never been blocked here
-                lastTileBlocked = tile;
-
-                int diffX = tileDest->getX() - tile->getX();
-                int diffY = tileDest->getY() - tile->getY();
-                if(rotations.back().first == 0)
-                {
-                    if(diffX < 0)
-                        currentRotationClockWise = (rotations.back().second > 0);
-                    else
-                        currentRotationClockWise = (rotations.back().second < 0);
-                }
-                else // rotations.back().second should be 0
-                {
-                    if(diffY < 0)
-                        currentRotationClockWise = (rotations.back().first < 0);
-                    else
-                        currentRotationClockWise = (rotations.back().first > 0);
-                }
-                TileSearch tileSearch;
-                tileSearch.mTile = tile;
-                tileSearch.mDirectionHit = rotations.back();
-                if(currentRotationClockWise)
-                    tileSearch.mRotationClockWise = true;
-                else
-                    tileSearch.mRotationCounterClockWise = true;
-
-                blockingTiles.push_back(tileSearch);
-            }
-
-            // We set next direction
-            rotations.push_back(TileSearch::computeNextRotation(rotations.back(), currentRotationClockWise));
-            tile = getGameMap()->getTile(tile->getX() + rotations.back().first, tile->getY() + rotations.back().second);
-        }
+        tiles.push_back(tile);
     }
+
+    return true;
 }
 
 void RoomPortalWave::handleFirstUpkeep()
