@@ -39,6 +39,15 @@ add_boost_test(00-Pathfinding
         SOURCES
         test_Pathfinding.cpp)
 
+add_boost_test(00-HatcheryCycle
+        SOURCES
+        test_HatcheryCycle.cpp
+        ${SRC}/rooms/HatcheryCycle.h
+        ${SRC}/rooms/HatcheryCycle.cpp
+        ${SRC}/rooms/HatcheryNestField.h
+        ${SRC}/rooms/HatcheryRooster.h
+        ${SRC}/rooms/HatcheryRooster.cpp)
+
 add_boost_test(aa-LaunchGame
         SOURCES
         ${SRC}/tests/mocks/ODClientTest.cpp

@@ -156,6 +156,19 @@ enum class ServerNotificationType
     //! cosmetic events; an older client never gets it. Inserted before trapEffect, which stays the last
     //! value.
     cosmeticEvent,
+    //! A hatchery animal changed its kind (egg hatched, chick grew up): + string name, uint32_t kind
+    //! (ChickenKind). Sent to the human players that see it, only when the kind changes.
+    chickenKindChanged,
+    //! Two roosters of one hatchery fight: + string first rooster, string second rooster, uint32_t phase
+    //! (0 = the fight starts, 1 = it is over and the first rooster won, 2 = it was called off). The server draws
+    //! the winner. Sent to the human players that see the first rooster, only when the phase changes.
+    chickenFight,
+    //! The places of the straw nests of a hatchery (the server alone computes them, the clients only draw them):
+    //! + string room name, uint32_t count, then per nest: float x, float y, float angle in degrees, then
+    //! uint32_t count of the places of loose feathers and per place: float x, float y, float angle in degrees. Sent to
+    //! the human players when the places of the hatchery change and once to a client that joined or loaded.
+    //! Inserted before trapEffect, which stays the last value.
+    hatcheryNests,
     //! Presentation-only effect of a trap or door, sent to the human seats that see the tile:
     //! + int32_t kind (TrapEffectKind), int32_t tileX, int32_t tileY, string type name of the trap or door
     //! (e.g. Alarm, DoorSteel), float health fraction (0 to 1, doors only, else 1).

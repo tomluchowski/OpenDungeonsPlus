@@ -24,6 +24,8 @@
 #include "gamemap/RoomObjectStep.h"
 
 #include "entities/BuildingObject.h"
+#include "entities/ChickenEntity.h"
+#include "entities/ChickenPose.h"
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
 #include "entities/GameEntity.h"
@@ -43,6 +45,7 @@
 #include "render/DebugDrawer.h"
 #include "render/MovableTextOverlay.h"
 #include "render/ODFrameListener.h"
+#include "rooms/HatcheryCoopHouse.h"
 #include "rooms/Room.h"
 #include "utils/ConfigManager.h"
 #include "utils/Helper.h"
@@ -875,6 +878,7 @@ RenderManager::~RenderManager()
     cancelCreatureSleepAnimation();
     cancelCreatureFeedingAnimation();
     clearChickenFeatherEffects();
+    clearChickenLooks();
     clearCreatureCombatEffects();
     mCreatureDropAnimations.clear();
     mCreatureGroundPoses.clear();
@@ -890,6 +894,7 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
     OD_ASSERT_TRUE(gameMap);
     OD_ASSERT_TRUE(mHandKeeperNode);
     mCreatureTextOverlayDisplayed = false;
+    mGameMap = gameMap;
 
     // Create the light which follows the single tile selection mesh
     if(mHandLight == nullptr)
@@ -1141,11 +1146,13 @@ void RenderManager::preRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
 
 void RenderManager::stopGameRenderer(GameMap* gameMap)
 {
+    mGameMap = nullptr;
     rrCancelIdleHandAnimation();
     cancelCreatureStep();
     cancelCreatureSleepAnimation();
     cancelCreatureFeedingAnimation();
     clearChickenFeatherEffects();
+    clearChickenLooks();
     clearCreatureCombatEffects();
     mCreatureDropAnimations.clear();
     mCreatureGroundPoses.clear();
@@ -1516,6 +1523,8 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
         mSceneManager->destroySceneNode(it->mNode);
         it = mChickenFeatherEffects.erase(it);
     }
+
+    updateChickenLooks(timeSinceLastFrame);
 
     for(std::set<Creature*>::iterator it = mSteppingCreatures.begin(); it != mSteppingCreatures.end();)
         updateCreatureStep(*it++);
@@ -2615,7 +2624,7 @@ void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* rendere
     Ogre::Entity* ent = nullptr;
     if(!meshName.empty())
     {
-
+        rrEnsureChickenMesh(meshName);
 
         if(!Ogre::MeshManager::getSingleton().resourceExists(meshName + ".mesh","Graphics"))
             Ogre::MeshManager::getSingleton().load(meshName + ".mesh","Graphics");
@@ -2636,6 +2645,8 @@ void RenderManager::rrCreateRenderedMovableEntity(RenderedMovableEntity* rendere
 
     renderedMovableEntity->setParentSceneNode(node->getParentSceneNode());
     renderedMovableEntity->setEntityNode(node);
+    if(HatcheryCoopHouse::isCoopMesh(meshName))
+        rrCreateCoopDecor(static_cast<BuildingObject*>(renderedMovableEntity));
 
     // If it is required, we hide the tile
     if((renderedMovableEntity->getHideCoveredTile()) &&
@@ -2663,6 +2674,8 @@ void RenderManager::rrDestroyRenderedMovableEntity(RenderedMovableEntity* curRen
     std::string tempString = curRenderedMovableEntity->getOgreNamePrefix()
                              + curRenderedMovableEntity->getName()+  (static_cast<bool>(nt) ?  "" : "_dtc" );
     Ogre::SceneNode* node = curRenderedMovableEntity->getEntityNode();
+    if(HatcheryCoopHouse::isCoopMesh(curRenderedMovableEntity->getMeshName()))
+        rrDestroyCoopDecor(static_cast<BuildingObject*>(curRenderedMovableEntity));
     if(mSceneManager->hasEntity(tempString))
     {
         Ogre::Entity* ent = mSceneManager->getEntity(tempString);
@@ -3243,11 +3256,35 @@ void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObje
 
     Ogre::Entity* objectEntity = mSceneManager->getEntity(objectName);
 
+    // The hatchery poses are procedural motion on top of the walk or idle animation
+    std::string poseAnimation = animation;
+    if(curAnimatedObject->getObjectType() == GameEntityType::chickenEntity)
+    {
+        const bool isPose = ChickenPose::isPose(animation);
+        rrSetChickenPose(static_cast<ChickenEntity*>(curAnimatedObject), isPose ? animation : std::string());
+        if(isPose)
+            poseAnimation = ChickenPose::skeletonAnimation(animation);
+    }
+
     // Can't animate entities without skeleton
     if (!objectEntity->hasSkeleton())
         return;
 
-    std::string anim = animation;
+    std::string anim = poseAnimation;
+    if(curAnimatedObject->getObjectType() == GameEntityType::chickenEntity)
+    {
+        // The hatchery animals have clips for crowing, running and peeping, the plain walk and idle clips stay for
+        // skeletons without them
+        const bool isChick = static_cast<ChickenEntity*>(curAnimatedObject)->getKind() == ChickenKind::chick;
+        const std::string clip = ChickenPose::skeletonClip(animation, isChick);
+        if(!clip.empty() && objectEntity->getSkeleton()->hasAnimation(clip))
+        {
+            anim = clip;
+            // Laying and fluttering play once, the pose ends with the clip
+            if(ChickenPose::isOneShotClip(clip))
+                loop = false;
+        }
+    }
     Creature* dropCreature = nullptr;
     if(curAnimatedObject->getObjectType() == GameEntityType::creature)
         dropCreature = static_cast<Creature*>(curAnimatedObject);
@@ -4102,11 +4139,12 @@ void RenderManager::cancelCreatureFeedingAnimation(Creature* creature)
     }
 }
 
-void RenderManager::createChickenFeatherEffect(const Ogre::Vector3& position)
+//! \brief Creates a particle system at the position and removes it after a short time.
+void RenderManager::createChickenFeatherEffect(const Ogre::Vector3& position, const std::string& particleName)
 {
-    const std::string name = "ChickenFeathers_" + Helper::toString(++mChickenFeatherEffectNumber);
+    const std::string name = particleName + "_" + Helper::toString(++mChickenFeatherEffectNumber);
     Ogre::SceneNode* node = mCreatureSceneNode->createChildSceneNode(name + "_node", position);
-    Ogre::ParticleSystem* particles = mSceneManager->createParticleSystem(name, "ChickenFeathers");
+    Ogre::ParticleSystem* particles = mSceneManager->createParticleSystem(name, particleName);
     node->attachObject(particles);
     particles->setQueryFlags(0);
     mChickenFeatherEffects.push_back({node, particles, 1.5f});

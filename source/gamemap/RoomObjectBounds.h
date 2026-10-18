@@ -27,6 +27,7 @@ static const MeshBounds meshBounds[] = {
     {"CasinoWallBeer", -.502785f, .325887f, .502785f, .493482f},
     {"CelticCross", -.391612f, -.28f, .391607f, .28f},
     {"ChickenCoop", -.203275f, -.4f, .796725f, .4f},
+    {"ChickenCoopHouse", -.203275f, -.4f, .796725f, .4f},
     {"Chimney", -.63f, .0721364f, .63f, .583136f},
     {"DragonBed", -.941213f, -.96306f, .886655f, .969738f},
     {"DungeonTempleObject", -1.73308f, -1.73308f, 1.73308f, 1.73308f},
