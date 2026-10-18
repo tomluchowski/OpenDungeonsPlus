@@ -186,6 +186,7 @@ public:
     bool rrIsIdleHandAnimationPlaying() const;
     void rrCancelIdleHandAnimation();
     void rrPlayDigAnimation();
+    //! \brief Draws tile previews with equally thick filled borders for construction and digging.
     void rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour, bool construction = false, bool digging = false, bool singleRectangle = false);
     void rrCreateRoomConstructionEffect(const std::vector<Tile*>& tiles);
     void rrCreateCreatureCombatImpact(Creature* creature, bool weaponClash,
