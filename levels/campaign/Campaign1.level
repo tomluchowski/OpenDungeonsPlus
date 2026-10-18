@@ -2283,7 +2283,7 @@ Name	intro
 Mode	once
 Cond	time	3
 Action	message	-1	Heroes are attacking a keeper nearby. Let them weaken each other.
-Action	objectiveid	-1	campaign1-o01	Kill all enemies and keep your dungeon heart alive.
+Action	objectiveid	-1	campaign1-o01	Defeat all enemies; protect your heart.
 [/Trigger]
 [Trigger]
 Name	hint

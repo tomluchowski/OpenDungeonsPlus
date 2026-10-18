@@ -37,12 +37,14 @@ assert victory.index('sendLevelStatistics(true)') < victory.index('onLevelWon()'
 assert 'Open the menu and quit' not in victory
 goals = game_map[game_map.index('std::string GameMap::getGoalsStringForPlayer('):game_map.index('int GameMap::addGoldToSeat(')]
 assert 'else if (seat->numFailedGoals()' not in goals
-for state in ('Open: ', 'Reached: ', 'Failed: '):
+for state in ('Open: ', 'Done: ', 'Failed: '):
     assert state in goals, state
-assert 'Congratulations, you have completed this level.\\n\\n' in goals
+assert 'Victory!\\n' in goals
 assert 'script.getTriggers()' in goals and 'LevelScriptActionType::objective' in goals
 assert 'action.mSeatId >= 0 && action.mSeatId != seat->getId()' in goals
-assert 'Script objectives:' in goals and 'scriptObjectives.push_back(action.mText)' in goals
+assert 'Script objectives:' not in goals and 'scriptObjectives.push_back(action.mText)' in goals
+assert 'stateText + ": " + action.mText' in goals
+assert 'stateText + " ("' not in goals
 assert 'getObjectiveState(seat->getId(), action.mObjectiveId)' in goals
 script_header = read('source/gamemap/LevelScript.h')
 script_source = read('source/gamemap/LevelScript.cpp')

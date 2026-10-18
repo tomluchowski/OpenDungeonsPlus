@@ -69,7 +69,8 @@ std::string GoalKillAllEnemies::getFailedMessage(const Seat&)
     return "You have failed to kill all the enemy creatures,\ntemples and portals.";
 }
 
+//! \brief Describes the objective as a short player-facing instruction.
 std::string GoalKillAllEnemies::getDescription(const Seat&)
 {
-    return "Kill all enemy creatures,\ntemples and portals.";
+    return "Defeat all enemies, hearts and portals.";
 }

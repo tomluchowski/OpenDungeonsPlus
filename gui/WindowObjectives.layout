@@ -2,7 +2,7 @@
 
 <GUILayout version="4" >
     <Window type="OD/FrameWindow" name="ObjectivesWindow" >
-        <Property name="Area" value="{{0.5,-200},{0.5,-150},{0.5,200},{0.5,150}}" />
+        <Property name="Area" value="{{0.5,-300},{0.5,-220},{0.5,300},{0.5,220}}" />
         <Property name="Text" value="Level Objectives" />
 
         <Window type="OD/StaticText" name="ObjectivesText" >
@@ -12,7 +12,8 @@
             <Property name="BackgroundEnabled" value="False" />
             <Property name="VertFormatting" value="TopAligned" />
             <Property name="HorzFormatting" value="WordWrapLeftAligned" />
-            <Property name="VertScrollbar" value="True" />
+            <Property name="VertScrollbar" value="False" />
+            <Property name="Font" value="MedievalSharp-10" />
         </Window>
     </Window>
 </GUILayout>
