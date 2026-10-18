@@ -44,7 +44,9 @@ methods = '\n'.join(function(name) for name in [
     'bool RenderManager::rrIsIdleHandAnimationPlaying(', 'bool RenderManager::rrPlayIdleHandAnimation(',
     'void RenderManager::rrCancelIdleHandAnimation(',
     'Ogre::AnimationState* RenderManager::setEntityAnimation('])
-hand_update = function('void RenderManager::updateRenderAnimations(').split('    for(auto it =')[0]
+hand_update = function('void RenderManager::updateRenderAnimations(').split('    // Ogre advances particle lifetimes')[0]
+assert 'mHandAnimationState->addTime(' in hand_update
+assert 'mGameMap' not in hand_update, 'The hand fixture must retain only the real-time interface update'
 hand_update = hand_update.replace('void RenderManager::updateRenderAnimations(', 'void RenderManager::updateHand(') + '}\n'
 methods += '\n' + hand_update
 start = source.index('    mHandPickaxe = mSceneManager->createManualObject(')
