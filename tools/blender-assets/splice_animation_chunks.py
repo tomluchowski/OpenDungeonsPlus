@@ -55,6 +55,47 @@ def splice(original, authored, selected):
     return b''.join(result)
 
 
+# Read animation children without altering the name, duration or optional metadata.
+def animation_children(data):
+    position = data.index(b'\n', CHUNK_HEADER_BYTES) + 5
+    prefix = data[CHUNK_HEADER_BYTES:position]
+    children = []
+    while position < len(data):
+        kind, length = struct.unpack_from('<HI', data, position)
+        end = position + length
+        assert length >= CHUNK_HEADER_BYTES and end <= len(data)
+        bone = struct.unpack_from('<H', data, position + 6)[0] if kind == 0x4100 else None
+        children.append((kind, bone, data[position:end]))
+        position = end
+    return prefix, children
+
+
+# Replace only selected bone tracks of one existing clip, preserving every other original byte.
+def splice_tracks(original, authored, clip, selected):
+    header, original_chunks = chunks(original)
+    authored_header, authored_chunks = chunks(authored)
+    assert header == authored_header
+    original_clip = next(data for kind, name, data in original_chunks if kind == ANIMATION and name == clip)
+    authored_clip = next(data for kind, name, data in authored_chunks if kind == ANIMATION and name == clip)
+    prefix, children = animation_children(original_clip)
+    new_prefix, replacements = animation_children(authored_clip)
+    assert prefix == new_prefix, 'Track splicing must preserve the clip name and length'
+    replacements = {bone: data for kind, bone, data in replacements if kind == 0x4100}
+    assert selected <= replacements.keys()
+    written = set()
+    parts = [prefix]
+    for kind, bone, data in children:
+        if kind == 0x4100 and bone in selected:
+            parts.append(replacements[bone])
+            written.add(bone)
+        else:
+            parts.append(data)
+    assert written == selected, 'Selected tracks must already exist in the original clip'
+    body = b''.join(parts)
+    changed = struct.pack('<HI', ANIMATION, len(body) + CHUNK_HEADER_BYTES) + body
+    return splice(original, header + changed, {clip})
+
+
 # Produce a separate candidate file so an original asset is never overwritten by this tool.
 def main():
     parser = argparse.ArgumentParser()
