@@ -174,6 +174,28 @@ static const float PROP_FRONT_DISTANCE = 0.9f;
 static const float DIRECTION_MIN_LENGTH = 0.01f;
 //! Number of juggling balls that have a colour of their own
 static const uint32_t NB_BALL_COLOURS = 3;
+//! Full pose strengths used by the existing generic sit-down and lie-down variants.
+static const double ARTICULATED_SIT_AMOUNT = 0.28;
+static const double ARTICULATED_LIE_AMOUNT = 80.0;
+//! Fraction authored for each rest entry and exit; partial poses sample that grounded entry instead of blending bones.
+static const double ARTICULATED_TRANSITION_SHARE = 0.12;
+
+//! \brief Samples a grounded rest pose at the configured strength through the authored entry curve.
+//! \param progress Normalized elapsed motion time, including its entry, hold and exit.
+//! \param strength Relative pose depth between zero and one.
+//! \return Normalized time for the living full cycle or a grounded partial entry pose.
+double getArticulatedRestTime(double progress, double strength)
+{
+    if(strength >= 1.0)
+        return std::max(0.0, std::min(1.0, progress));
+    double entering = std::max(0.0, std::min(1.0, progress / ARTICULATED_TRANSITION_SHARE));
+    double leaving = std::max(0.0, std::min(1.0, (1.0 - progress) / ARTICULATED_TRANSITION_SHARE));
+    entering = entering * entering * (3.0 - 2.0 * entering);
+    leaving = leaving * leaving * (3.0 - 2.0 * leaving);
+    const double amount = entering * leaving * std::max(0.0, std::min(1.0, strength));
+    const double inverse = 0.5 - std::sin(std::asin(std::max(-1.0, std::min(1.0, 1.0 - 2.0 * amount))) / 3.0);
+    return ARTICULATED_TRANSITION_SHARE * inverse;
+}
 
 //! Seconds the target of a slap request is remembered until the server confirms the slap
 const double SLAP_MEMORY = 3.0;
@@ -829,6 +851,7 @@ void CreatureReactions::triggerGroup(const std::string& eventName, const std::ve
     }
 }
 
+//! \brief Starts configured effects and uses joint-based resting clips instead of whole-body deformation.
 bool CreatureReactions::startReaction(Creature* creature, const ReactionEvent& event,
         const ReactionVariant& variant, bool forced)
 {
@@ -922,9 +945,12 @@ bool CreatureReactions::startReaction(Creature* creature, const ReactionEvent& e
         if((variant.mMotion.mType != ReactionMotion::Type::none) && (variant.mMotion.mDuration > 0.0) &&
            (node != nullptr) && !(standingMotion && creature->isMoving()))
         {
-            reaction.mMotion = variant.mMotion;
-            reaction.mMotionLastPosition = node->getPosition();
-            reaction.mMotionLastScale = node->getScale();
+            if(!reaction.mArticulatedMotion)
+            {
+                reaction.mMotion = variant.mMotion;
+                reaction.mMotionLastPosition = node->getPosition();
+                reaction.mMotionLastScale = node->getScale();
+            }
             reaction.mDuration = std::max(reaction.mDuration, variant.mMotion.mDuration);
             shown = true;
 
@@ -980,7 +1006,20 @@ bool CreatureReactions::startClip(RunningReaction& reaction, Creature* creature,
     double speed = 1.0;
     double start = 0.0;
     double end = 1.0;
-    if(!variant.mClip.empty() && skeleton->hasAnimation(variant.mClip))
+    const bool sitting = variant.mMotion.mType == ReactionMotion::Type::sit;
+    const bool lying = variant.mMotion.mType == ReactionMotion::Type::lie;
+    const std::string restClip = sitting ? "AmbientSit" : "AmbientLie";
+    if((sitting || lying) && variant.mClip.empty() && variant.mFallbackClip.empty() &&
+       (variant.mMotion.mDuration > 0.0) && entity->hasAnimationState(restClip))
+    {
+        clip = restClip;
+        // Motion duration is already in game seconds, independent of this creature's normal clip rate.
+        speed = entity->getAnimationState(clip)->getLength() / variant.mMotion.mDuration;
+        reaction.mClipWeight = std::min(1.0, std::fabs(variant.mMotion.mAmount) /
+            (sitting ? ARTICULATED_SIT_AMOUNT : ARTICULATED_LIE_AMOUNT));
+        reaction.mArticulatedMotion = true;
+    }
+    else if(!variant.mClip.empty() && skeleton->hasAnimation(variant.mClip))
     {
         // Tier C
         clip = variant.mClip;
@@ -1328,24 +1367,34 @@ bool CreatureReactions::updateReaction(RunningReaction& reaction, Creature* crea
             stop = !animState->getEnabled();
             if(!stop)
             {
-                const double speed = ODApplication::turnsPerSecond *
-                    creature->getAnimationSpeedFactor() * reaction.mClipSpeed;
+                const double speed = reaction.mArticulatedMotion ? reaction.mClipSpeed :
+                    ODApplication::turnsPerSecond * creature->getAnimationSpeedFactor() * reaction.mClipSpeed;
                 const double step = static_cast<double>(timeSinceLastFrame) * speed;
-                animState->addTime(static_cast<Ogre::Real>(step));
                 const double start = reaction.mClipStart * animState->getLength();
                 const double end = reaction.mClipEnd * animState->getLength();
+                double position;
+                if(reaction.mArticulatedMotion)
+                {
+                    position = std::min(end, reaction.mElapsed * speed);
+                    animState->setTimePosition(static_cast<Ogre::Real>(animState->getLength() *
+                        getArticulatedRestTime(position / animState->getLength(), reaction.mClipWeight)));
+                }
+                else
+                {
+                    animState->addTime(static_cast<Ogre::Real>(step));
+                    position = animState->getTimePosition();
+                }
                 const double fade = std::min(REACTION_BLEND_SECONDS * speed, (end - start) * 0.5);
                 if(fade > 0.0)
                 {
                     double weight = std::max(0.0, std::min(1.0, std::min(
-                        (animState->getTimePosition() - start) / fade,
-                        (end - animState->getTimePosition()) / fade)));
+                        (position - start) / fade,
+                        (end - position) / fade)));
                     weight = weight * weight * (3.0 - 2.0 * weight);
                     animState->setWeight(static_cast<Ogre::Real>(weight));
                     base->setWeight(static_cast<Ogre::Real>(1.0 - weight));
                 }
-                stop = animState->hasEnded() ||
-                    (animState->getTimePosition() >= static_cast<Ogre::Real>(reaction.mClipEnd) * animState->getLength());
+                stop = (position >= end) || (!reaction.mArticulatedMotion && animState->hasEnded());
             }
         }
         if(stop)

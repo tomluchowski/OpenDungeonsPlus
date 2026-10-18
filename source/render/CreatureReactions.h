@@ -201,6 +201,8 @@ private:
             mClipSpeed(1.0),
             mClipStart(0.0),
             mClipEnd(1.0),
+            mClipWeight(1.0),
+            mArticulatedMotion(false),
             mEmoteShown(false),
             mMotion(),
             mMotionPosition(Ogre::Vector3::ZERO),
@@ -232,11 +234,16 @@ private:
         double mDuration;
 
         std::string mClip;
+        //! Regular clip multiplier, or clip units per game second for an articulated rest motion.
         double mClipSpeed;
         //! Fraction where the clip starts, used to blend into a fallback segment correctly.
         double mClipStart;
         //! Fraction of the clip length where the clip is stopped
         double mClipEnd;
+        //! Relative depth sampled from the grounded entry poses of existing sit/lie variants.
+        double mClipWeight;
+        //! A joint-based rest clip replaces the corresponding whole-node squash or tilt.
+        bool mArticulatedMotion;
         //! Name of the clip the creature was playing when the reaction started
         std::string mBaseClip;
 
@@ -344,6 +351,7 @@ private:
 
     //! \brief Starts the chosen variant on the creature (clip, emote, particles, motion).
     //! Returns false if nothing could be shown.
+    //! \brief Starts the configured reaction, using articulated resting clips when available.
     bool startReaction(Creature* creature, const ReactionEvent& event, const ReactionVariant& variant,
         bool forced);
     //! \brief Chooses a variant that fits the creature, randomly weighted. nullptr if none fits.
