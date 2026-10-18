@@ -3274,29 +3274,10 @@ Region	Approach	70	3	90	28
 Region	Hold	73	5	89	21
 Region	EastHollow	80	30	90	42
 Region	ExitRoad	60	55	64	58
-Region	GoalEscapeRoad01	81	22	83	24
-Region	GoalEscapeRoad02	82	25	83	26
-Region	GoalEscapeRoad03	82	27	82	27
-Region	GoalEscapeRoad04	82	28	83	28
-Region	GoalEscapeRoad05	83	29	84	29
-Region	GoalEscapeRoad06	84	30	85	30
-Region	GoalEscapeRoad07	84	31	86	31
-Region	GoalEscapeRoad08	84	32	87	33
-Region	GoalEscapeRoad09	85	34	87	34
-Region	GoalEscapeRoad10	86	35	87	40
-Region	GoalEscapeRoad11	85	41	86	42
-Region	GoalEscapeRoad12	84	43	85	43
-Region	GoalEscapeRoad13	84	44	84	44
-Region	GoalEscapeRoad14	83	45	84	45
-Region	GoalEscapeRoad15	82	46	83	47
-Region	GoalEscapeRoad16	81	48	82	48
-Region	GoalEscapeRoad17	80	49	81	50
-Region	GoalEscapeRoad18	78	51	80	51
-Region	GoalEscapeRoad19	77	52	79	52
-Region	GoalEscapeRoad20	76	53	78	53
-Region	GoalEscapeRoad21	75	54	76	54
-Region	GoalEscapeRoad22	63	55	75	55
-Region	GoalEscapeRoad23	63	56	74	56
+Region	GoalOutsideHold01	0	0	72	75
+Region	GoalOutsideHold02	90	0	91	75
+Region	GoalOutsideHold03	73	0	89	4
+Region	GoalOutsideHold04	73	22	89	75
 [Trigger]
 Name	smoulder
 Mode	once
@@ -3392,212 +3373,28 @@ Cond	objective	1	ashcombe-o03	open
 Action	objectivestate	1	ashcombe-o03	reached
 [/Trigger]
 
-[Trigger]
-Name	goalRoadCatch01
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad01
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch02
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad02
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch03
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad03
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch04
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad04
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch05
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad05
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch06
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad06
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch07
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad07
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch08
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad08
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch09
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad09
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch10
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad10
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch11
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad11
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch12
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad12
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch13
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad13
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch14
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad14
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch15
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad15
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch16
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad16
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch17
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad17
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch18
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad18
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch19
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad19
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch20
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad20
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch21
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad21
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch22
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad22
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
-[Trigger]
-Name	goalRoadCatch23
-Mode	once
-Cond	trigger	wagonLeaves
-Cond	killedin	LieslAshby	GoalEscapeRoad23
-Cond	objective	1	ashcombe-o03	open
-Action	objectivestate	1	ashcombe-o03	reached
-[/Trigger]
 
 [Trigger]
 Name	goalHoldOrRoadMissed
@@ -3605,6 +3402,38 @@ Mode	once
 Cond	reached	LieslAshby	region	ExitRoad
 Cond	objective	1	ashcombe-o03	open
 Action	objectivestate	1	ashcombe-o03	failed
+[/Trigger]
+[Trigger]
+Name	goalOutsideHoldDeath01
+Mode	once
+Cond	trigger	wagonLeaves
+Cond	killedin	LieslAshby	GoalOutsideHold01
+Cond	objective	1	ashcombe-o03	open
+Action	objectivestate	1	ashcombe-o03	reached
+[/Trigger]
+[Trigger]
+Name	goalOutsideHoldDeath02
+Mode	once
+Cond	trigger	wagonLeaves
+Cond	killedin	LieslAshby	GoalOutsideHold02
+Cond	objective	1	ashcombe-o03	open
+Action	objectivestate	1	ashcombe-o03	reached
+[/Trigger]
+[Trigger]
+Name	goalOutsideHoldDeath03
+Mode	once
+Cond	trigger	wagonLeaves
+Cond	killedin	LieslAshby	GoalOutsideHold03
+Cond	objective	1	ashcombe-o03	open
+Action	objectivestate	1	ashcombe-o03	reached
+[/Trigger]
+[Trigger]
+Name	goalOutsideHoldDeath04
+Mode	once
+Cond	trigger	wagonLeaves
+Cond	killedin	LieslAshby	GoalOutsideHold04
+Cond	objective	1	ashcombe-o03	open
+Action	objectivestate	1	ashcombe-o03	reached
 [/Trigger]
 [Trigger]
 Name	wardenEscaped

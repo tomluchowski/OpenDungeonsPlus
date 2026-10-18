@@ -4353,24 +4353,6 @@ Action	message	1	The last of the town guard is marching.
 Action	spawn	3	22	14	1	Knight:4	Knight:4	Elf:4	Monk:3	Dwarf2:3	Adventurer:3
 [/Trigger]
 [Trigger]
-Name	rivalFalls
-Mode	once
-Cond	defeated	2
-Action	message	1	The rival keeper is gone and his heart is dark. The forges of Ironbridge are yours.
-Action	objectivestate	1	ironbridge-o01	reached
-Action	win	1
-[/Trigger]
-[Trigger]
-Name	rivalHeartDown
-Mode	once
-Cond	goal	1	KillAllEnemies
-Action	message	1	The rival keeper is gone and his heart is dark. The forges of Ironbridge are yours.
-Action	objectivestate	1	ironbridge-o01	reached
-Action	win	1
-[/Trigger]
-
-
-[Trigger]
 Name	goalIronbridgeSpan1Path1Before
 Mode	once
 Cond	region	1	35	20	35	21
@@ -4538,4 +4520,22 @@ Cond	trapgone	DoorWooden9
 Cond	region	1	94	27	94	27
 Action	objectivestate	1	ironbridge-o04	reached
 [/Trigger]
+[Trigger]
+Name	rivalFalls
+Mode	once
+Cond	defeated	2
+Action	message	1	The rival keeper is gone and his heart is dark. The forges of Ironbridge are yours.
+Action	objectivestate	1	ironbridge-o01	reached
+Action	win	1
+[/Trigger]
+[Trigger]
+Name	rivalHeartDown
+Mode	once
+Cond	goal	1	KillAllEnemies
+Action	message	1	The rival keeper is gone and his heart is dark. The forges of Ironbridge are yours.
+Action	objectivestate	1	ironbridge-o01	reached
+Action	win	1
+[/Trigger]
+
+
 [/Triggers]

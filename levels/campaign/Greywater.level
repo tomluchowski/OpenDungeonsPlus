@@ -3038,6 +3038,12 @@ Cond	goalmet	1	ProtectDungeonTemple
 Action	objectivestate	1	greywater-o03	reached
 [/Trigger]
 [Trigger]
+Name	goalHeartLost3
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	greywater-o03	failed
+[/Trigger]
+[Trigger]
 Name	wardenFalls
 Mode	once
 Cond	event	CorwinGray	killed
@@ -3063,10 +3069,4 @@ Action	setflag	sluiceOpen	1
 Action	portal	0	on
 [/Trigger]
 
-[Trigger]
-Name	goalHeartLost3
-Mode	once
-Cond	room	1	DungeonTemple	==	0
-Action	objectivestate	1	greywater-o03	failed
-[/Trigger]
 [/Triggers]

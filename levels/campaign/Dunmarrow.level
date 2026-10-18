@@ -4015,22 +4015,6 @@ Action	objectivestate	1	dunmarrow-o01	failed
 Action	lose	1
 [/Trigger]
 [Trigger]
-Name	wardenCaught
-Mode	once
-Cond	event	YsoldeDunn	killed
-Action	message	1	Ysolde Dunn is dead in the sand and her wagons are still. Dunmarrow is yours.
-Action	objectivestate	1	dunmarrow-o01	reached
-Action	win	1
-[/Trigger]
-[Trigger]
-Name	oasisHeld
-Mode	once
-Cond	claimed	1	Oasis	40
-Action	message	1	The oasis is ours. A wandering spider has smelled the water and comes to serve you.
-Action	generate	1	Spider:1
-[/Trigger]
-
-[Trigger]
 Name	goalCampBeforeLoading
 Mode	once
 Cond	flag	wagons	0
@@ -4054,4 +4038,20 @@ Cond	trigger	wagonLeaves
 Cond	flag	goalCampArrived	0
 Action	objectivestate	1	dunmarrow-o03	failed
 [/Trigger]
+[Trigger]
+Name	wardenCaught
+Mode	once
+Cond	event	YsoldeDunn	killed
+Action	message	1	Ysolde Dunn is dead in the sand and her wagons are still. Dunmarrow is yours.
+Action	objectivestate	1	dunmarrow-o01	reached
+Action	win	1
+[/Trigger]
+[Trigger]
+Name	oasisHeld
+Mode	once
+Cond	claimed	1	Oasis	40
+Action	message	1	The oasis is ours. A wandering spider has smelled the water and comes to serve you.
+Action	generate	1	Spider:1
+[/Trigger]
+
 [/Triggers]

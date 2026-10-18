@@ -4207,50 +4207,6 @@ Cond	trigger	tideTurns2	0
 Action	objectivestate	1	stormhaven-o03	reached
 [/Trigger]
 [Trigger]
-Name	stormEnds
-Mode	once
-Cond	time	5
-Cond	creatures	2	<=	0
-Cond	creatures	3	<=	0
-Cond	creatures	4	<=	0
-Cond	creatures	5	<=	0
-Action	message	1	The last keeper is dead and the harbour lies calm. Stormhaven answers to you.
-Action	win	1
-[/Trigger]
-[Trigger]
-Name	stormEndsGoal
-Mode	once
-Cond	goal	1	KillAllEnemies
-Action	message	1	The last keeper is dead and the harbour lies calm. Stormhaven answers to you.
-Action	objectivestate	1	stormhaven-o01	reached
-Action	win	1
-[/Trigger]
-[Trigger]
-Name	tideTurns
-Mode	once
-Cond	time	2200
-Action	message	1	The tide has turned on the old oaths. The cliff keeper and the quay keeper drift apart, and the two northern keepers shake hands.
-Action	alliance	3	5	break
-Action	alliance	2	3	make
-[/Trigger]
-[Trigger]
-Name	tideTurns2
-Mode	once
-Cond	time	3300
-Action	message	1	The last pact is breaking. The north-west keeper has left the dock keeper and joins the quay keeper against your cove.
-Action	alliance	2	4	break
-Action	alliance	2	5	make
-[/Trigger]
-[Trigger]
-Name	northPortals
-Mode	once
-Cond	time	1500
-Action	message	1	The northern keepers have thrown their portals open and are calling every recruit in the harbour.
-Action	portal	2	on
-Action	portal	3	on
-[/Trigger]
-
-[Trigger]
 Name	goalStormhavenSpan1Before
 Mode	once
 Cond	region	1	35	70	35	71
@@ -4297,4 +4253,48 @@ Cond	flag	goalStormhavenSpan1After	1
 Cond	flag	goalStormhavenSpan2After	1
 Action	objectivestate	1	stormhaven-o02	reached
 [/Trigger]
+[Trigger]
+Name	stormEnds
+Mode	once
+Cond	time	5
+Cond	creatures	2	<=	0
+Cond	creatures	3	<=	0
+Cond	creatures	4	<=	0
+Cond	creatures	5	<=	0
+Action	message	1	The last keeper is dead and the harbour lies calm. Stormhaven answers to you.
+Action	win	1
+[/Trigger]
+[Trigger]
+Name	stormEndsGoal
+Mode	once
+Cond	goal	1	KillAllEnemies
+Action	message	1	The last keeper is dead and the harbour lies calm. Stormhaven answers to you.
+Action	objectivestate	1	stormhaven-o01	reached
+Action	win	1
+[/Trigger]
+[Trigger]
+Name	tideTurns
+Mode	once
+Cond	time	2200
+Action	message	1	The tide has turned on the old oaths. The cliff keeper and the quay keeper drift apart, and the two northern keepers shake hands.
+Action	alliance	3	5	break
+Action	alliance	2	3	make
+[/Trigger]
+[Trigger]
+Name	tideTurns2
+Mode	once
+Cond	time	3300
+Action	message	1	The last pact is breaking. The north-west keeper has left the dock keeper and joins the quay keeper against your cove.
+Action	alliance	2	4	break
+Action	alliance	2	5	make
+[/Trigger]
+[Trigger]
+Name	northPortals
+Mode	once
+Cond	time	1500
+Action	message	1	The northern keepers have thrown their portals open and are calling every recruit in the harbour.
+Action	portal	2	on
+Action	portal	3	on
+[/Trigger]
+
 [/Triggers]

@@ -1794,6 +1794,22 @@ Action	message	1	Tay has called out every digger in Tinmoor.
 Action	spawn	3	40	46	1	Knight:3	Dwarf2:3	Dwarf2:2	Adventurer:3	Monk:3
 [/Trigger]
 [Trigger]
+Name	goalPostACleared
+Mode	once
+Cond	event	PostAWatch1	killed
+Cond	event	PostAWatch2	killed
+Cond	spawncleared	postAEntered	1
+Action	objectivestate	1	tinmoor-o03	reached
+[/Trigger]
+[Trigger]
+Name	goalPostBCleared
+Mode	once
+Cond	event	PostBWatch1	killed
+Cond	event	PostBWatch2	killed
+Cond	spawncleared	postBEntered	1
+Action	objectivestate	1	tinmoor-o04	reached
+[/Trigger]
+[Trigger]
 Name	wardenDown
 Mode	once
 Cond	time	5
@@ -1817,20 +1833,4 @@ Action	gold	1	400
 Action	objectivestate	1	tinmoor-o05	reached
 [/Trigger]
 
-[Trigger]
-Name	goalPostACleared
-Mode	once
-Cond	event	PostAWatch1	killed
-Cond	event	PostAWatch2	killed
-Cond	spawncleared	postAEntered	1
-Action	objectivestate	1	tinmoor-o03	reached
-[/Trigger]
-[Trigger]
-Name	goalPostBCleared
-Mode	once
-Cond	event	PostBWatch1	killed
-Cond	event	PostBWatch2	killed
-Cond	spawncleared	postBEntered	1
-Action	objectivestate	1	tinmoor-o04	reached
-[/Trigger]
 [/Triggers]

@@ -6051,6 +6051,19 @@ Action	message	1	The final pack is on the road.
 Action	spawn	2	31	29	1	Troll:4	Troll:4	Orc:4	Spider:4	Goblin:3
 [/Trigger]
 [Trigger]
+Name	goalHeartSafe3BeforeKeepersGoneGoal
+Mode	once
+Cond	goal	1	KillAllEnemies
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	thornreach-o03	reached
+[/Trigger]
+[Trigger]
+Name	goalHeartLost3
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	thornreach-o03	failed
+[/Trigger]
+[Trigger]
 Name	keepersGone
 Mode	once
 Cond	time	5
@@ -6060,13 +6073,6 @@ Cond	creatures	4	<=	0
 Cond	creatures	5	<=	0
 Action	message	1	The last keeper is dead and the thorns are quiet. Thornreach is yours.
 Action	win	1
-[/Trigger]
-[Trigger]
-Name	goalHeartSafe3BeforeKeepersGoneGoal
-Mode	once
-Cond	goal	1	KillAllEnemies
-Cond	goalmet	1	ProtectDungeonTemple
-Action	objectivestate	1	thornreach-o03	reached
 [/Trigger]
 [Trigger]
 Name	keepersGoneGoal
@@ -6092,10 +6098,4 @@ Action	message	1	The hedge keepers have cut every old oath. The north-west keepe
 Action	alliance	2	3	make
 [/Trigger]
 
-[Trigger]
-Name	goalHeartLost3
-Mode	once
-Cond	room	1	DungeonTemple	==	0
-Action	objectivestate	1	thornreach-o03	failed
-[/Trigger]
 [/Triggers]

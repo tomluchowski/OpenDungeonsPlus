@@ -3216,6 +3216,12 @@ Cond	goalmet	1	ProtectDungeonTemple
 Action	objectivestate	1	saltmere-o03	reached
 [/Trigger]
 [Trigger]
+Name	goalHeartLost3
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	saltmere-o03	failed
+[/Trigger]
+[Trigger]
 Name	admiralFalls
 Mode	once
 Cond	event	BramSeward	killed
@@ -3232,10 +3238,4 @@ Action	message	1	The admiral is wounded, and the harbour watch is closing around
 Action	spawn	3	47	85	1	Knight:3	Monk:2
 [/Trigger]
 
-[Trigger]
-Name	goalHeartLost3
-Mode	once
-Cond	room	1	DungeonTemple	==	0
-Action	objectivestate	1	saltmere-o03	failed
-[/Trigger]
 [/Triggers]

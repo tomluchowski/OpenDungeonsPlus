@@ -4830,6 +4830,19 @@ Cond	mined	1	>=	4000
 Action	message	1	The wood's seams are paying. The heroes will not wait for you to finish building.
 [/Trigger]
 [Trigger]
+Name	goalHeartSafe3BeforeBothFallGoal
+Mode	once
+Cond	goal	1	KillAllEnemies
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	wraithwood-o03	reached
+[/Trigger]
+[Trigger]
+Name	goalHeartLost3
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	wraithwood-o03	failed
+[/Trigger]
+[Trigger]
 Name	bothFall
 Mode	once
 Cond	time	5
@@ -4837,13 +4850,6 @@ Cond	creatures	2	<=	0
 Cond	creatures	3	<=	0
 Action	message	1	The witch-warden and the rival keeper are both dead and the fog lifts from Wraithwood. The wood is yours.
 Action	win	1
-[/Trigger]
-[Trigger]
-Name	goalHeartSafe3BeforeBothFallGoal
-Mode	once
-Cond	goal	1	KillAllEnemies
-Cond	goalmet	1	ProtectDungeonTemple
-Action	objectivestate	1	wraithwood-o03	reached
 [/Trigger]
 [Trigger]
 Name	bothFallGoal
@@ -4862,10 +4868,4 @@ Action	message	1	The west glade is yours, master, and the fog over its middle ha
 Action	terrain	17	52	17	52	manawell
 [/Trigger]
 
-[Trigger]
-Name	goalHeartLost3
-Mode	once
-Cond	room	1	DungeonTemple	==	0
-Action	objectivestate	1	wraithwood-o03	failed
-[/Trigger]
 [/Triggers]

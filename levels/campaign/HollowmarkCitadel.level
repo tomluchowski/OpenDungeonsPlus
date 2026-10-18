@@ -6061,6 +6061,38 @@ Cond	goalmet	1	ProtectDungeonTemple
 Action	objectivestate	1	hollowmarkcitadel-o03	reached
 [/Trigger]
 [Trigger]
+Name	goalCourt1
+Mode	once
+Cond	region	1	GateCourt
+Action	setflag	goalCourt1	1
+[/Trigger]
+[Trigger]
+Name	goalCourt2
+Mode	once
+Cond	region	1	GreatCourt
+Cond	flag	goalCourt1	1
+Cond	flag	lowerWest	1
+Cond	flag	lowerEast	1
+Action	setflag	goalCourt2	1
+[/Trigger]
+[Trigger]
+Name	goalCourt3
+Mode	once
+Cond	region	1	ThroneHall
+Cond	flag	goalCourt2	1
+Cond	flag	upperWest	1
+Cond	flag	upperEast	1
+Action	setflag	goalCourt3	1
+Action	objectivestate	1	hollowmarkcitadel-o02	reached
+[/Trigger]
+
+[Trigger]
+Name	goalHeartLost3
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	hollowmarkcitadel-o03	failed
+[/Trigger]
+[Trigger]
 Name	kingDead
 Mode	once
 Cond	time	5
@@ -6174,36 +6206,4 @@ Action	terrain	102	29	103	29	path
 Action	setflag	gate3Open	1
 [/Trigger]
 
-[Trigger]
-Name	goalCourt1
-Mode	once
-Cond	region	1	GateCourt
-Action	setflag	goalCourt1	1
-[/Trigger]
-[Trigger]
-Name	goalCourt2
-Mode	once
-Cond	region	1	GreatCourt
-Cond	flag	goalCourt1	1
-Cond	flag	lowerWest	1
-Cond	flag	lowerEast	1
-Action	setflag	goalCourt2	1
-[/Trigger]
-[Trigger]
-Name	goalCourt3
-Mode	once
-Cond	region	1	ThroneHall
-Cond	flag	goalCourt2	1
-Cond	flag	upperWest	1
-Cond	flag	upperEast	1
-Action	setflag	goalCourt3	1
-Action	objectivestate	1	hollowmarkcitadel-o02	reached
-[/Trigger]
-
-[Trigger]
-Name	goalHeartLost3
-Mode	once
-Cond	room	1	DungeonTemple	==	0
-Action	objectivestate	1	hollowmarkcitadel-o03	failed
-[/Trigger]
 [/Triggers]

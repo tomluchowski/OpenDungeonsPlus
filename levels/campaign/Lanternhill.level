@@ -3194,6 +3194,19 @@ Cond	groundconnected	1	13	57	40	22
 Action	objectivestate	1	lanternhill-o02	reached
 [/Trigger]
 [Trigger]
+Name	goalHeartSafe3BeforeRivalHeartDown
+Mode	once
+Cond	goal	1	KillAllEnemies
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	lanternhill-o03	reached
+[/Trigger]
+[Trigger]
+Name	goalHeartLost3
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	lanternhill-o03	failed
+[/Trigger]
+[Trigger]
 Name	rivalFalls
 Mode	once
 Cond	time	5
@@ -3202,24 +3215,11 @@ Action	message	1	The rival keeper is dead and his heart is cold. The lamps of La
 Action	win	1
 [/Trigger]
 [Trigger]
-Name	goalHeartSafe3BeforeRivalHeartDown
-Mode	once
-Cond	goal	1	KillAllEnemies
-Cond	goalmet	1	ProtectDungeonTemple
-Action	objectivestate	1	lanternhill-o03	reached
-[/Trigger]
-[Trigger]
 Name	rivalHeartDown
 Mode	once
 Cond	goal	1	KillAllEnemies
 Action	message	1	The rival keeper is dead and his heart is cold. The lamps of Lanternhill burn for you now.
 Action	objectivestate	1	lanternhill-o01	reached
 Action	win	1
-[/Trigger]
-[Trigger]
-Name	goalHeartLost3
-Mode	once
-Cond	room	1	DungeonTemple	==	0
-Action	objectivestate	1	lanternhill-o03	failed
 [/Trigger]
 [/Triggers]

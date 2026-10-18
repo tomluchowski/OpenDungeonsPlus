@@ -4031,6 +4031,12 @@ Action	message	1	The heralds have summoned the court.
 Action	spawn	3	79	53	1	Knight:5	Knight:5	Elf:5	Monk:4	Dwarf2:4	Adventurer:4
 [/Trigger]
 [Trigger]
+Name	goalArmyAtHeart
+Mode	once
+Cond	creaturesatheart	1	>=	12
+Action	objectivestate	1	kingsfall-o03	reached
+[/Trigger]
+[Trigger]
 Name	courtTaken
 Mode	once
 Cond	time	5
@@ -4127,10 +4133,4 @@ Action	terrain	89	10	89	19	path
 Action	setflag	cacheOpen	1
 [/Trigger]
 
-[Trigger]
-Name	goalArmyAtHeart
-Mode	once
-Cond	creaturesatheart	1	>=	12
-Action	objectivestate	1	kingsfall-o03	reached
-[/Trigger]
 [/Triggers]

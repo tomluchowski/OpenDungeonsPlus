@@ -781,6 +781,14 @@ Action	message	1	The reeve has sent word to the hills. Another band is on its wa
 Action	spawn	3	20	11	1	Adventurer:1	Adventurer:1	Monk:1
 [/Trigger]
 [Trigger]
+Name	goalWatchPostCleared
+Mode	once
+Cond	event	PostWatch1	killed
+Cond	event	PostWatch2	killed
+Cond	spawncleared	postStirs	1
+Action	objectivestate	1	mossgate-o04	reached
+[/Trigger]
+[Trigger]
 Name	reeveFalls
 Mode	once
 Cond	time	5
@@ -798,12 +806,4 @@ Action	message	1	The reeve is bleeding and calling for the last of his watch.
 Action	spawn	3	8	6	1	Adventurer:1	Adventurer:1
 [/Trigger]
 
-[Trigger]
-Name	goalWatchPostCleared
-Mode	once
-Cond	event	PostWatch1	killed
-Cond	event	PostWatch2	killed
-Cond	spawncleared	postStirs	1
-Action	objectivestate	1	mossgate-o04	reached
-[/Trigger]
 [/Triggers]

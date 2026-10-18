@@ -4756,6 +4756,19 @@ Action	message	1	The last hunters are coming for your heart.
 Action	spawn	4	52	50	1	Troll:4	Troll:3	Orc:4	Spider:3	Goblin:3
 [/Trigger]
 [Trigger]
+Name	goalHeartSafe3BeforeHuntersGoneGoal
+Mode	once
+Cond	goal	1	KillAllEnemies
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	wolfscar-o03	reached
+[/Trigger]
+[Trigger]
+Name	goalHeartLost3
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	wolfscar-o03	failed
+[/Trigger]
+[Trigger]
 Name	huntersGone
 Mode	once
 Cond	defeated	2
@@ -4765,13 +4778,6 @@ Cond	defeated	5
 Action	message	1	The last hunter is dead and the forest of Wolfscar is silent. It is yours.
 Action	objectivestate	1	wolfscar-o01	reached
 Action	win	1
-[/Trigger]
-[Trigger]
-Name	goalHeartSafe3BeforeHuntersGoneGoal
-Mode	once
-Cond	goal	1	KillAllEnemies
-Cond	goalmet	1	ProtectDungeonTemple
-Action	objectivestate	1	wolfscar-o03	reached
 [/Trigger]
 [Trigger]
 Name	huntersGoneGoal
@@ -4809,10 +4815,4 @@ Action	message	1	Your claim on the den has opened a spring of mana in the middle
 Action	terrain	30	51	30	51	manawell
 [/Trigger]
 
-[Trigger]
-Name	goalHeartLost3
-Mode	once
-Cond	room	1	DungeonTemple	==	0
-Action	objectivestate	1	wolfscar-o03	failed
-[/Trigger]
 [/Triggers]

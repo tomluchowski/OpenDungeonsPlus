@@ -5188,20 +5188,73 @@ Cond	slabs	-1	GoalSouthGoldSeam	gold	==	0
 Action	objectivestate	1	cinderhollow-o02	reached
 [/Trigger]
 [Trigger]
-Name	rivalFalls
-Mode	once
-Cond	time	1800
-Cond	creatures	2	<=	0
-Action	message	1	The rival keeper is dead and his heart is cold. Cinderhollow is quiet.
-Action	win	1
-[/Trigger]
-[Trigger]
 Name	goalHeartSafe1BeforeRivalHeartDown
 Mode	once
 Cond	time	1800
 Cond	goal	1	KillAllEnemies
 Cond	goalmet	1	ProtectDungeonTemple
 Action	objectivestate	1	cinderhollow-o01	reached
+[/Trigger]
+[Trigger]
+Name	goalHeartSafe1BeforeRivalHeartFalls
+Mode	once
+Cond	time	1800
+Cond	defeated	2
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	cinderhollow-o01	reached
+[/Trigger]
+[Trigger]
+Name	goalDawnBridgeApproach
+Mode	once
+Cond	trigger	lavaBridge
+Cond	region	1	55	35	55	35
+Action	setflag	goalDawnBridgeApproached	1
+[/Trigger]
+[Trigger]
+Name	goalDawnBridge
+Mode	once
+Cond	flag	goalDawnBridgeApproached	1
+Cond	region	1	55	31	55	34
+Action	setflag	goalDawnBridgeWalked	1
+[/Trigger]
+[Trigger]
+Name	goalDawnBridgeCrossed
+Mode	once
+Cond	flag	goalDawnBridgeWalked	1
+Cond	region	1	55	30	55	30
+Action	setflag	goalDawnBridgeCrossed	1
+[/Trigger]
+
+[Trigger]
+Name	goalCraterAfterBridge
+Mode	once
+Cond	flag	goalDawnBridgeCrossed	1
+Cond	region	1	RivalCrater
+Action	objectivestate	1	cinderhollow-o04	reached
+[/Trigger]
+
+[Trigger]
+Name	goalThreeWavesDefeatedAtHeart
+Mode	once
+Cond	spawncleared	waveOne	2	atheart	1
+Cond	spawncleared	waveTwo	2	atheart	1
+Cond	spawncleared	waveThree	2	atheart	1
+Cond	spawncleared	waveThree	3	atheart	1
+Action	objectivestate	1	cinderhollow-o03	reached
+[/Trigger]
+[Trigger]
+Name	goalHeartLost1
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	cinderhollow-o01	failed
+[/Trigger]
+[Trigger]
+Name	rivalFalls
+Mode	once
+Cond	time	1800
+Cond	creatures	2	<=	0
+Action	message	1	The rival keeper is dead and his heart is cold. Cinderhollow is quiet.
+Action	win	1
 [/Trigger]
 [Trigger]
 Name	rivalHeartDown
@@ -5228,14 +5281,6 @@ Action	message	1	The lava lake has sunk with the dawn and a stone causeway rises
 Action	terrain	55	31	55	34	bridge	1
 [/Trigger]
 [Trigger]
-Name	goalHeartSafe1BeforeRivalHeartFalls
-Mode	once
-Cond	time	1800
-Cond	defeated	2
-Cond	goalmet	1	ProtectDungeonTemple
-Action	objectivestate	1	cinderhollow-o01	reached
-[/Trigger]
-[Trigger]
 Name	rivalHeartFalls
 Mode	once
 Cond	time	1800
@@ -5252,49 +5297,4 @@ Action	message	1	The last gold of the seam is out and the rock behind it sweats 
 Action	terrain	30	55	30	55	manawell
 [/Trigger]
 
-[Trigger]
-Name	goalDawnBridge
-Mode	once
-Cond	flag	goalDawnBridgeApproached	1
-Cond	region	1	55	31	55	34
-Action	setflag	goalDawnBridgeWalked	1
-[/Trigger]
-[Trigger]
-Name	goalCraterAfterBridge
-Mode	once
-Cond	flag	goalDawnBridgeCrossed	1
-Cond	region	1	RivalCrater
-Action	objectivestate	1	cinderhollow-o04	reached
-[/Trigger]
-
-[Trigger]
-Name	goalDawnBridgeApproach
-Mode	once
-Cond	trigger	lavaBridge
-Cond	region	1	55	35	55	35
-Action	setflag	goalDawnBridgeApproached	1
-[/Trigger]
-[Trigger]
-Name	goalDawnBridgeCrossed
-Mode	once
-Cond	flag	goalDawnBridgeWalked	1
-Cond	region	1	55	30	55	30
-Action	setflag	goalDawnBridgeCrossed	1
-[/Trigger]
-
-[Trigger]
-Name	goalThreeWavesDefeatedAtHeart
-Mode	once
-Cond	spawncleared	waveOne	2	atheart	1
-Cond	spawncleared	waveTwo	2	atheart	1
-Cond	spawncleared	waveThree	2	atheart	1
-Cond	spawncleared	waveThree	3	atheart	1
-Action	objectivestate	1	cinderhollow-o03	reached
-[/Trigger]
-[Trigger]
-Name	goalHeartLost1
-Mode	once
-Cond	room	1	DungeonTemple	==	0
-Action	objectivestate	1	cinderhollow-o01	failed
-[/Trigger]
 [/Triggers]

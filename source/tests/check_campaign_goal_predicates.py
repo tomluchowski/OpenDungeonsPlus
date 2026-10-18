@@ -1,5 +1,6 @@
 """Check exact ground and room-ownership source contracts; does not execute C++ or gameplay."""
 from pathlib import Path
+import re
 
 root = Path(__file__).resolve().parents[2]
 runner = (root / 'source/gamemap/LevelScriptRunner.cpp').read_text(encoding='utf-8')
@@ -39,4 +40,30 @@ for required in ('tile->getFullness() != 0.0', 'tile->getSeat() != seat',
 assert 'std::min(cond.mX1, cond.mX2)' in mask and 'std::min(cond.mY1, cond.mY2)' in mask
 assert 'if(type == "groundconnected" || type == "roomclaimed")' in parser
 assert 'os << "groundconnected\\t"' in parser and 'os << "roomclaimed\\t"' in parser
+
+# Victory packets snapshot goals immediately: every new pure observer and its display dependencies must run first.
+for level in sorted((root / 'levels/campaign').glob('*.level')):
+    blocks = re.findall(r'\[Trigger\].*?\[/Trigger\]', level.read_text(encoding='utf-8'), re.S)
+    observers = []
+    wins = []
+    writers = {}
+    for index, block in enumerate(blocks):
+        lines = [line.split() for line in block.splitlines() if line.strip()]
+        name = next((line[1] for line in lines if line[0] == 'Name'), '')
+        actions = [line for line in lines if line[0] == 'Action']
+        if any(line[1] == 'win' for line in actions):
+            wins.append(index)
+        if name.startswith('goal') and actions and all(line[1] in ('objectivestate', 'setflag') for line in actions):
+            observers.append((index, name, lines))
+            for line in actions:
+                if line[1] == 'setflag':
+                    writers.setdefault((line[2], line[3]), []).append(index)
+    if not wins:
+        continue
+    for index, name, lines in observers:
+        assert index < min(wins), str(level) + ': presentation observer after victory: ' + name
+        for line in lines:
+            if line[:2] == ['Cond', 'flag'] and len(line) == 4:
+                for dependency in writers.get((line[2], line[3]), []):
+                    assert dependency < index, str(level) + ': late presentation dependency for ' + name
 print('campaign exact ground/room source contracts: ok; C++ and gameplay not executed')

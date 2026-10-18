@@ -15,41 +15,21 @@ File: `levels/campaign/Ashcombe.level`.
 | --- | --- | --- |
 | [Goals] | `KillAllEnemies	NULL` | yes |
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
-| Script line 3305 | `Action	objectiveid	1	ashcombe-o01	Kill Warden Liesl Ashby before she escapes the valley.` | yes |
-| Script line 3306 | `Action	objectiveid	1	ashcombe-o02	Cross the ash basin and find the northern hold.` | yes |
-| Script line 3336 | `Action	objectiveid	1	ashcombe-o03	Break into the hold before the wagons leave, or catch Ashby on the road.` | yes |
-| Script line 3623 | `Action	win	1` | yes |
+| Script line 3286 | `Action	objectiveid	1	ashcombe-o01	Kill Warden Liesl Ashby before she escapes the valley.` | yes |
+| Script line 3287 | `Action	objectiveid	1	ashcombe-o02	Cross the ash basin and find the northern hold.` | yes |
+| Script line 3317 | `Action	objectiveid	1	ashcombe-o03	Break into the hold before the wagons leave, or catch Ashby on the road.` | yes |
+| Script line 3452 | `Action	win	1` | yes |
 | Trigger `holdBreached` | `Action	objectivestate	1	ashcombe-o02	reached`; conditions: `Cond	region	1	Hold` | yes |
 | Trigger `goalHoldBeforeDeparture` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves	0; Cond	region	1	Hold; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch01` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad01; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch02` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad02; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch03` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad03; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch04` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad04; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch05` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad05; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch06` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad06; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch07` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad07; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch08` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad08; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch09` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad09; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch10` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad10; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch11` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad11; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch12` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad12; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch13` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad13; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch14` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad14; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch15` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad15; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch16` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad16; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch17` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad17; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch18` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad18; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch19` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad19; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch20` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad20; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch21` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad21; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch22` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad22; Cond	objective	1	ashcombe-o03	open` | yes |
-| Trigger `goalRoadCatch23` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalEscapeRoad23; Cond	objective	1	ashcombe-o03	open` | yes |
 | Trigger `goalHoldOrRoadMissed` | `Action	objectivestate	1	ashcombe-o03	failed`; conditions: `Cond	reached	LieslAshby	region	ExitRoad; Cond	objective	1	ashcombe-o03	open` | yes |
+| Trigger `goalOutsideHoldDeath01` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalOutsideHold01; Cond	objective	1	ashcombe-o03	open` | yes |
+| Trigger `goalOutsideHoldDeath02` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalOutsideHold02; Cond	objective	1	ashcombe-o03	open` | yes |
+| Trigger `goalOutsideHoldDeath03` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalOutsideHold03; Cond	objective	1	ashcombe-o03	open` | yes |
+| Trigger `goalOutsideHoldDeath04` | `Action	objectivestate	1	ashcombe-o03	reached`; conditions: `Cond	trigger	wagonLeaves; Cond	killedin	LieslAshby	GoalOutsideHold04; Cond	objective	1	ashcombe-o03	open` | yes |
 | Trigger `wardenEscaped` | `Action	objectivestate	1	ashcombe-o01	failed`; conditions: `Cond	reached	LieslAshby	region	ExitRoad` | yes |
 | Trigger `wardenDown` | `Action	objectivestate	1	ashcombe-o01	reached`; conditions: `Cond	event	LieslAshby	killed` | yes |
-| Objective mapping | objective partially covered: ashcombe-o03: road alternative has101 verified floor tiles, but Chebyshev-one waypoint skipping may use additional floor; exhaustive road coverage is not established | no: requires design decision |
-| Open requirement `ashcombe-o03`: Break into the hold before the wagons leave, or catch Ashby on the road. | Candidates/conditions: `goalHoldBeforeDeparture: Cond	trigger	wagonLeaves	0; Cond	region	1	Hold; Cond	objective	1	ashcombe-o03	open; goalRoadCatch01..23: no matching existing trigger`; missing: Hold-before-departure is exact. The road death alternative checks101 verified dry floor tiles outside Hold, represented by23 narrow rectangles, and requires departure plus a stored killedin event. The mask is the union of shortest four-neighbour paths between authored escape waypoints; Chebyshev-one waypoint skipping leaves exhaustive dynamic-road coverage unproven. Proposal/question: Keep this objective partial until the road domain is explicitly defined or exhaustive dynamic-route coverage is established; never substitute generic Trail or a bounding rectangle. | open |
 | Briefing | Cross the ashes and kill her before she escapes, whether in the hold or on the south road. | no: Ashby elimination/escape is checked; crossing the ashes is not an independent goal |
+Approved ashcombe-o03 alternative: Ashby is killed after wagonLeaves fired, outside original Hold (73..89,5..21). Four disjoint rectangles cover the entire map complement. Original wagonLeaves requires Ashby alive, so an earlier death cannot satisfy departure; walking through the area never satisfies killedin. Hold-before-departure remains unchanged.
 
 ## Bellwick
 
@@ -171,22 +151,22 @@ File: `levels/campaign/Cinderhollow.level`.
 | Script line 5092 | `Action	objectiveid	1	cinderhollow-o03	Break all three hero waves at your heart.` | yes |
 | Script line 5093 | `Action	objectiveid	1	cinderhollow-o04	After dawn, cross the lava bridge to the crater.` | yes |
 | Script line 5178 | `Action	objectiveid	1	cinderhollow-o05	Destroy the rival keeper in the north-east crater.` | yes |
-| Script line 5196 | `Action	win	1` | yes |
-| Script line 5202 | `Cond	goal	1	KillAllEnemies` | yes |
-| Script line 5210 | `Cond	goal	1	KillAllEnemies` | yes |
-| Script line 5213 | `Action	win	1` | yes |
-| Script line 5245 | `Action	win	1` | yes |
+| Script line 5194 | `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 5257 | `Action	win	1` | yes |
+| Script line 5263 | `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 5266 | `Action	win	1` | yes |
+| Script line 5290 | `Action	win	1` | yes |
 | Trigger `goalBothFiniteSeamsMined` | `Action	objectivestate	1	cinderhollow-o02	reached`; conditions: `Cond	slabs	-1	GoalWestGoldSeam	gold	==	0; Cond	slabs	-1	GoalSouthGoldSeam	gold	==	0` | yes |
 | Trigger `goalHeartSafe1BeforeRivalHeartDown` | `Action	objectivestate	1	cinderhollow-o01	reached`; conditions: `Cond	time	1800; Cond	goal	1	KillAllEnemies; Cond	goalmet	1	ProtectDungeonTemple` | yes |
-| Trigger `rivalHeartDown` | `Action	objectivestate	1	cinderhollow-o05	reached`; conditions: `Cond	time	1800; Cond	goal	1	KillAllEnemies` | yes |
 | Trigger `goalHeartSafe1BeforeRivalHeartFalls` | `Action	objectivestate	1	cinderhollow-o01	reached`; conditions: `Cond	time	1800; Cond	defeated	2; Cond	goalmet	1	ProtectDungeonTemple` | yes |
-| Trigger `rivalHeartFalls` | `Action	objectivestate	1	cinderhollow-o05	reached`; conditions: `Cond	time	1800; Cond	defeated	2` | yes |
 | Trigger `goalCraterAfterBridge` | `Action	objectivestate	1	cinderhollow-o04	reached`; conditions: `Cond	flag	goalDawnBridgeCrossed	1; Cond	region	1	RivalCrater` | yes |
 | Trigger `goalThreeWavesDefeatedAtHeart` | `Action	objectivestate	1	cinderhollow-o03	reached`; conditions: `Cond	spawncleared	waveOne	2	atheart	1; Cond	spawncleared	waveTwo	2	atheart	1; Cond	spawncleared	waveThree	2	atheart	1; Cond	spawncleared	waveThree	3	atheart	1` | yes |
 | Trigger `goalHeartLost1` | `Action	objectivestate	1	cinderhollow-o01	failed`; conditions: `Cond	room	1	DungeonTemple	==	0` | yes |
+| Trigger `rivalHeartDown` | `Action	objectivestate	1	cinderhollow-o05	reached`; conditions: `Cond	time	1800; Cond	goal	1	KillAllEnemies` | yes |
+| Trigger `rivalHeartFalls` | `Action	objectivestate	1	cinderhollow-o05	reached`; conditions: `Cond	time	1800; Cond	defeated	2` | yes |
 | Briefing | Mine the seams and defend your heart until dawn. | no: ProtectDungeonTemple checks survival; mining is not required |
 | Briefing | Then cross the lava bridge and destroy the rival heart. | no: enemy temple elimination is checked; bridge crossing is not an independent goal |
-Mario's explicit criterion for cinderhollow-o02: fully mine all 16 original finite gold fields x5..6/y55..58 and x30..33/y72..73. No deadline or first-wave failure applies; this approved criterion overrides the unchanged objective prose mentioning the first wave.
+Mario's explicit criterion for cinderhollow-o02: fully mine all 16 original finite gold fields x5..6/y55..58 and x30..33/y72..73. The approved objective text requires complete depletion of both finite veins; no deadline or first-wave failure applies.
 
 ## Coldwell
 
@@ -231,13 +211,13 @@ File: `levels/campaign/Dunmarrow.level`.
 | Script line 3883 | `Action	objectiveid	1	dunmarrow-o01	Kill Warden Ysolde Dunn before she escapes through the old shaft.` | yes |
 | Script line 3884 | `Action	objectiveid	1	dunmarrow-o02	Find the old tunnels under the dunes.` | yes |
 | Script line 3924 | `Action	objectiveid	1	dunmarrow-o03	Reach the camp before the wagons leave.` | yes |
-| Script line 4001 | `Action	win	1` | yes |
+| Script line 4025 | `Action	win	1` | yes |
 | Trigger `barrowsEntered` | `Action	objectivestate	1	dunmarrow-o02	reached`; conditions: `Cond	region	1	Barrows` | yes |
 | Trigger `wardenEscaped` | `Action	objectivestate	1	dunmarrow-o01	failed`; conditions: `Cond	reached	YsoldeDunn	region	ExitShaft` | yes |
-| Trigger `wardenCaught` | `Action	objectivestate	1	dunmarrow-o01	reached`; conditions: `Cond	event	YsoldeDunn	killed` | yes |
 | Trigger `goalCampBeforeLoading` | `Action	objectivestate	1	dunmarrow-o03	reached`; conditions: `Cond	flag	wagons	0; Cond	region	1	Camp` | yes |
 | Trigger `goalCampBeforeDeparture` | `Action	objectivestate	1	dunmarrow-o03	reached`; conditions: `Cond	flag	wagons	1; Cond	timer	wagonClock	<	900; Cond	region	1	Camp` | yes |
 | Trigger `goalCampMissed` | `Action	objectivestate	1	dunmarrow-o03	failed`; conditions: `Cond	trigger	wagonLeaves; Cond	flag	goalCampArrived	0` | yes |
+| Trigger `wardenCaught` | `Action	objectivestate	1	dunmarrow-o01	reached`; conditions: `Cond	event	YsoldeDunn	killed` | yes |
 | Briefing | Use the buried tunnels to reach her and kill her before she gets away. | no: enemy elimination/escape is checked; the route used is not a winning condition |
 
 ## Ebonrook
@@ -294,12 +274,12 @@ File: `levels/campaign/Greywater.level`.
 | Script line 2940 | `Action	objectiveid	1	greywater-o02	Mine 600 gold from the cave walls.` | yes |
 | Script line 2941 | `Action	objectiveid	1	greywater-o03	Keep your dungeon heart alive.` | yes |
 | Script line 2966 | `Action	objectiveid	1	greywater-o04	Cross the river and look at the besieged dungeon.` | yes |
-| Script line 3046 | `Action	win	1` | yes |
+| Script line 3052 | `Action	win	1` | yes |
 | Trigger `firstCoin` | `Action	objectivestate	1	greywater-o02	reached`; conditions: `Cond	mined	1	>=	600` | yes |
 | Trigger `siegeSeen` | `Action	objectivestate	1	greywater-o04	reached`; conditions: `Cond	region	1	Siege` | yes |
 | Trigger `goalHeartSafe3BeforeWardenFalls` | `Action	objectivestate	1	greywater-o03	reached`; conditions: `Cond	event	CorwinGray	killed; Cond	goalmet	1	ProtectDungeonTemple` | yes |
-| Trigger `wardenFalls` | `Action	objectivestate	1	greywater-o01	reached`; conditions: `Cond	event	CorwinGray	killed` | yes |
 | Trigger `goalHeartLost3` | `Action	objectivestate	1	greywater-o03	failed`; conditions: `Cond	room	1	DungeonTemple	==	0` | yes |
+| Trigger `wardenFalls` | `Action	objectivestate	1	greywater-o01	reached`; conditions: `Cond	event	CorwinGray	killed` | yes |
 | Briefing | Mine first and protect your heart, for those heroes may turn on you. | no: ProtectDungeonTemple checks the heart; mining is not a winning condition |
 | Briefing | Kill Gray in his river hall before Aurel's hopes become our burial. | yes: KillAllEnemies includes Gray |
 
@@ -316,16 +296,16 @@ File: `levels/campaign/Highcairn.level`.
 | Script line 2844 | `Action	objectiveid	1	highcairn-o03	Keep your heart standing against the cairn patrols.` | yes |
 | Script line 2892 | `Action	objectiveid	1	highcairn-o04	Break into the hold and strike down the warden.` | yes |
 | Script line 2908 | `Action	objectiveid	1	highcairn-o05	Bring the cairn spirit with the pale stone to your dungeon heart.` | yes |
-| Script line 3017 | `Action	win	1` | yes |
-| Script line 3049 | `Action	objectiveid	1	highcairn-o06	Take the key from the captain of the terrace watch to break the seal of the hold.` | yes |
+| Script line 3052 | `Action	win	1` | yes |
+| Script line 3084 | `Action	objectiveid	1	highcairn-o06	Take the key from the captain of the terrace watch to break the seal of the hold.` | yes |
 | Trigger `stoneHome` | `Action	objectivestate	1	highcairn-o05	reached`; conditions: `Cond	reached	CairnBearer	heart	1` | yes |
 | Trigger `stoneHome2` | `Action	objectivestate	1	highcairn-o05	reached`; conditions: `Cond	reached	CairnBearer2	heart	1` | yes |
 | Trigger `goalHeartSafe3BeforeWardenSlain` | `Action	objectivestate	1	highcairn-o03	reached`; conditions: `Cond	time	5; Cond	creatures	2	<=	0; Cond	goalmet	1	ProtectDungeonTemple` | yes |
+| Trigger `goalTerrace4` | `Action	objectivestate	1	highcairn-o02	reached`; conditions: `Cond	region	1	Terrace4; Cond	flag	goalTerrace3	1` | yes |
+| Trigger `goalHeartLost3` | `Action	objectivestate	1	highcairn-o03	failed`; conditions: `Cond	room	1	DungeonTemple	==	0` | yes |
 | Trigger `wardenSlain` | `Action	objectivestate	1	highcairn-o01	reached`; conditions: `Cond	time	5; Cond	creatures	2	<=	0` | yes |
 | Trigger `wardenSlain` | `Action	objectivestate	1	highcairn-o04	reached`; conditions: `Cond	time	5; Cond	creatures	2	<=	0` | yes |
 | Trigger `holdSealBreaks` | `Action	objectivestate	1	highcairn-o06	reached`; conditions: `Cond	time	5; Cond	alive	TerraceWatch8	0; Cond	flag	holdOpen	0` | yes |
-| Trigger `goalTerrace4` | `Action	objectivestate	1	highcairn-o02	reached`; conditions: `Cond	region	1	Terrace4; Cond	flag	goalTerrace3	1` | yes |
-| Trigger `goalHeartLost3` | `Action	objectivestate	1	highcairn-o03	failed`; conditions: `Cond	room	1	DungeonTemple	==	0` | yes |
 | Briefing | Build from your workers, guard your heart and ascend toward her mountain hold. | no: heart protection is checked; building and ascent are not independent goals |
 | Briefing | Kill the warden, and carry the cairn spirit's pale stone home if you discover its hidden hall. | no: enemy elimination is checked; carrying the optional stone is not required to win |
 
@@ -341,12 +321,12 @@ File: `levels/campaign/HollinFen.level`.
 | Script line 3425 | `Action	objectiveid	1	hollinfen-o02	Hold your heart against the convent patrols.` | yes |
 | Script line 3452 | `Action	objectiveid	1	hollinfen-o03	Break through the west gate of the convent ward.` | yes |
 | Script line 3461 | `Action	objectiveid	1	hollinfen-o04	Reach the chapel and strike down the warden.` | yes |
-| Script line 3564 | `Action	win	1` | yes |
+| Script line 3570 | `Action	win	1` | yes |
 | Trigger `wardEntered` | `Action	objectivestate	1	hollinfen-o03	reached`; conditions: `Cond	region	1	Ward` | yes |
 | Trigger `goalHeartSafe2BeforeWardenSlain` | `Action	objectivestate	1	hollinfen-o02	reached`; conditions: `Cond	time	5; Cond	creatures	2	<=	0; Cond	goalmet	1	ProtectDungeonTemple` | yes |
+| Trigger `goalHeartLost2` | `Action	objectivestate	1	hollinfen-o02	failed`; conditions: `Cond	room	1	DungeonTemple	==	0` | yes |
 | Trigger `wardenSlain` | `Action	objectivestate	1	hollinfen-o01	reached`; conditions: `Cond	time	5; Cond	creatures	2	<=	0` | yes |
 | Trigger `wardenSlain` | `Action	objectivestate	1	hollinfen-o04	reached`; conditions: `Cond	time	5; Cond	creatures	2	<=	0` | yes |
-| Trigger `goalHeartLost2` | `Action	objectivestate	1	hollinfen-o02	failed`; conditions: `Cond	room	1	DungeonTemple	==	0` | yes |
 | Briefing | Build your dungeon, hold your heart and break the convent ward to kill her in the chapel. | no: enemy elimination and heart protection are checked; building and breaking the ward are not independent goals |
 | Briefing | A pale stone behind a bricked hollow may reveal an optional trial if carried home. | no: optional stone discovery is not required to win |
 
@@ -360,11 +340,11 @@ File: `levels/campaign/HollowmarkCitadel.level`.
 | Script line 5673 | `Action	objectiveid	1	hollowmarkcitadel-o01	Kill High King Castellan on his throne.` | yes |
 | Script line 5674 | `Action	objectiveid	1	hollowmarkcitadel-o02	Break through the three courts; the upper gates are sealed and open when the towers of each court have fallen.` | yes |
 | Script line 5675 | `Action	objectiveid	1	hollowmarkcitadel-o03	Survive the heroes who will not stop coming.` | yes |
-| Script line 6070 | `Action	win	1` | yes |
+| Script line 6102 | `Action	win	1` | yes |
 | Trigger `goalHeartSafe3BeforeKingDead` | `Action	objectivestate	1	hollowmarkcitadel-o03	reached`; conditions: `Cond	time	5; Cond	alive	CastellanKing	0; Cond	goalmet	1	ProtectDungeonTemple` | yes |
-| Trigger `kingDead` | `Action	objectivestate	1	hollowmarkcitadel-o01	reached`; conditions: `Cond	time	5; Cond	alive	CastellanKing	0` | yes |
 | Trigger `goalCourt3` | `Action	objectivestate	1	hollowmarkcitadel-o02	reached`; conditions: `Cond	region	1	ThroneHall; Cond	flag	goalCourt2	1; Cond	flag	upperWest	1; Cond	flag	upperEast	1` | yes |
 | Trigger `goalHeartLost3` | `Action	objectivestate	1	hollowmarkcitadel-o03	failed`; conditions: `Cond	room	1	DungeonTemple	==	0` | yes |
+| Trigger `kingDead` | `Action	objectivestate	1	hollowmarkcitadel-o01	reached`; conditions: `Cond	time	5; Cond	alive	CastellanKing	0` | yes |
 | Briefing | Hold against the garrison, open the upper gates by the towers or their keys, and use the treasuries to sustain the assault. | no: gate routes and treasury use are not independent winning goals |
 | Briefing | Kill Castellan and claim the throne we promised at the beginning. | no: kingDead checks Castellan's death, not throne ownership |
 
@@ -380,15 +360,15 @@ File: `levels/campaign/Ironbridge.level`.
 | Script line 4237 | `Action	objectiveid	1	ironbridge-o02	Cross the three rifts by the bridges.` | yes |
 | Script line 4254 | `Action	objectiveid	1	ironbridge-o03	Cross the second rift.` | yes |
 | Script line 4275 | `Action	objectiveid	1	ironbridge-o04	Break through the gate of the rival hold.` | yes |
-| Script line 4361 | `Action	win	1` | yes |
-| Script line 4366 | `Cond	goal	1	KillAllEnemies` | yes |
-| Script line 4369 | `Action	win	1` | yes |
+| Script line 4529 | `Action	win	1` | yes |
+| Script line 4534 | `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 4537 | `Action	win	1` | yes |
 | Trigger `yardReached` | `Action	objectivestate	1	ironbridge-o03	reached`; conditions: `Cond	region	1	RollingYard` | yes |
-| Trigger `rivalFalls` | `Action	objectivestate	1	ironbridge-o01	reached`; conditions: `Cond	defeated	2` | yes |
-| Trigger `rivalHeartDown` | `Action	objectivestate	1	ironbridge-o01	reached`; conditions: `Cond	goal	1	KillAllEnemies` | yes |
 | Trigger `goalIronbridgeAllSpans` | `Action	objectivestate	1	ironbridge-o02	reached`; conditions: `Cond	flag	goalIronbridgeCross1	1; Cond	flag	goalIronbridgeCross2	1; Cond	flag	goalIronbridgeCross3	1` | yes |
 | Trigger `goalRivalGateNorth` | `Action	objectivestate	1	ironbridge-o04	reached`; conditions: `Cond	trapgone	DoorWooden8; Cond	region	1	94	26	94	26` | yes |
 | Trigger `goalRivalGateSouth` | `Action	objectivestate	1	ironbridge-o04	reached`; conditions: `Cond	trapgone	DoorWooden9; Cond	region	1	94	27	94	27` | yes |
+| Trigger `rivalFalls` | `Action	objectivestate	1	ironbridge-o01	reached`; conditions: `Cond	defeated	2` | yes |
+| Trigger `rivalHeartDown` | `Action	objectivestate	1	ironbridge-o01	reached`; conditions: `Cond	goal	1	KillAllEnemies` | yes |
 | Briefing | Build your strength and take the guarded stone bridges one by one. | no: building and bridge order are not independent goals |
 | Briefing | Destroy the rival heart in the north-east and deny Castellan this defence. | yes: KillAllEnemies includes the rival temple |
 
@@ -402,12 +382,12 @@ File: `levels/campaign/Kingsfall.level`.
 | Script line 3836 | `Action	objectiveid	1	kingsfall-o01	Capture or convert Falconer Edda, Huntsman Brann and Squire Wick. A champion who joins you is announced.` | yes |
 | Script line 3837 | `Action	objectiveid	1	kingsfall-o02	Defeat Prince Aurel and his court.` | yes |
 | Script line 3838 | `Action	objectiveid	1	kingsfall-o03	Keep an army of at least twelve creatures at your heart.` | yes |
-| Script line 4041 | `Action	win	1` | yes |
-| Script line 4096 | `Action	win	1` | yes |
+| Script line 4047 | `Action	win	1` | yes |
+| Script line 4102 | `Action	win	1` | yes |
+| Trigger `goalArmyAtHeart` | `Action	objectivestate	1	kingsfall-o03	reached`; conditions: `Cond	creaturesatheart	1	>=	12` | yes |
 | Trigger `courtTaken` | `Action	objectivestate	1	kingsfall-o02	reached`; conditions: `Cond	time	5; Cond	creatures	2	<=	0; Cond	creatures	1	>=	12` | yes |
 | Trigger `collectWin` | `Action	objectivestate	1	kingsfall-o01	reached`; conditions: `Cond	time	5; Cond	flag	champions	==	3; Cond	alive	PrinceAurel	0; Cond	creatures	1	>=	12` | yes |
 | Trigger `collectWin` | `Action	objectivestate	1	kingsfall-o02	reached`; conditions: `Cond	time	5; Cond	flag	champions	==	3; Cond	alive	PrinceAurel	0; Cond	creatures	1	>=	12` | yes |
-| Trigger `goalArmyAtHeart` | `Action	objectivestate	1	kingsfall-o03	reached`; conditions: `Cond	creaturesatheart	1	>=	12` | yes |
 | Briefing | Cross the watched lava spans and defeat Aurel and his court. | no: prince elimination is checked; crossing the watched spans is not independent |
 | Briefing | Capture or convert Falconer Edda, Huntsman Brann and Squire Wick, and keep at least twelve creatures at your heart. | no: collectWin checks all champions and twelve creatures, but courtTaken also wins without all three champions and neither checks their location at the heart |
 
@@ -422,14 +402,14 @@ File: `levels/campaign/Lanternhill.level`.
 | Script line 3066 | `Action	objectiveid	1	lanternhill-o01	Destroy the heart of the rival keeper in the north.` | yes |
 | Script line 3067 | `Action	objectiveid	1	lanternhill-o02	Dig through the earth plugs to open the ring road.` | yes |
 | Script line 3068 | `Action	objectiveid	1	lanternhill-o03	Hold your own heart against the hill patrols.` | yes |
-| Script line 3202 | `Action	win	1` | yes |
-| Script line 3207 | `Cond	goal	1	KillAllEnemies` | yes |
-| Script line 3214 | `Cond	goal	1	KillAllEnemies` | yes |
-| Script line 3217 | `Action	win	1` | yes |
+| Script line 3199 | `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 3215 | `Action	win	1` | yes |
+| Script line 3220 | `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 3223 | `Action	win	1` | yes |
 | Trigger `goalRingGroundPathOpened` | `Action	objectivestate	1	lanternhill-o02	reached`; conditions: `Cond	groundconnected	1	13	57	40	22` | yes |
 | Trigger `goalHeartSafe3BeforeRivalHeartDown` | `Action	objectivestate	1	lanternhill-o03	reached`; conditions: `Cond	goal	1	KillAllEnemies; Cond	goalmet	1	ProtectDungeonTemple` | yes |
-| Trigger `rivalHeartDown` | `Action	objectivestate	1	lanternhill-o01	reached`; conditions: `Cond	goal	1	KillAllEnemies` | yes |
 | Trigger `goalHeartLost3` | `Action	objectivestate	1	lanternhill-o03	failed`; conditions: `Cond	room	1	DungeonTemple	==	0` | yes |
+| Trigger `rivalHeartDown` | `Action	objectivestate	1	lanternhill-o01	reached`; conditions: `Cond	goal	1	KillAllEnemies` | yes |
 | Briefing | Mine the seams, dig through the ring road's earth plugs and withstand the kingdom's patrols. | no: mining and digging the plugs are not independent goals |
 | Briefing | Destroy the northern rival heart beneath Ines Vale's lamps. | yes: KillAllEnemies includes the northern rival temple |
 | Briefing | A pale stone hidden in the hill may reveal another optional trial when carried home. | no: optional stone discovery is not required to win |
@@ -480,12 +460,12 @@ File: `levels/campaign/Mossgate.level`.
 | Script line 739 | `Action	objectiveid	1	mossgate-o03	Claim the meadow cave west of the gate.` | yes |
 | Script line 749 | `Action	objectiveid	1	mossgate-o04	Defeat the watch post in the village yard.` | yes |
 | Script line 767 | `Action	objectiveid	1	mossgate-o05	Enter the hall and slay the reeve.` | yes |
-| Script line 791 | `Action	win	1` | yes |
+| Script line 799 | `Action	win	1` | yes |
 | Trigger `firstGold` | `Action	objectivestate	1	mossgate-o02	reached`; conditions: `Cond	mined	1	>=	60` | yes |
 | Trigger `meadowOurs` | `Action	objectivestate	1	mossgate-o03	reached`; conditions: `Cond	claimed	1	Meadow	18` | yes |
+| Trigger `goalWatchPostCleared` | `Action	objectivestate	1	mossgate-o04	reached`; conditions: `Cond	event	PostWatch1	killed; Cond	event	PostWatch2	killed; Cond	spawncleared	postStirs	1` | yes |
 | Trigger `reeveFalls` | `Action	objectivestate	1	mossgate-o01	reached`; conditions: `Cond	time	5; Cond	creatures	2	<=	0` | yes |
 | Trigger `reeveFalls` | `Action	objectivestate	1	mossgate-o05	reached`; conditions: `Cond	time	5; Cond	creatures	2	<=	0` | yes |
-| Trigger `goalWatchPostCleared` | `Action	objectivestate	1	mossgate-o04	reached`; conditions: `Cond	event	PostWatch1	killed; Cond	event	PostWatch2	killed; Cond	spawncleared	postStirs	1` | yes |
 | Briefing | Mine the soft walls and claim the meadow cave. | no: mining and meadow claiming are not winning conditions |
 | Briefing | Break the watch post and slay the reeve in his hall. | no: reeve elimination is checked; breaking the watch post separately is not |
 
@@ -502,12 +482,12 @@ File: `levels/campaign/Ravensledge.level`.
 | Script line 2206 | `Action	objectiveid	1	ravensledge-o03	Claim 80 tiles of the middle shelf.` | yes |
 | Script line 2214 | `Action	objectiveid	1	ravensledge-o04	Cross the upper chasm and break into the yard.` | yes |
 | Script line 2225 | `Action	objectiveid	1	ravensledge-o05	Break the inner gate to the keep.` | yes |
-| Script line 2263 | `Action	win	1` | yes |
+| Script line 2269 | `Action	win	1` | yes |
 | Trigger `shelfHeld` | `Action	objectivestate	1	ravensledge-o02	reached`; conditions: `Cond	claimed	1	Shelf	80` | yes |
 | Trigger `shelfHeld` | `Action	objectivestate	1	ravensledge-o03	reached`; conditions: `Cond	claimed	1	Shelf	80` | yes |
 | Trigger `yardEntered` | `Action	objectivestate	1	ravensledge-o04	reached`; conditions: `Cond	region	1	Yard` | yes |
-| Trigger `captainDown` | `Action	objectivestate	1	ravensledge-o01	reached`; conditions: `Cond	time	5; Cond	creatures	2	<=	0` | yes |
 | Trigger `goalInnerKeepEntered` | `Action	objectivestate	1	ravensledge-o05	reached`; conditions: `Cond	trapgone	DoorWooden1` | yes |
+| Trigger `captainDown` | `Action	objectivestate	1	ravensledge-o01	reached`; conditions: `Cond	time	5; Cond	creatures	2	<=	0` | yes |
 | Briefing | Secure your bridgeheads and climb shelf by shelf. | no: bridgeheads and shelf progression are not independent goals |
 | Briefing | Slay him in the highest keep and send Castellan another answer. | yes: KillAllEnemies includes Vane |
 
@@ -524,14 +504,14 @@ File: `levels/campaign/Saltmere.level`.
 | Script line 3088 | `Action	objectiveid	1	saltmere-o03	Keep your dungeon heart alive.` | yes |
 | Script line 3131 | `Action	objectiveid	1	saltmere-o04	Break open the gates of the port.` | yes |
 | Script line 3141 | `Action	objectiveid	1	saltmere-o05	Find the admiral in the harbour hall.` | yes |
-| Script line 3225 | `Action	win	1` | yes |
+| Script line 3231 | `Action	win	1` | yes |
 | Trigger `firstSalt` | `Action	objectivestate	1	saltmere-o02	reached`; conditions: `Cond	mined	1	>=	800` | yes |
 | Trigger `flatHeld` | `Action	objectivestate	1	saltmere-o04	reached`; conditions: `Cond	claimed	1	SouthFlat	50` | yes |
 | Trigger `portGatesTimeout` | `Action	objectivestate	1	saltmere-o04	reached`; conditions: `Cond	time	2400; Cond	flag	portGatesOpen	0` | yes |
 | Trigger `goalHeartSafe3BeforeAdmiralFalls` | `Action	objectivestate	1	saltmere-o03	reached`; conditions: `Cond	event	BramSeward	killed; Cond	goalmet	1	ProtectDungeonTemple` | yes |
+| Trigger `goalHeartLost3` | `Action	objectivestate	1	saltmere-o03	failed`; conditions: `Cond	room	1	DungeonTemple	==	0` | yes |
 | Trigger `admiralFalls` | `Action	objectivestate	1	saltmere-o01	reached`; conditions: `Cond	event	BramSeward	killed` | yes |
 | Trigger `admiralFalls` | `Action	objectivestate	1	saltmere-o05	reached`; conditions: `Cond	event	BramSeward	killed` | yes |
-| Trigger `goalHeartLost3` | `Action	objectivestate	1	saltmere-o03	failed`; conditions: `Cond	room	1	DungeonTemple	==	0` | yes |
 | Briefing | Mine the salt walls and cross the white flats and green lagoons to his southern harbour. | no: mining and the travel route are not independent goals |
 | Briefing | Protect your heart while the heroes threaten the sleeping keeper nearby as well. | yes: ProtectDungeonTemple |
 | Briefing | Kill Seward and answer Aurel's boast that no route reaches the inner realm. | yes: KillAllEnemies includes Seward |
@@ -547,11 +527,11 @@ File: `levels/campaign/Silverdeep.level`.
 | Script line 4539 | `Action	objectiveid	1	silverdeep-o01	Destroy the heart of every rival keeper.` | yes |
 | Script line 4540 | `Action	objectiveid	1	silverdeep-o02	Cross the three lakes by the wooden spans.` | yes |
 | Advisory hint line 4541 | `Action	hint	1	You have no gold: mine the silver first.` | not an objective; no state required |
-| Script line 4774 | `Action	win	1` | yes |
-| Script line 4779 | `Cond	goal	1	KillAllEnemies` | yes |
-| Script line 4782 | `Action	win	1` | yes |
-| Trigger `silverWonGoal` | `Action	objectivestate	1	silverdeep-o01	reached`; conditions: `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 4842 | `Action	win	1` | yes |
+| Script line 4847 | `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 4850 | `Action	win	1` | yes |
 | Trigger `goalSilverdeepAllSpans` | `Action	objectivestate	1	silverdeep-o02	reached`; conditions: `Cond	flag	goalSilverdeepCross1	1; Cond	flag	goalSilverdeepCross2	1; Cond	flag	goalSilverdeepCross3	1` | yes |
+| Trigger `silverWonGoal` | `Action	objectivestate	1	silverdeep-o01	reached`; conditions: `Cond	goal	1	KillAllEnemies` | yes |
 | Briefing | You arrive without gold, so mine first and build your force. | no: mining/building are not independent goals |
 | Briefing | Bridge three deep lakes with wooden spans and destroy all three rival hearts before their pacts overwhelm you. | no: enemy temples are checked; building exactly three wooden spans is not a winning condition |
 
@@ -578,16 +558,16 @@ File: `levels/campaign/Stormhaven.level`.
 | Script line 4025 | `Action	objectiveid	1	stormhaven-o01	Destroy the heart of every rival keeper.` | yes |
 | Script line 4026 | `Action	objectiveid	1	stormhaven-o02	Cross the inlet by the stone spans.` | yes |
 | Script line 4027 | `Action	objectiveid	1	stormhaven-o03	Do not let the keepers join their strength against you.` | yes |
-| Script line 4218 | `Action	win	1` | yes |
-| Script line 4223 | `Cond	goal	1	KillAllEnemies` | yes |
-| Script line 4226 | `Action	win	1` | yes |
+| Script line 4265 | `Action	win	1` | yes |
+| Script line 4270 | `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 4273 | `Action	win	1` | yes |
 | Trigger `goalPactFormedQuayEntered` | `Action	objectivestate	1	stormhaven-o03	failed`; conditions: `Cond	trigger	quayEntered; Cond	objective	1	stormhaven-o03	open` | yes |
 | Trigger `goalPactFormedDockEntered` | `Action	objectivestate	1	stormhaven-o03	failed`; conditions: `Cond	trigger	dockEntered; Cond	objective	1	stormhaven-o03	open` | yes |
 | Trigger `goalPactFormedTideTurns` | `Action	objectivestate	1	stormhaven-o03	failed`; conditions: `Cond	trigger	tideTurns; Cond	objective	1	stormhaven-o03	open` | yes |
 | Trigger `goalPactFormedTideTurns2` | `Action	objectivestate	1	stormhaven-o03	failed`; conditions: `Cond	trigger	tideTurns2; Cond	objective	1	stormhaven-o03	open` | yes |
 | Trigger `goalPactsPrevented` | `Action	objectivestate	1	stormhaven-o03	reached`; conditions: `Cond	goalmet	1	KillAllEnemies; Cond	trigger	quayEntered	0; Cond	trigger	dockEntered	0; Cond	trigger	tideTurns	0; Cond	trigger	tideTurns2	0` | yes |
-| Trigger `stormEndsGoal` | `Action	objectivestate	1	stormhaven-o01	reached`; conditions: `Cond	goal	1	KillAllEnemies` | yes |
 | Trigger `goalStormhavenBothSpans` | `Action	objectivestate	1	stormhaven-o02	reached`; conditions: `Cond	flag	goalStormhavenSpan1After	1; Cond	flag	goalStormhavenSpan2After	1` | yes |
+| Trigger `stormEndsGoal` | `Action	objectivestate	1	stormhaven-o01	reached`; conditions: `Cond	goal	1	KillAllEnemies` | yes |
 | Briefing | Control the stone spans and destroy every rival heart. | no: enemy temples are checked; stone-span control is not an independent goal |
 
 ## SwarmNight
@@ -599,7 +579,7 @@ File: `levels/campaign/SwarmNight.level`.
 | [Goals] | `ProtectDungeonTemple	NULL` | yes |
 | Script line 1483 | `Action	objectiveid	1	swarmnight-o01	Survive the swarm for thirteen minutes.` | yes |
 | Script line 1484 | `Action	objectiveid	1	swarmnight-o02	Keep your heart standing.` | yes |
-| Script line 1586 | `Action	win	1` | yes |
+| Script line 1599 | `Action	win	1` | yes |
 | Trigger `goalHeartSafe1BeforeDawn` | `Action	objectivestate	1	swarmnight-o01	reached`; conditions: `Cond	time	780; Cond	goalmet	1	ProtectDungeonTemple` | yes |
 | Trigger `goalHeartSafe2BeforeDawn` | `Action	objectivestate	1	swarmnight-o02	reached`; conditions: `Cond	time	780; Cond	goalmet	1	ProtectDungeonTemple` | yes |
 | Trigger `goalHeartLost1` | `Action	objectivestate	1	swarmnight-o01	failed`; conditions: `Cond	room	1	DungeonTemple	==	0` | yes |
@@ -618,13 +598,13 @@ File: `levels/campaign/Thornreach.level`.
 | Script line 5931 | `Action	objectiveid	1	thornreach-o01	Destroy every rival keeper.` | yes |
 | Advisory hint line 5932 | `Action	hint	1	Dig and burn a path through the thorn maze.` | not an objective; no state required |
 | Script line 5933 | `Action	objectiveid	1	thornreach-o03	Keep your heart alive while the keepers trade blows.` | yes |
-| Script line 6062 | `Action	win	1` | yes |
-| Script line 6067 | `Cond	goal	1	KillAllEnemies` | yes |
-| Script line 6074 | `Cond	goal	1	KillAllEnemies` | yes |
-| Script line 6077 | `Action	win	1` | yes |
+| Script line 6056 | `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 6075 | `Action	win	1` | yes |
+| Script line 6080 | `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 6083 | `Action	win	1` | yes |
 | Trigger `goalHeartSafe3BeforeKeepersGoneGoal` | `Action	objectivestate	1	thornreach-o03	reached`; conditions: `Cond	goal	1	KillAllEnemies; Cond	goalmet	1	ProtectDungeonTemple` | yes |
-| Trigger `keepersGoneGoal` | `Action	objectivestate	1	thornreach-o01	reached`; conditions: `Cond	goal	1	KillAllEnemies` | yes |
 | Trigger `goalHeartLost3` | `Action	objectivestate	1	thornreach-o03	failed`; conditions: `Cond	room	1	DungeonTemple	==	0` | yes |
+| Trigger `keepersGoneGoal` | `Action	objectivestate	1	thornreach-o01	reached`; conditions: `Cond	goal	1	KillAllEnemies` | yes |
 | Briefing | Take the middle clearing, cut through the maze and destroy every rival heart. | no: enemy temples are checked; clearing ownership and maze progression are not independent goals |
 
 ## Tinmoor
@@ -639,13 +619,13 @@ File: `levels/campaign/Tinmoor.level`.
 | Script line 1711 | `Action	objectiveid	1	tinmoor-o02	Mine 900 gold from the tin seams.` | yes |
 | Script line 1719 | `Action	objectiveid	1	tinmoor-o03	Break the lower watch post in the east gallery.` | yes |
 | Script line 1737 | `Action	objectiveid	1	tinmoor-o04	Break the upper watch post below the warden.` | yes |
-| Script line 1803 | `Action	win	1` | yes |
-| Script line 1809 | `Action	objectiveid	1	tinmoor-o05	Possess a creature and walk it through the seams to see where the miners dig.` | yes |
+| Script line 1819 | `Action	win	1` | yes |
+| Script line 1825 | `Action	objectiveid	1	tinmoor-o05	Possess a creature and walk it through the seams to see where the miners dig.` | yes |
 | Trigger `seamsFilled` | `Action	objectivestate	1	tinmoor-o02	reached`; conditions: `Cond	mined	1	>=	900` | yes |
-| Trigger `wardenDown` | `Action	objectivestate	1	tinmoor-o01	reached`; conditions: `Cond	time	5; Cond	creatures	2	<=	0` | yes |
-| Trigger `scoutSeams` | `Action	objectivestate	1	tinmoor-o05	reached`; conditions: `Cond	possessed	1	Seams` | yes |
 | Trigger `goalPostACleared` | `Action	objectivestate	1	tinmoor-o03	reached`; conditions: `Cond	event	PostAWatch1	killed; Cond	event	PostAWatch2	killed; Cond	spawncleared	postAEntered	1` | yes |
 | Trigger `goalPostBCleared` | `Action	objectivestate	1	tinmoor-o04	reached`; conditions: `Cond	event	PostBWatch1	killed; Cond	event	PostBWatch2	killed; Cond	spawncleared	postBEntered	1` | yes |
+| Trigger `wardenDown` | `Action	objectivestate	1	tinmoor-o01	reached`; conditions: `Cond	time	5; Cond	creatures	2	<=	0` | yes |
+| Trigger `scoutSeams` | `Action	objectivestate	1	tinmoor-o05	reached`; conditions: `Cond	possessed	1	Seams` | yes |
 | Briefing | Mine the seams, break both watch posts and kill her in the upper chamber. | no: enemy elimination is checked; seams and both posts are not independent goals |
 | Briefing | A sealed vault may hold a stone to carry home and reveal an optional trial. | no: optional stone discovery is not required to win |
 
@@ -672,14 +652,14 @@ File: `levels/campaign/VarnsCrossing.level`.
 | Script line 4448 | `Action	objectiveid	1	varnscrossing-o01	Destroy both rival keepers.` | yes |
 | Script line 4449 | `Action	objectiveid	1	varnscrossing-o02	Hold the keep and your heart against the stream of heroes.` | yes |
 | Script line 4450 | `Action	objectiveid	1	varnscrossing-o03	Claim your quarter, then take the lava-ringed fortress at the crossing.` | yes |
-| Script line 4760 | `Action	win	1` | yes |
-| Script line 4765 | `Cond	goal	1	KillAllEnemies` | yes |
-| Script line 4772 | `Cond	goal	1	KillAllEnemies` | yes |
-| Script line 4776 | `Action	win	1` | yes |
+| Script line 4755 | `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 4781 | `Action	win	1` | yes |
+| Script line 4786 | `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 4790 | `Action	win	1` | yes |
 | Trigger `goalHeartSafe2BeforeCrossingHeldGoal` | `Action	objectivestate	1	varnscrossing-o02	reached`; conditions: `Cond	goal	1	KillAllEnemies; Cond	goalmet	1	ProtectDungeonTemple` | yes |
-| Trigger `crossingHeldGoal` | `Action	objectivestate	1	varnscrossing-o01	reached`; conditions: `Cond	goal	1	KillAllEnemies` | yes |
 | Trigger `goalQuarterThenFortress` | `Action	objectivestate	1	varnscrossing-o03	reached`; conditions: `Cond	trigger	quarterHeld; Cond	region	1	Keep` | yes |
 | Trigger `goalHeartLost2` | `Action	objectivestate	1	varnscrossing-o02	failed`; conditions: `Cond	room	1	DungeonTemple	==	0` | yes |
+| Trigger `crossingHeldGoal` | `Action	objectivestate	1	varnscrossing-o01	reached`; conditions: `Cond	goal	1	KillAllEnemies` | yes |
 | Briefing | Claim your quarter, hold the fortress and protect your heart as you destroy both rival hearts. | no: heart protection and enemy temples are checked; quarter and fortress ownership are not independent goals |
 
 ## Wolfscar
@@ -693,15 +673,15 @@ File: `levels/campaign/Wolfscar.level`.
 | Script line 4645 | `Action	objectiveid	1	wolfscar-o01	Destroy the heart of every rival keeper.` | yes |
 | Script line 4646 | `Action	objectiveid	1	wolfscar-o02	Cross the south ravine by one of the stone bridges.` | yes |
 | Script line 4647 | `Action	objectiveid	1	wolfscar-o03	Keep your own heart alive.` | yes |
-| Script line 4767 | `Action	win	1` | yes |
-| Script line 4772 | `Cond	goal	1	KillAllEnemies` | yes |
-| Script line 4779 | `Cond	goal	1	KillAllEnemies` | yes |
-| Script line 4782 | `Action	win	1` | yes |
+| Script line 4761 | `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 4780 | `Action	win	1` | yes |
+| Script line 4785 | `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 4788 | `Action	win	1` | yes |
 | Trigger `southCrossed` | `Action	objectivestate	1	wolfscar-o02	reached`; conditions: `Cond	region	1	Midlow` | yes |
-| Trigger `huntersGone` | `Action	objectivestate	1	wolfscar-o01	reached`; conditions: `Cond	defeated	2; Cond	defeated	3; Cond	defeated	4; Cond	defeated	5` | yes |
 | Trigger `goalHeartSafe3BeforeHuntersGoneGoal` | `Action	objectivestate	1	wolfscar-o03	reached`; conditions: `Cond	goal	1	KillAllEnemies; Cond	goalmet	1	ProtectDungeonTemple` | yes |
-| Trigger `huntersGoneGoal` | `Action	objectivestate	1	wolfscar-o01	reached`; conditions: `Cond	goal	1	KillAllEnemies` | yes |
 | Trigger `goalHeartLost3` | `Action	objectivestate	1	wolfscar-o03	failed`; conditions: `Cond	room	1	DungeonTemple	==	0` | yes |
+| Trigger `huntersGone` | `Action	objectivestate	1	wolfscar-o01	reached`; conditions: `Cond	defeated	2; Cond	defeated	3; Cond	defeated	4; Cond	defeated	5` | yes |
+| Trigger `huntersGoneGoal` | `Action	objectivestate	1	wolfscar-o01	reached`; conditions: `Cond	goal	1	KillAllEnemies` | yes |
 | Briefing | Cross the stone bridges, seize the wolf den and destroy every rival heart while guarding your own. | no: enemy temples and own-heart protection are checked; wolf-den ownership and the route are not independent goals |
 
 ## Wraithwood
@@ -715,12 +695,12 @@ File: `levels/campaign/Wraithwood.level`.
 | Script line 4772 | `Action	objectiveid	1	wraithwood-o01	Destroy the heart of the witch-warden in the north-west.` | yes |
 | Script line 4773 | `Action	objectiveid	1	wraithwood-o02	Destroy the heart of the rival keeper in the north-east.` | yes |
 | Script line 4774 | `Action	objectiveid	1	wraithwood-o03	Hold your own heart against the heroes of the kingdom.` | yes |
-| Script line 4839 | `Action	win	1` | yes |
-| Script line 4844 | `Cond	goal	1	KillAllEnemies` | yes |
-| Script line 4851 | `Cond	goal	1	KillAllEnemies` | yes |
-| Script line 4855 | `Action	win	1` | yes |
+| Script line 4835 | `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 4852 | `Action	win	1` | yes |
+| Script line 4857 | `Cond	goal	1	KillAllEnemies` | yes |
+| Script line 4861 | `Action	win	1` | yes |
 | Trigger `goalHeartSafe3BeforeBothFallGoal` | `Action	objectivestate	1	wraithwood-o03	reached`; conditions: `Cond	goal	1	KillAllEnemies; Cond	goalmet	1	ProtectDungeonTemple` | yes |
+| Trigger `goalHeartLost3` | `Action	objectivestate	1	wraithwood-o03	failed`; conditions: `Cond	room	1	DungeonTemple	==	0` | yes |
 | Trigger `bothFallGoal` | `Action	objectivestate	1	wraithwood-o01	reached`; conditions: `Cond	goal	1	KillAllEnemies` | yes |
 | Trigger `bothFallGoal` | `Action	objectivestate	1	wraithwood-o02	reached`; conditions: `Cond	goal	1	KillAllEnemies` | yes |
-| Trigger `goalHeartLost3` | `Action	objectivestate	1	wraithwood-o03	failed`; conditions: `Cond	room	1	DungeonTemple	==	0` | yes |
 | Briefing | Defend against the kingdom's heroes and destroy both hearts. | yes: ProtectDungeonTemple and KillAllEnemies include both rival temples |

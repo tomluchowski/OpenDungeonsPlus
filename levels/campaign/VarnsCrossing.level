@@ -4750,6 +4750,27 @@ Action	message	1	A heavy column is on the road to the crossing.
 Action	spawn	4	7	47	1	Knight:5	Knight:5	Knight:5	Elf:5	Monk:5	Dwarf2:5	Adventurer:5
 [/Trigger]
 [Trigger]
+Name	goalHeartSafe2BeforeCrossingHeldGoal
+Mode	once
+Cond	goal	1	KillAllEnemies
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	1	varnscrossing-o02	reached
+[/Trigger]
+[Trigger]
+Name	goalQuarterThenFortress
+Mode	once
+Cond	trigger	quarterHeld
+Cond	region	1	Keep
+Action	objectivestate	1	varnscrossing-o03	reached
+[/Trigger]
+
+[Trigger]
+Name	goalHeartLost2
+Mode	once
+Cond	room	1	DungeonTemple	==	0
+Action	objectivestate	1	varnscrossing-o02	failed
+[/Trigger]
+[Trigger]
 Name	crossingHeld
 Mode	once
 Cond	time	5
@@ -4758,13 +4779,6 @@ Cond	creatures	3	<=	0
 Action	message	1	Both keepers lie dead and the great roads are quiet. Varn has lost his crossing.
 Action	discover	campaign/SwarmNight.level
 Action	win	1
-[/Trigger]
-[Trigger]
-Name	goalHeartSafe2BeforeCrossingHeldGoal
-Mode	once
-Cond	goal	1	KillAllEnemies
-Cond	goalmet	1	ProtectDungeonTemple
-Action	objectivestate	1	varnscrossing-o02	reached
 [/Trigger]
 [Trigger]
 Name	crossingHeldGoal
@@ -4799,18 +4813,4 @@ Action	portal	1	on
 Action	setflag	portalOn	1
 [/Trigger]
 
-[Trigger]
-Name	goalQuarterThenFortress
-Mode	once
-Cond	trigger	quarterHeld
-Cond	region	1	Keep
-Action	objectivestate	1	varnscrossing-o03	reached
-[/Trigger]
-
-[Trigger]
-Name	goalHeartLost2
-Mode	once
-Cond	room	1	DungeonTemple	==	0
-Action	objectivestate	1	varnscrossing-o02	failed
-[/Trigger]
 [/Triggers]
