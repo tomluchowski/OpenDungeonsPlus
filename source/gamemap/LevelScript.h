@@ -315,7 +315,6 @@ struct LevelScriptCondition
     std::string mName2;
 };
 
-//! \brief One action of a trigger. The fields that are used depend on the type.
 //! \brief One script action, with an optional stable ID for objective descriptions and state updates.
 struct LevelScriptAction
 {
@@ -454,7 +453,6 @@ struct LevelScriptSpawnObservation
     int32_t mDeathTempleSeat;
 };
 
-//! \brief The level script of a game map: the triggers, regions, flags and timers of a level.
 //! \brief Holds trigger definitions and saved runtime state, including identified objective states.
 class LevelScript
 {
@@ -501,7 +499,6 @@ public:
     //! \brief True only when a recorded actual death lies inside the named region.
     bool wasCreatureKilledInRegion(const std::string& creatureName, const std::string& regionName) const;
 
-    //! \brief True if the script holds nothing that a level file has to store.
     //! \brief True when neither script definitions nor persistent runtime state exist.
     inline bool isEmpty() const
     { return mTriggers.empty() && mFlags.empty() && mTimers.empty() && mEvents.empty() && mObjectiveStates.empty() && mSpawnObservations.empty() && mMinedGold.empty() && mCreatureDeathTiles.empty() && !mFreePossession && mPortalOff.empty() && mBlocked.empty() && mRegions.empty() && (mTimeLimitSeconds == TIME_LIMIT_NOT_SET) && (mCountdownSeconds == COUNTDOWN_NOT_SET) && (mWaveCountdownSeconds == COUNTDOWN_NOT_SET) && mOrders.empty() && mSlaps.empty() && (mSlapLimit < 0) && mStoneCarriers.empty(); }

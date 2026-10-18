@@ -1286,7 +1286,6 @@ void removeCreature(GameMap& gameMap, const std::string& name)
     creature->deleteYourself();
 }
 
-//! \brief Carries out one action of a trigger that fired.
 //! \brief Executes a script action, including explicit presentation updates for identified goals.
 void runAction(GameMap& gameMap, LevelScript& script, const LevelScriptAction& action,
     const std::string& sourceTrigger, int64_t sourceAction)

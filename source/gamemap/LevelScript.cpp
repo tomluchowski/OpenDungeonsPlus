@@ -159,7 +159,6 @@ bool parseOrderJob(const std::string& job)
 bool parseObjectiveState(const std::string& text, LevelScriptObjectiveState& state);
 
 //! \brief Parses gameplay conditions and read-only goal presentation predicates.
-//! \brief Reads a Cond line.
 //! \param t The tokens of the line, t[0] is "Cond".
 //! \param cond The condition to fill.
 //! \return False if the line is malformed.
@@ -581,7 +580,6 @@ bool parseObjectiveState(const std::string& text, LevelScriptObjectiveState& sta
 }
 
 //! \brief Parses one action, retaining legacy objective text and explicit ID/state variants.
-//! \brief Reads an Action line.
 //! \param line The whole line (a message keeps its spaces).
 //! \param t The tokens of the line, t[0] is "Action".
 //! \param action The action to fill.
@@ -897,7 +895,6 @@ bool parseAction(const std::string& line, const std::vector<std::string>& t, Lev
     return false;
 }
 
-//! \brief Writes a condition as one Cond line.
 //! \brief Writes gameplay and presentation condition syntax without changing legacy meanings.
 void writeCondition(std::ostream& os, const LevelScriptCondition& c)
 {
@@ -1103,7 +1100,6 @@ void writeCondition(std::ostream& os, const LevelScriptCondition& c)
     os << "\n";
 }
 
-//! \brief Writes an action as one Action line.
 //! \brief Serializes an action without changing legacy objective text syntax.
 void writeAction(std::ostream& os, const LevelScriptAction& a)
 {

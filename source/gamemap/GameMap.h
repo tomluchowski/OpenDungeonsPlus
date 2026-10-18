@@ -298,7 +298,6 @@ public:
     inline Seat* getSeatRogue() const
     { return getSeatById(0); }
 
-    //! \brief Marks the seat as a winner once. A human player is told, the debriefing numbers are sent and a campaign level is completed.
     //! \brief Records victory once, saves campaign progress and notifies the winning human seat.
     void addWinningSeat(Seat *s);
     bool seatIsAWinner(Seat *s) const;
