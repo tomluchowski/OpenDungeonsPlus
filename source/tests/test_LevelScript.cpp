@@ -26,6 +26,56 @@
 #include <sstream>
 #include <string>
 
+//! \brief Keeps exact ground endpoints and room footprints stable through parsing and saving.
+BOOST_AUTO_TEST_CASE(exact_ground_and_room_footprint_condition_round_trip)
+{
+    const std::string text =
+        "[Trigger]\nName exactDisplay\nMode once\n"
+        "Cond groundconnected 1 13 57 40 22\n"
+        "Cond roomclaimed 1 44 106 47 107\n"
+        "Action objectivestate 1 task reached\n[/Trigger]\n[/Triggers]\n";
+    LevelScript script;
+    std::istringstream input(text);
+    BOOST_REQUIRE(script.importFromStream(input));
+    const std::vector<LevelScriptCondition>& conditions = script.getTriggers()[0].mConditions;
+    BOOST_REQUIRE_EQUAL(conditions.size(), 2);
+    BOOST_CHECK(conditions[0].mType == LevelScriptConditionType::groundConnected);
+    BOOST_CHECK_EQUAL(conditions[0].mX1, 13);
+    BOOST_CHECK_EQUAL(conditions[0].mY1, 57);
+    BOOST_CHECK_EQUAL(conditions[0].mX2, 40);
+    BOOST_CHECK_EQUAL(conditions[0].mY2, 22);
+    BOOST_CHECK(conditions[1].mType == LevelScriptConditionType::roomFootprintClaimed);
+    BOOST_CHECK_EQUAL(conditions[1].mX1, 44);
+    BOOST_CHECK_EQUAL(conditions[1].mY1, 106);
+    BOOST_CHECK_EQUAL(conditions[1].mX2, 47);
+    BOOST_CHECK_EQUAL(conditions[1].mY2, 107);
+    std::ostringstream output;
+    script.exportToStream(output);
+    LevelScript loaded;
+    std::istringstream saved(output.str().substr(output.str().find('\n') + 1));
+    BOOST_REQUIRE(loaded.importFromStream(saved));
+    std::ostringstream again;
+    loaded.exportToStream(again);
+    BOOST_CHECK_EQUAL(output.str(), again.str());
+}
+
+//! \brief Rejects missing or negative ground coordinates and room-mask seats.
+BOOST_AUTO_TEST_CASE(invalid_ground_and_room_footprint_conditions)
+{
+    const char* conditions[] = {
+        "Cond groundconnected 1 13 57 40", "Cond groundconnected 1 -1 57 40 22",
+        "Cond groundconnected -1 13 57 40 22", "Cond roomclaimed 1 44 106 47",
+        "Cond roomclaimed 1 44 106 47 -1", "Cond roomclaimed -1 44 106 47 107"
+    };
+    for(const char* condition : conditions)
+    {
+        LevelScript script;
+        std::istringstream input(std::string("[Trigger]\nName invalid\nMode once\n") +
+            condition + "\nAction hint 1 text\n[/Trigger]\n[/Triggers]\n");
+        BOOST_CHECK(!script.importFromStream(input));
+    }
+}
+
 //! \brief Preserves exact regional gold credits and actual named death locations through save/load.
 BOOST_AUTO_TEST_CASE(regional_mining_and_death_position_history)
 {

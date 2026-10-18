@@ -283,6 +283,17 @@ bool parseCondition(const std::vector<std::string>& t, LevelScriptCondition& con
 
         return parseInt32(t[2], cond.mSeatId) && parseInt(t[4], cond.mNumber);
     }
+    if(type == "groundconnected" || type == "roomclaimed")
+    {
+        if(t.size() != 7 || !parseInt32(t[2], cond.mSeatId) || cond.mSeatId < 0 ||
+           !parseInt32(t[3], cond.mX1) || cond.mX1 < 0 || !parseInt32(t[4], cond.mY1) || cond.mY1 < 0 ||
+           !parseInt32(t[5], cond.mX2) || cond.mX2 < 0 || !parseInt32(t[6], cond.mY2) || cond.mY2 < 0)
+            return false;
+        cond.mType = LevelScriptConditionType::groundConnected;
+        if(type == "roomclaimed")
+            cond.mType = LevelScriptConditionType::roomFootprintClaimed;
+        return true;
+    }
     if(type == "minedregion")
     {
         if(t.size() != 6 || !parseInt32(t[2], cond.mSeatId) || cond.mSeatId < 0 ||
@@ -1000,6 +1011,12 @@ void writeCondition(std::ostream& os, const LevelScriptCondition& c)
             break;
         case LevelScriptConditionType::trapGone:
             os << "trapgone\t" << c.mName;
+            break;
+        case LevelScriptConditionType::groundConnected:
+            os << "groundconnected\t" << c.mSeatId << "\t" << c.mX1 << "\t" << c.mY1 << "\t" << c.mX2 << "\t" << c.mY2;
+            break;
+        case LevelScriptConditionType::roomFootprintClaimed:
+            os << "roomclaimed\t" << c.mSeatId << "\t" << c.mX1 << "\t" << c.mY1 << "\t" << c.mX2 << "\t" << c.mY2;
             break;
         case LevelScriptConditionType::minedInRegion:
             os << "minedregion\t" << c.mSeatId << "\t" << c.mName << "\t"

@@ -104,6 +104,8 @@
 //!   Cond    spawncleared <trigger> <actionIndex> [atheart <seatId>]   # every actual spawn instance was killed, optionally on the seat's exact temple tiles
 //!   Cond    minedregion <seatId> <region> <op> <goldAmount>   # actual credited mining gold from tiles of that region
 //!   Cond    killedin <creatureName> <region>   # actual recorded death position is within that region
+//!   Cond    groundconnected <seatId> <x1> <y1> <x2> <y2>   # actual dry worker-walkable connection; never assumes digging
+//!   Cond    roomclaimed <seatId> <x1> <y1> <x2> <y2>   # every fixed footprint tile is open, fully claimed and in a room owned by the seat
 //!   Cond    creaturesatheart <seatId> <op> <count>   # own living creatures on tiles of the seat's dungeon temple
 //!   Cond    flag <name> <value>               # flag has exactly that value
 //!   Cond    flag <name> <op> <value>          # op is == != < <= > >=; value may be @<otherFlag>
@@ -221,7 +223,9 @@ enum class LevelScriptConditionType
     trapGone,
     spawnCleared,
     minedInRegion,
-    killedInRegion
+    killedInRegion,
+    groundConnected,
+    roomFootprintClaimed
 };
 
 //! \brief Explicit presentation state of one identified script objective.

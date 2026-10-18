@@ -38,12 +38,14 @@
 #include "network/ServerNotification.h"
 #include "ODApplication.h"
 #include "rooms/Room.h"
+#include "rooms/FencedRoom.h"
 #include "rooms/RoomManager.h"
 #include "rooms/RoomType.h"
 #include "spells/Spell.h"
 #include "spells/SpellCallToWar.h"
 #include "spells/SpellType.h"
 #include "traps/Trap.h"
+#include "traps/TrapDoor.h"
 #include "traps/TrapManager.h"
 #include "traps/TrapType.h"
 #include "utils/ConfigManager.h"
@@ -54,6 +56,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <list>
+#include <set>
 #include <vector>
 
 namespace
@@ -137,6 +140,65 @@ bool isTileOfKind(const Tile* tile, const std::string& kind)
 bool isClassMatching(const Creature* creature, const std::string& className)
 {
     return className.empty() || (creature->getDefinition()->getClassName() == className);
+}
+
+//! Presentation-only ground checks use actual built surfaces rather than diggable-path heuristics.
+//! \brief Checks an open dry surface, physical doors and arena fences without requiring any living creature.
+bool isDryGroundPassable(Seat* seat, Tile* start, Tile* tile)
+{
+    if(seat == nullptr || tile == nullptr || tile->getFullness() != 0.0)
+        return false;
+    if((tile->getType() == TileType::water || tile->getType() == TileType::lava) && !tile->getHasBridge())
+        return false;
+    Trap* trap = tile->getCoveringTrap();
+    if(trap != nullptr && trap->isDoor())
+    {
+        if(trap->appearsAsWallForSeat(tile, seat) || !static_cast<TrapDoor*>(trap)->isGroundPassageOpen(tile))
+            return false;
+    }
+    Room* room = tile->getCoveringRoom();
+    if(room != nullptr)
+    {
+        if(room->getType() == RoomType::arena)
+        {
+            const std::vector<Tile*>& interior = static_cast<FencedRoom*>(room)->getActualRoomTiles();
+            if(std::find(interior.begin(), interior.end(), tile) != interior.end() &&
+               std::find(interior.begin(), interior.end(), start) == interior.end())
+                return false;
+        }
+        return true;
+    }
+    // These are the ordinary dry surfaces accepted by Tile::getCreatureSpeedDefault.
+    return tile->getType() == TileType::dirt || tile->getType() == TileType::gold ||
+        tile->getType() == TileType::rock || tile->getType() == TileType::manaWell;
+}
+
+//! \brief Finds actual cardinal ground connectivity; no digging, damage, swimming or flying is assumed.
+bool areGroundPointsConnected(GameMap& gameMap, const LevelScriptCondition& cond)
+{
+    Seat* seat = gameMap.getSeatById(cond.mSeatId);
+    Tile* start = gameMap.getTile(cond.mX1, cond.mY1);
+    Tile* end = gameMap.getTile(cond.mX2, cond.mY2);
+    if(!isDryGroundPassable(seat, start, start) || !isDryGroundPassable(seat, start, end))
+        return false;
+    std::set<Tile*> visited;
+    std::vector<Tile*> pending;
+    visited.insert(start);
+    pending.push_back(start);
+    for(size_t index = 0; index < pending.size(); ++index)
+    {
+        Tile* tile = pending[index];
+        if(tile == end)
+            return true;
+        for(Tile* neighbor : tile->getAllNeighbors())
+        {
+            if(visited.count(neighbor) != 0 || !isDryGroundPassable(seat, start, neighbor))
+                continue;
+            visited.insert(neighbor);
+            pending.push_back(neighbor);
+        }
+    }
+    return false;
 }
 
 //! \brief Evaluates one condition of a trigger against the game state.
@@ -228,6 +290,28 @@ bool isConditionMet(GameMap& gameMap, const LevelScript& script, const LevelScri
         }
         case LevelScriptConditionType::objectiveState:
             return static_cast<int64_t>(script.getObjectiveState(cond.mSeatId, cond.mName)) == cond.mNumber;
+        case LevelScriptConditionType::groundConnected:
+            return areGroundPointsConnected(gameMap, cond);
+        case LevelScriptConditionType::roomFootprintClaimed:
+        {
+            Seat* seat = gameMap.getSeatById(cond.mSeatId);
+            if(seat == nullptr)
+                return false;
+            for(int32_t x = std::min(cond.mX1, cond.mX2); x <= std::max(cond.mX1, cond.mX2); ++x)
+            {
+                for(int32_t y = std::min(cond.mY1, cond.mY2); y <= std::max(cond.mY1, cond.mY2); ++y)
+                {
+                    Tile* tile = gameMap.getTile(x, y);
+                    if(tile == nullptr || tile->getFullness() != 0.0 || tile->getSeat() != seat ||
+                       tile->getClaimedPercentage() < 1.0 || !tile->isClaimedForSeat(seat))
+                        return false;
+                    Room* room = tile->getCoveringRoom();
+                    if(room == nullptr || room->getSeat() != seat)
+                        return false;
+                }
+            }
+            return true;
+        }
         case LevelScriptConditionType::trapGone:
             return gameMap.getTrapByName(cond.mName) == nullptr;
         case LevelScriptConditionType::minedInRegion:
