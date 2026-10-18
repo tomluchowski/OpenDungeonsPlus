@@ -58,17 +58,18 @@
                 </Window>
                 <Window type="OD/StaticText" name="BriefingText" >
                     <Property name="VertScrollbar" value="True" />
-                    <Property name="Area" value="{{0,16},{0,392},{0.5,-8},{1,-72}}" />
+                    <Property name="Area" value="{{0,16},{0,392},{0.4,-8},{1,-72}}" />
                     <Property name="FrameEnabled" value="False" />
                     <Property name="BackgroundEnabled" value="False" />
                     <Property name="HorzFormatting" value="WordWrapLeftAligned" />
                     <Property name="VertFormatting" value="TopAligned" />
                 </Window>
                 <Window type="OD/StaticText" name="BriefingGoals" >
-                    <Property name="Area" value="{{0.5,8},{0,392},{1,-16},{1,-72}}" />
+                    <Property name="Area" value="{{0.4,8},{0,392},{1,-16},{1,-72}}" />
                     <Property name="Text" value="Goals:" />
                     <Property name="Visible" value="False" />
-                    <Property name="VertScrollbar" value="True" />
+                    <Property name="VertScrollbar" value="False" />
+                    <Property name="Font" value="MedievalSharp-8" />
                     <Property name="FrameEnabled" value="False" />
                     <Property name="BackgroundEnabled" value="False" />
                     <Property name="HorzFormatting" value="WordWrapLeftAligned" />

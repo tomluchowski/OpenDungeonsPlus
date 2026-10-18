@@ -111,8 +111,10 @@ def briefing_layout_errors(layout, mode, gui):
     if properties["BriefingImage"].get("AspectMode") != "Shrink" or abs(
             float(properties["BriefingImage"].get("AspectRatio", "0")) - 16 / 9) > 0.000001:
         errors.append("briefing preview must preserve its 16:9 aspect ratio")
-    if any(properties[name].get("VertScrollbar") != "True" for name in ("BriefingText", "BriefingGoals")):
-        errors.append("briefing story and goals must remain scrollable")
+    if properties["BriefingText"].get("VertScrollbar") != "True":
+        errors.append("briefing story must remain scrollable")
+    if properties["BriefingGoals"].get("VertScrollbar") != "False":
+        errors.append("briefing goals must fit without scrolling")
     helper = mode.split("void MenuModeCampaign::setBriefingPreviewVisible", 1)[-1].split(
         "void MenuModeCampaign::hideBriefing", 1)[0]
     if helper.count("gui.setScaledArea(") != 4 or 'setProperty("Area"' in helper:
@@ -121,7 +123,7 @@ def briefing_layout_errors(layout, mode, gui):
         errors.append("briefing scaling must retain registered design areas")
     if any(reference not in mode for reference in ("Goals::loadGoalFromStream", "goal->getDescription(player)",
                                                     "script.importFromStream(level)", "LevelScriptActionType::objective",
-                                                    "action.mObjectiveId", 'descriptions += "\\n\\nOpen"')):
+                                                     'descriptions += "\\n- " + action.mText')):
         errors.append("briefing must read actual goal descriptions and parsed script objectives")
     number = r"-?\d+(?:\.\d+)?"
     areas = {name: [float(value) for value in re.findall(number, properties[name]["Area"])] for name in required}
@@ -162,6 +164,61 @@ def briefing_layout_errors(layout, mode, gui):
     return errors
 
 
+# Measure every campaign goal with the shipped font at the supported minimum and full-HD sizes.
+def compact_goal_fit_errors(root):
+    from PIL import ImageFont
+    import math
+    errors = []
+    layout = ET.fromstring((root / "gui/MenuCampaign.layout").read_text(encoding="utf-8"))
+    hud = ET.fromstring((root / "gui/WindowObjectives.layout").read_text(encoding="utf-8"))
+    properties = {}
+    for tree, name in ((layout, "BriefingGoals"), (hud, "ObjectivesText")):
+        window = tree.find(".//Window[@name='%s']" % name)
+        properties[name] = {p.get("name"): p.get("value") for p in window.findall("Property")}
+        if properties[name].get("VertScrollbar") != "False":
+            errors.append(name + " must not require scrolling")
+    mode = (root / "source/modes/MenuModeCampaign.cpp").read_text(encoding="utf-8")
+    rectangle = re.search(r"CEGUI::URect BRIEFING_PREVIEW_GOALS_AREA\((.*?)\);", mode, re.S)
+    area = [float(n) for n in re.findall(r"-?\d+(?:\.\d+)?", rectangle[1])]
+    descriptions = {}
+    for kind in ("KillAllEnemies", "ProtectDungeonTemple"):
+        text = (root / ("source/goals/Goal" + kind + ".cpp")).read_text(encoding="utf-8")
+        descriptions[kind] = re.search(r"getDescription\([^)]*\)\s*\{\s*return \"([^\"]+)\";", text)[1]
+    for entry in read_levels((root / "levels/campaign/Campaign.cfg").read_text(encoding="utf-8")):
+        text = (root / "levels" / entry["File"]).read_text(encoding="utf-8")
+        classic = [descriptions[row.split()[0]] for row in text.split("[Goals]", 1)[1].split("[/Goals]", 1)[0].splitlines() if row.strip() and not row.lstrip().startswith("#")]
+        objectives = [row.split(None, 4)[4] for row in text.splitlines() if row.startswith("Action\tobjectiveid\t")]
+        hints = [row.split(None, 3)[3] for row in text.splitlines() if row.startswith("Action\thint\t")]
+        if any(len(label) > 60 for label in objectives + hints):
+            errors.append(entry["File"] + ": objective is longer than 60 characters")
+        for width, height in ((1280, 720), (1920, 1080)):
+            scale = min(width / 1024, height / 768)
+            font_scale = min(width / 800, height / 600)
+            goals_rect = scaled_rectangle(area, (672 * scale, 704 * scale), scale)
+            for name, lines, available in (
+                ("BriefingGoals", ["Goals:"] + ["- " + t for t in classic + objectives] + ["Hint: " + t for t in hints],
+                 (goals_rect[2] - goals_rect[0] - 12 * scale, goals_rect[3] - goals_rect[1] - 12 * scale)),
+                ("ObjectivesText", ["Victory!"] + ["Failed: " + t for t in classic + objectives] + ["Hint: " + t for t in hints],
+                 (548 * scale, 370 * scale))):
+                font_name = properties[name]["Font"]
+                definition = ET.parse(root / ("gui/fonts/" + font_name + ".font")).getroot()
+                font = ImageFont.truetype(str(root / "gui/fonts" / definition.get("filename")), math.ceil(float(definition.get("size")) * 96 / 72 * font_scale))
+                rows = 0
+                for line in lines:
+                    current = ""
+                    for word in line.split():
+                        candidate = (current + " " + word).strip()
+                        if font.getlength(candidate) > available[0] and current:
+                            rows += 1
+                            current = word
+                        else:
+                            current = candidate
+                    rows += 1
+                if rows * sum(font.getmetrics()) > available[1]:
+                    errors.append("%s: %s overflows at %dx%d (%d rows)" % (entry["File"], name, width, height, rows))
+    return errors
+
+
 # Validate every configured preview and the briefing image window.
 def check_repository(root):
     failures = []
@@ -188,6 +245,7 @@ def check_repository(root):
     if not any(window.get("name") == "BriefingImage" and window.get("type") == "OD/StaticImage"
                for window in layout.iter("Window")):
         failures.append("layout is missing the OD/StaticImage BriefingImage window")
+    failures.extend(compact_goal_fit_errors(root))
     failures.extend(briefing_layout_errors(layout,
         (root / "source/modes/MenuModeCampaign.cpp").read_text(encoding="utf-8"),
         (root / "source/render/Gui.cpp").read_text(encoding="utf-8")))
@@ -226,15 +284,15 @@ def self_test():
     mode = (root / "source/modes/MenuModeCampaign.cpp").read_text(encoding="utf-8")
     gui = (root / "source/render/Gui.cpp").read_text(encoding="utf-8")
     assert not briefing_layout_errors(ET.fromstring(layout_text), mode, gui)
-    overlap = layout_text.replace("{{0.5,8},{0,392},{1,-16},{1,-72}}", "{{0,16},{0,392},{1,-16},{1,-72}}")
+    overlap = layout_text.replace("{{0.4,8},{0,392},{1,-16},{1,-72}}", "{{0,16},{0,392},{1,-16},{1,-72}}")
     assert briefing_layout_errors(ET.fromstring(overlap), mode, gui), "overlapping goals accepted"
     distortion = layout_text.replace('name="AspectRatio" value="1.77777778"', 'name="AspectRatio" value="1"')
     assert briefing_layout_errors(ET.fromstring(distortion), mode, gui), "distorted image accepted"
-    missing_id = mode.replace("action.mObjectiveId", "action.mText")
-    assert briefing_layout_errors(ET.fromstring(layout_text), missing_id, gui), "missing script objective IDs accepted"
+    missing_objectives = mode.replace("LevelScriptActionType::objective", "LevelScriptActionType::message")
+    assert briefing_layout_errors(ET.fromstring(layout_text), missing_objectives, gui), "missing script objectives accepted"
     unscaled = mode.replace("gui.setScaledArea(", "window->setArea(")
     assert briefing_layout_errors(ET.fromstring(layout_text), unscaled, gui), "unscaled runtime area accepted"
-    runtime_overlap = mode.replace("CEGUI::UDim(0.5f, -8)", "CEGUI::UDim(1, -16)")
+    runtime_overlap = mode.replace("CEGUI::UDim(0.4f, -8)", "CEGUI::UDim(1, -16)")
     assert briefing_layout_errors(ET.fromstring(layout_text), runtime_overlap, gui), "overlapping runtime story accepted"
     print("campaign preview checker self-tests passed")
 
