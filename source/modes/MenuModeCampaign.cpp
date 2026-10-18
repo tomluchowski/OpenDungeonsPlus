@@ -195,7 +195,7 @@ bool readBriefingGoals(const std::string& path, std::string& descriptions)
         std::unique_ptr<Goal> goal = Goals::loadGoalFromStream(token, level);
         if(goal == nullptr)
             return false;
-        descriptions += "\n- " + goal->getDescription(player);
+        descriptions += "\n[image='GoalStatus/Open'] " + goal->getDescription(player);
     }
     if(token != "[/Goals]")
         return false;
@@ -219,7 +219,7 @@ bool readBriefingGoals(const std::string& path, std::string& descriptions)
                     descriptions += "\nHint: " + action.mText;
                     continue;
                 }
-                descriptions += "\n- " + action.mText;
+                descriptions += "\n[image='GoalStatus/Open'] " + action.mText;
             }
         }
         break;

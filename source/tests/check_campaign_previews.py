@@ -123,7 +123,7 @@ def briefing_layout_errors(layout, mode, gui):
         errors.append("briefing scaling must retain registered design areas")
     if any(reference not in mode for reference in ("Goals::loadGoalFromStream", "goal->getDescription(player)",
                                                     "script.importFromStream(level)", "LevelScriptActionType::objective",
-                                                     'descriptions += "\\n- " + action.mText')):
+                                                     'descriptions += "\\n[image=\'GoalStatus/Open\'] " + action.mText')):
         errors.append("briefing must read actual goal descriptions and parsed script objectives")
     number = r"-?\d+(?:\.\d+)?"
     areas = {name: [float(value) for value in re.findall(number, properties[name]["Area"])] for name in required}
@@ -196,26 +196,29 @@ def compact_goal_fit_errors(root):
             font_scale = min(width / 800, height / 600)
             goals_rect = scaled_rectangle(area, (672 * scale, 704 * scale), scale)
             for name, lines, available in (
-                ("BriefingGoals", ["Goals:"] + ["- " + t for t in classic + objectives] + ["Hint: " + t for t in hints],
+                ("BriefingGoals", [(0, "Goals:")] + [(20 * scale, t) for t in classic + objectives] + [(0, "Hint: " + t) for t in hints],
                  (goals_rect[2] - goals_rect[0] - 12 * scale, goals_rect[3] - goals_rect[1] - 12 * scale)),
-                ("ObjectivesText", ["Victory!"] + ["Failed: " + t for t in classic + objectives] + ["Hint: " + t for t in hints],
+                ("ObjectivesText", [(0, "Victory!")] + [(20 * scale, t) for t in classic + objectives] + [(0, "Hint: " + t) for t in hints],
                  (548 * scale, 370 * scale))):
                 font_name = properties[name]["Font"]
                 definition = ET.parse(root / ("gui/fonts/" + font_name + ".font")).getroot()
                 font = ImageFont.truetype(str(root / "gui/fonts" / definition.get("filename")), math.ceil(float(definition.get("size")) * 96 / 72 * font_scale))
-                rows = 0
-                for line in lines:
+                used_height = 0
+                for icon_width, line in lines:
+                    rows = 1
                     current = ""
                     for word in line.split():
                         candidate = (current + " " + word).strip()
-                        if font.getlength(candidate) > available[0] and current:
+                        first_icon = icon_width + font.getlength(" ") if rows == 1 and icon_width else 0
+                        if font.getlength(candidate) + first_icon > available[0] and current:
                             rows += 1
                             current = word
                         else:
                             current = candidate
-                    rows += 1
-                if rows * sum(font.getmetrics()) > available[1]:
-                    errors.append("%s: %s overflows at %dx%d (%d rows)" % (entry["File"], name, width, height, rows))
+                    line_height = sum(font.getmetrics())
+                    used_height += max(line_height, icon_width) + (rows - 1) * line_height
+                if used_height > available[1]:
+                    errors.append("%s: %s overflows at %dx%d" % (entry["File"], name, width, height))
     return errors
 
 
