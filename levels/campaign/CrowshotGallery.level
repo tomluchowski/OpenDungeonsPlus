@@ -942,7 +942,7 @@ Name	openingRound
 Mode	once
 Cond	time	3
 Action	message	1	A gallery above a lava lake was built for shooting at winged targets, and the hornets that nest on its islets have made it a real hunt. Possess one of your shooters and bring them down.
-Action	objectiveid	1	crowshotgallery-o01	Shoot down every hornet over the lava lake before time runs out.
+Action	objectiveid	1	crowshotgallery-o01	Shoot every hornet before time runs out.
 Action	timelimit	420
 Action	reveal	1	Lake
 Action	order	wait	2	-	Crow1	Crow2	Crow3	Crow4

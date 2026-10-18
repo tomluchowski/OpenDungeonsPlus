@@ -3175,7 +3175,7 @@ Name	openingRound
 Mode	once
 Cond	time	3
 Action	message	1	The halls under Lanternhill twist like a knot, and the old keepers filled every corner with traps. Possess a creature of your own, walk it through the maze and find the exit hall before the lamps burn out.
-Action	objectiveid	1	twistinghalls-o01	Bring a creature to the exit hall in the north-east before time runs out.
+Action	objectiveid	1	twistinghalls-o01	Reach the north-east exit before time runs out.
 Action	timelimit	900
 Action	reveal	1	ExitHall
 [/Trigger]

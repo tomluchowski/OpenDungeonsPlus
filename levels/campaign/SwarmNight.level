@@ -1480,8 +1480,8 @@ Name	nightFalls
 Mode	once
 Cond	time	3
 Action	message	1	The rival keeper has sworn to bury your heart under his workers, and the night is long. Hold your dungeon until the first light.
-Action	objectiveid	1	swarmnight-o01	Survive the swarm for thirteen minutes.
-Action	objectiveid	1	swarmnight-o02	Keep your heart standing.
+Action	objectiveid	1	swarmnight-o01	Survive the swarm for 13 minutes.
+Action	objectiveid	1	swarmnight-o02	Protect your heart.
 [/Trigger]
 [Trigger]
 Name	swarm1
