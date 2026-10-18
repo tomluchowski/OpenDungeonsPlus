@@ -2754,11 +2754,14 @@ void GameMap::checkGameDuration()
     }
 }
 
+//! \brief Records a seat victory once and opens the campaign result after saving its progress.
 void GameMap::addWinningSeat(Seat *s)
 {
     // Make sure the seat has not already been added.
     if(std::find(mWinningSeats.begin(), mWinningSeats.end(), s) != mWinningSeats.end())
         return;
+
+    mWinningSeats.push_back(s);
 
     Player* player = getPlayerBySeat(s);
     if (player && player->getIsHuman())
@@ -2775,9 +2778,8 @@ void GameMap::addWinningSeat(Seat *s)
         if(Campaign::getSingleton().onLevelWon())
         {
             ServerNotification* campaignNotification = new ServerNotification(
-                ServerNotificationType::chatServer, player);
-            campaignNotification->mPacket << "Campaign progress saved. Open the menu and quit to see the debriefing."
-                << EventShortNoticeType::majorGameEvent;
+                ServerNotificationType::campaignVictory, player);
+            campaignNotification->mPacket << getGoalsStringForPlayer(player);
             ODServer::getSingleton().queueServerNotification(campaignNotification);
         }
     }
@@ -2786,7 +2788,6 @@ void GameMap::addWinningSeat(Seat *s)
     seats.push_back(s);
     fireRelativeSound(seats, SoundRelativeKeeperStatements::Victory);
 
-    mWinningSeats.push_back(s);
 }
 
 bool GameMap::seatIsAWinner(Seat *s) const
@@ -3220,52 +3221,85 @@ std::vector<Tile*> GameMap::getBuildableTilesForPlayerInArea(int x1, int y1, int
     return tiles;
 }
 
+//! \brief Displays authoritative goal states with graphical marks, including after victory.
 std::string GameMap::getGoalsStringForPlayer(Player* player)
 {
     bool playerIsAWinner = seatIsAWinner(player->getSeat());
     std::stringstream tempSS("");
     Seat* seat = player->getSeat();
     seat->resetGoalsChanged();
-
-    const std::string formatTitleOn = "[font='MedievalSharp-12'][colour='CCBBBBFF']";
-    const std::string formatTitleOff = "[font='MedievalSharp-10'][colour='FFFFFFFF']";
+    const std::string openGoalMark = "[image='GoalStatus/Open'] ";
+    const std::string reachedGoalMark = "[image='GoalStatus/Reached'] ";
+    const std::string failedGoalMark = "[image='GoalStatus/Failed'] ";
 
     if (playerIsAWinner)
     {
-        tempSS << "Congratulations, you have completed this level.";
+        tempSS << "Victory!\n";
     }
-    else if (seat->numFailedGoals() > 0)
+    if (seat->numFailedGoals() > 0)
     {
         // Loop over the list of completed goals for the seat we are sitting in an print them.
-        tempSS << formatTitleOn << "Failed Goals:\n" << formatTitleOff
-               << "(You cannot complete this level!)\n\n";
         for (unsigned int i = 0; i < seat->numFailedGoals(); ++i)
         {
             Goal *tempGoal = seat->getFailedGoal(i);
-            tempSS << tempGoal->getFailedMessage(*seat) << "\n";
+            tempSS << failedGoalMark << tempGoal->getDescription(*seat) << "\n";
         }
     }
 
     if (seat->numUncompleteGoals() > 0)
     {
         // Loop over the list of unmet goals for the seat we are sitting in an print them.
-        tempSS << formatTitleOn << "Unfinished Goals:" << formatTitleOff << "\n\n";
         for (unsigned int i = 0; i < seat->numUncompleteGoals(); ++i)
         {
             Goal *tempGoal = seat->getUncompleteGoal(i);
-            tempSS << tempGoal->getDescription(*seat) << "\n";
+            tempSS << openGoalMark << tempGoal->getDescription(*seat) << "\n";
         }
     }
 
     if (seat->numCompletedGoals() > 0)
     {
         // Loop over the list of completed goals for the seat we are sitting in an print them.
-        tempSS << "\n" << formatTitleOn << "Completed Goals:" << formatTitleOff << "\n\n";
         for (unsigned int i = 0; i < seat->numCompletedGoals(); ++i)
         {
             Goal *tempGoal = seat->getCompletedGoal(i);
-            tempSS << tempGoal->getSuccessMessage(*seat) << "\n";
+            tempSS << reachedGoalMark << tempGoal->getDescription(*seat) << "\n";
         }
+    }
+
+    std::vector<std::string> scriptObjectives;
+    std::vector<std::string> scriptObjectiveIds;
+    const LevelScript& script = getLevelScript();
+    for(const LevelScriptTrigger& trigger : script.getTriggers())
+    {
+        for(const LevelScriptAction& action : trigger.mActions)
+        {
+            if((action.mType != LevelScriptActionType::objective && action.mType != LevelScriptActionType::hint) ||
+               (action.mSeatId >= 0 && action.mSeatId != seat->getId()) ||
+               (action.mObjectiveId.empty()
+                   ? std::find(scriptObjectives.begin(), scriptObjectives.end(), action.mText) != scriptObjectives.end()
+                   : std::find(scriptObjectiveIds.begin(), scriptObjectiveIds.end(), action.mObjectiveId) != scriptObjectiveIds.end()))
+                continue;
+            scriptObjectiveIds.push_back(action.mObjectiveId);
+            if(action.mType == LevelScriptActionType::hint)
+                scriptObjectives.push_back("Hint: " + action.mText);
+            else if(action.mObjectiveId.empty())
+                scriptObjectives.push_back(action.mText);
+            else
+            {
+                const LevelScriptObjectiveState state = script.getObjectiveState(seat->getId(), action.mObjectiveId);
+                std::string stateMark = openGoalMark;
+                if(state == LevelScriptObjectiveState::reached)
+                    stateMark = reachedGoalMark;
+                else if(state == LevelScriptObjectiveState::failed)
+                    stateMark = failedGoalMark;
+                scriptObjectives.push_back(stateMark + action.mText);
+            }
+        }
+    }
+    if(!scriptObjectives.empty())
+    {
+        for(const std::string& objective : scriptObjectives)
+            tempSS << objective << "\n";
     }
 
     return tempSS.str();

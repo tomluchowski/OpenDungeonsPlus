@@ -26,6 +26,297 @@
 #include <sstream>
 #include <string>
 
+//! \brief Keeps exact ground endpoints and room footprints stable through parsing and saving.
+BOOST_AUTO_TEST_CASE(exact_ground_and_room_footprint_condition_round_trip)
+{
+    const std::string text =
+        "[Trigger]\nName exactDisplay\nMode once\n"
+        "Cond groundconnected 1 13 57 40 22\n"
+        "Cond roomclaimed 1 44 106 47 107\n"
+        "Action objectivestate 1 task reached\n[/Trigger]\n[/Triggers]\n";
+    LevelScript script;
+    std::istringstream input(text);
+    BOOST_REQUIRE(script.importFromStream(input));
+    const std::vector<LevelScriptCondition>& conditions = script.getTriggers()[0].mConditions;
+    BOOST_REQUIRE_EQUAL(conditions.size(), 2);
+    BOOST_CHECK(conditions[0].mType == LevelScriptConditionType::groundConnected);
+    BOOST_CHECK_EQUAL(conditions[0].mX1, 13);
+    BOOST_CHECK_EQUAL(conditions[0].mY1, 57);
+    BOOST_CHECK_EQUAL(conditions[0].mX2, 40);
+    BOOST_CHECK_EQUAL(conditions[0].mY2, 22);
+    BOOST_CHECK(conditions[1].mType == LevelScriptConditionType::roomFootprintClaimed);
+    BOOST_CHECK_EQUAL(conditions[1].mX1, 44);
+    BOOST_CHECK_EQUAL(conditions[1].mY1, 106);
+    BOOST_CHECK_EQUAL(conditions[1].mX2, 47);
+    BOOST_CHECK_EQUAL(conditions[1].mY2, 107);
+    std::ostringstream output;
+    script.exportToStream(output);
+    LevelScript loaded;
+    std::istringstream saved(output.str().substr(output.str().find('\n') + 1));
+    BOOST_REQUIRE(loaded.importFromStream(saved));
+    std::ostringstream again;
+    loaded.exportToStream(again);
+    BOOST_CHECK_EQUAL(output.str(), again.str());
+}
+
+//! \brief Rejects missing or negative ground coordinates and room-mask seats.
+BOOST_AUTO_TEST_CASE(invalid_ground_and_room_footprint_conditions)
+{
+    const char* conditions[] = {
+        "Cond groundconnected 1 13 57 40", "Cond groundconnected 1 -1 57 40 22",
+        "Cond groundconnected -1 13 57 40 22", "Cond roomclaimed 1 44 106 47",
+        "Cond roomclaimed 1 44 106 47 -1", "Cond roomclaimed -1 44 106 47 107"
+    };
+    for(const char* condition : conditions)
+    {
+        LevelScript script;
+        std::istringstream input(std::string("[Trigger]\nName invalid\nMode once\n") +
+            condition + "\nAction hint 1 text\n[/Trigger]\n[/Triggers]\n");
+        BOOST_CHECK(!script.importFromStream(input));
+    }
+}
+
+//! \brief Preserves exact regional gold credits and actual named death locations through save/load.
+BOOST_AUTO_TEST_CASE(regional_mining_and_death_position_history)
+{
+    const std::string text =
+        "Region Block 10 10 20 20\nRegion Road 30 30 35 35\n"
+        "[Trigger]\nName regional\nMode once\n"
+        "Cond minedregion 1 Block >= 600\nCond killedin Warden Road\n"
+        "Action hint 1 Observed only.\n[/Trigger]\n[/Triggers]\n";
+    LevelScript script;
+    std::istringstream input(text);
+    BOOST_REQUIRE(script.importFromStream(input));
+    BOOST_CHECK_EQUAL(script.getGoldMinedInRegion(1, "Block"), 0);
+    script.observeGoldMined(1, 9, 10, 900);
+    script.observeGoldMined(2, 10, 10, 900);
+    script.observeGoldMined(1, 10, 10, 37);
+    script.observeGoldMined(1, 20, 20, 563);
+    script.observeGoldMined(1, 15, 15, 0);
+    BOOST_CHECK_EQUAL(script.getGoldMinedInRegion(1, "Block"), 600);
+    BOOST_CHECK_EQUAL(script.getGoldMinedInRegion(2, "Block"), 0);
+    BOOST_CHECK(!script.wasCreatureKilledInRegion("Warden", "Road"));
+    script.observeCreatureDeath("Warden", 29, 30);
+    BOOST_CHECK(!script.wasCreatureKilledInRegion("Warden", "Road"));
+    script.observeCreatureDeath("Warden", 30, 30);
+    BOOST_CHECK(script.wasCreatureKilledInRegion("Warden", "Road"));
+    BOOST_CHECK(!script.wasCreatureKilledInRegion("Warden", "Block"));
+    BOOST_CHECK(!script.wasCreatureKilledInRegion("Unknown", "Road"));
+    std::ostringstream output;
+    script.exportToStream(output);
+    LevelScript loaded;
+    std::istringstream saved(output.str().substr(output.str().find('\n') + 1));
+    BOOST_REQUIRE(loaded.importFromStream(saved));
+    BOOST_CHECK_EQUAL(loaded.getGoldMinedInRegion(1, "Block"), 600);
+    BOOST_CHECK(loaded.wasCreatureKilledInRegion("Warden", "Road"));
+    std::ostringstream again;
+    loaded.exportToStream(again);
+    BOOST_CHECK_EQUAL(output.str(), again.str());
+    loaded.clear();
+    BOOST_CHECK(loaded.isEmpty());
+    BOOST_CHECK(!loaded.wasCreatureKilledInRegion("Warden", "Road"));
+}
+
+//! \brief Rejects malformed regional observation records and predicates.
+BOOST_AUTO_TEST_CASE(invalid_regional_observation_records)
+{
+    const char* records[] = {
+        "MinedGold 1 10 10 -1\n[/Triggers]\n", "MinedGold -1 10 10 10\n[/Triggers]\n",
+        "MinedGold 1 -1 10 10\n[/Triggers]\n", "DeathTile Warden -1 0\n[/Triggers]\n",
+        "[Trigger]\nName x\nCond minedregion 1 Block >= -1\nAction hint 1 text\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName x\nCond killedin Warden\nAction hint 1 text\n[/Trigger]\n[/Triggers]\n"
+    };
+    for(const char* record : records)
+    {
+        LevelScript script;
+        std::istringstream input(record);
+        BOOST_CHECK(!script.importFromStream(input));
+    }
+}
+
+//! \brief Tracks every actual source instance, including death location, reused names and saved history.
+BOOST_AUTO_TEST_CASE(observed_spawn_death_history_round_trip)
+{
+    const std::string text =
+        "[Trigger]\nName wave\nMode once\nCond time 0\nAction spawn 3 1 1 1 Knight:1\n[/Trigger]\n"
+        "[Trigger]\nName status\nMode once\nCond spawncleared wave 0 atheart 1\n"
+        "Cond trapgone DoorWooden1\nCond objective 1 route open\nCond trigger wave 0\n"
+        "Action objectivestate 1 wave reached\n[/Trigger]\n[/Triggers]\n";
+    LevelScript script;
+    std::istringstream input(text);
+    BOOST_REQUIRE(script.importFromStream(input));
+    BOOST_CHECK(!script.areSpawnsCleared("wave", 0, 1));
+    script.observeSpawn("wave", 0, "First");
+    script.observeSpawn("wave", 0, "Second");
+    script.observeSpawnDeath("First", 1);
+    BOOST_CHECK(!script.areSpawnsCleared("wave", 0, 1));
+    script.observeSpawnDeath("Second", 1);
+    BOOST_CHECK(script.areSpawnsCleared("wave", 0, 1));
+    BOOST_CHECK(!script.areSpawnsCleared("wave", 0, 2));
+    BOOST_CHECK(!script.areSpawnsCleared("wave", 1, 1));
+    script.observeSpawn("wave", 0, "First");
+    BOOST_CHECK(!script.areSpawnsCleared("wave", 0, -1));
+    script.observeSpawnDeath("First", -1);
+    BOOST_CHECK(script.areSpawnsCleared("wave", 0, -1));
+    BOOST_CHECK(!script.areSpawnsCleared("wave", 0, 1));
+    std::ostringstream output;
+    script.exportToStream(output);
+    LevelScript loaded;
+    std::istringstream saved(output.str().substr(output.str().find('\n') + 1));
+    BOOST_REQUIRE(loaded.importFromStream(saved));
+    BOOST_CHECK(loaded.areSpawnsCleared("wave", 0, -1));
+    BOOST_CHECK(!loaded.areSpawnsCleared("wave", 0, 1));
+    std::ostringstream again;
+    loaded.exportToStream(again);
+    BOOST_CHECK_EQUAL(output.str(), again.str());
+    loaded.clear();
+    BOOST_CHECK(loaded.isEmpty());
+    BOOST_CHECK(!loaded.areSpawnsCleared("wave", 0, -1));
+}
+
+//! \brief Rejects malformed source identities, death records and negative trigger-history selectors.
+BOOST_AUTO_TEST_CASE(invalid_spawn_observation_records)
+{
+    const char* records[] = {
+        "SpawnObservation wave -1 name 1 1\n[/Triggers]\n",
+        "SpawnObservation wave 0 name 2 1\n[/Triggers]\n",
+        "SpawnObservation wave 0 name 0 1\n[/Triggers]\n",
+        "SpawnObservation wave 0 name 1 -2\n[/Triggers]\n",
+        "[Trigger]\nName x\nCond spawncleared wave -1\nAction hint 1 text\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName x\nCond spawncleared wave 0 atheart -1\nAction hint 1 text\n[/Trigger]\n[/Triggers]\n",
+        "[Trigger]\nName x\nCond trigger wave 2\nAction hint 1 text\n[/Trigger]\n[/Triggers]\n"
+    };
+    for(const char* record : records)
+    {
+        LevelScript script;
+        std::istringstream input(record);
+        BOOST_CHECK(!script.importFromStream(input));
+    }
+}
+
+//! \brief Preserves advice without objective IDs and round-trips read-only presentation predicates.
+BOOST_AUTO_TEST_CASE(hint_and_precise_presentation_condition_round_trip)
+{
+    const std::string text =
+        "[Trigger]\nName advice\nMode once\nCond time 0\n"
+        "Action hint 1 Build before you march.\n[/Trigger]\n"
+        "[Trigger]\nName displayOnly\nMode once\n"
+        "Cond objective 1 gate reached\nCond objective 1 route failed\n"
+        "Cond goalmet 1 KillAllEnemies\nCond creaturesatheart 1 >= 12\n"
+        "Cond trigger advice\nAction objectivestate 1 finale reached\n"
+        "[/Trigger]\n[/Triggers]\n";
+    LevelScript script;
+    std::istringstream input(text);
+    BOOST_REQUIRE(script.importFromStream(input));
+    const LevelScriptAction& hint = script.getTriggers()[0].mActions[0];
+    BOOST_CHECK(hint.mType == LevelScriptActionType::hint);
+    BOOST_CHECK(hint.mObjectiveId.empty());
+    BOOST_CHECK_EQUAL(hint.mText, "Build before you march.");
+    const std::vector<LevelScriptCondition>& conditions = script.getTriggers()[1].mConditions;
+    BOOST_REQUIRE_EQUAL(conditions.size(), 5);
+    BOOST_CHECK(conditions[0].mType == LevelScriptConditionType::objectiveState);
+    BOOST_CHECK_EQUAL(conditions[0].mName, "gate");
+    BOOST_CHECK_EQUAL(conditions[0].mNumber, static_cast<int64_t>(LevelScriptObjectiveState::reached));
+    BOOST_CHECK_EQUAL(conditions[1].mNumber, static_cast<int64_t>(LevelScriptObjectiveState::failed));
+    BOOST_CHECK(conditions[2].mType == LevelScriptConditionType::goalMet);
+    BOOST_CHECK_EQUAL(conditions[2].mName, "KillAllEnemies");
+    BOOST_CHECK(conditions[3].mType == LevelScriptConditionType::creaturesAtHeart);
+    BOOST_CHECK_EQUAL(conditions[3].mNumber, 12);
+    BOOST_CHECK(conditions[4].mType == LevelScriptConditionType::triggerFired);
+    BOOST_CHECK_EQUAL(conditions[4].mName, "advice");
+    std::ostringstream output;
+    script.exportToStream(output);
+    BOOST_CHECK(output.str().find("Action\thint\t1\tBuild before you march.") != std::string::npos);
+    LevelScript loaded;
+    std::istringstream saved(output.str().substr(output.str().find('\n') + 1));
+    BOOST_REQUIRE(loaded.importFromStream(saved));
+    std::ostringstream again;
+    loaded.exportToStream(again);
+    BOOST_CHECK_EQUAL(output.str(), again.str());
+}
+
+//! \brief Rejects incomplete advice and malformed exact-presentation condition syntax.
+BOOST_AUTO_TEST_CASE(invalid_hint_and_presentation_conditions)
+{
+    const char* bodies[] = {
+        "Cond time 0\nAction hint 1",
+        "Cond objective 1 gate maybe\nAction hint 1 advice",
+        "Cond objective -1 gate reached\nAction hint 1 advice",
+        "Cond creaturesatheart 1 >= -1\nAction hint 1 advice",
+        "Cond goalmet 1\nAction hint 1 advice",
+        "Cond trigger\nAction hint 1 advice"
+    };
+    for(const char* body : bodies)
+    {
+        LevelScript script;
+        std::istringstream input(std::string("[Trigger]\nName invalid\nMode once\n") +
+            body + "\n[/Trigger]\n[/Triggers]\n");
+        BOOST_CHECK(!script.importFromStream(input));
+    }
+}
+
+//! \brief Checks identified objectives, explicit seat state, legacy syntax and saved-state round trips.
+BOOST_AUTO_TEST_CASE(identified_objective_state_round_trip)
+{
+    const std::string text =
+        "[Trigger]\nName goals\nMode once\nCond time 0\n"
+        "Action objective 1 Keep the old text\n"
+        "Action objectiveid 1 heart Hold the heart\n"
+        "Action objectivestate 1 heart reached\n"
+        "Action objectivestate 2 heart failed\n"
+        "[/Trigger]\n[/Triggers]\n";
+    LevelScript script;
+    std::istringstream input(text);
+    BOOST_REQUIRE(script.importFromStream(input));
+    const std::vector<LevelScriptAction>& actions = script.getTriggers()[0].mActions;
+    BOOST_CHECK(actions[0].mObjectiveId.empty());
+    BOOST_CHECK_EQUAL(actions[0].mText, "Keep the old text");
+    BOOST_CHECK_EQUAL(actions[1].mObjectiveId, "heart");
+    BOOST_CHECK_EQUAL(actions[1].mText, "Hold the heart");
+    BOOST_CHECK(actions[2].mType == LevelScriptActionType::objectiveState);
+    BOOST_CHECK(script.getObjectiveState(1, "heart") == LevelScriptObjectiveState::open);
+    script.setObjectiveState(1, "heart", LevelScriptObjectiveState::reached);
+    script.setObjectiveState(2, "heart", LevelScriptObjectiveState::failed);
+    BOOST_CHECK(script.getObjectiveState(1, "heart") == LevelScriptObjectiveState::reached);
+    BOOST_CHECK(script.getObjectiveState(2, "heart") == LevelScriptObjectiveState::failed);
+    BOOST_CHECK(script.getObjectiveState(3, "heart") == LevelScriptObjectiveState::open);
+    std::ostringstream output;
+    script.exportToStream(output);
+    BOOST_CHECK(output.str().find("Action\tobjective\t1\tKeep the old text") != std::string::npos);
+    BOOST_CHECK(output.str().find("Action\tobjectiveid\t1\theart\tHold the heart") != std::string::npos);
+    LevelScript loaded;
+    std::istringstream saved(output.str().substr(output.str().find('\n') + 1));
+    BOOST_REQUIRE(loaded.importFromStream(saved));
+    BOOST_CHECK(loaded.getObjectiveState(1, "heart") == LevelScriptObjectiveState::reached);
+    BOOST_CHECK(loaded.getObjectiveState(2, "heart") == LevelScriptObjectiveState::failed);
+    std::ostringstream again;
+    loaded.exportToStream(again);
+    BOOST_CHECK_EQUAL(output.str(), again.str());
+    loaded.clear();
+    BOOST_CHECK(loaded.isEmpty());
+    BOOST_CHECK(loaded.getObjectiveState(1, "heart") == LevelScriptObjectiveState::open);
+}
+
+//! \brief Rejects malformed IDs and state words without changing legacy objective parsing.
+BOOST_AUTO_TEST_CASE(identified_objective_invalid_state)
+{
+    const char* actions[] = {
+        "Action objectiveid 1 heart", "Action objectivestate 1 heart maybe",
+        "Action objectivestate 1 heart open", "Action objectivestate 1 heart",
+        "Action objectiveid bad heart Text"
+    };
+    for(const char* action : actions)
+    {
+        LevelScript script;
+        std::istringstream input(std::string("[Trigger]\nName x\nMode once\nCond time 0\n") +
+            action + "\n[/Trigger]\n[/Triggers]\n");
+        BOOST_CHECK(!script.importFromStream(input));
+    }
+    LevelScript script;
+    std::istringstream input("ObjectiveState 1 heart maybe\n[/Triggers]\n");
+    BOOST_CHECK(!script.importFromStream(input));
+}
+
 //! \brief A [Triggers] section (without the opening tag) that uses every kind of line of the model
 static const std::string sample =
     "# comment\n"

@@ -155,7 +155,6 @@ enum class ServerNotificationType
     possessionEnd,
     //! Answer to editorRegionEdit, all the region markers of the level script:
     //! + uint32_t count, then per region: string name and 4 int32_t (the corners).
-    //! Inserted before trapEffect; trapEffect and timeLimit stay the last values.
     editorRegionData,
     //! Presentation-only effect of a trap or door, sent to the human seats that see the tile:
     //! + int32_t kind (TrapEffectKind), int32_t tileX, int32_t tileY, string type name of the trap or door
@@ -165,7 +164,10 @@ enum class ServerNotificationType
     //! The time left until the level is lost: + int32_t seconds (-1: there is no time limit; a countdown that
     //! ends without a defeat has GameMap::TIME_LIMIT_COUNTDOWN_FLAG added), then an int32_t with the seconds
     //! left until the next hero wave of a level script (-1: none is shown)
-    timeLimit
+    timeLimit,
+    //! \brief Owner-only campaign victory after levelStatistics and saved progress: string goalsDisplay.
+    //! Appended so existing notification values remain unchanged.
+    campaignVictory
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);
@@ -186,6 +188,7 @@ class ServerNotification
 
         ODPacket mPacket;
 
+        //! \brief Returns the diagnostic name of the notification type.
         static std::string typeString(ServerNotificationType type);
 
     private:

@@ -663,3 +663,8 @@ gui/campaign/provinces/T24_available.png    AI-generated with Codex, 2026-10, GP
 gui/campaign/provinces/T24_conquered.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
 gui/campaign/provinces/T24_lift.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
 gui/campaign/provinces/T24_locked.png    AI-generated with Codex, 2026-10, GPLv3+, prompts in tools/artwork/campaign-map/PROMPTS.md
+
+=============================================================
+==  Graphical goal status indicators                       ==
+=============================================================
+gui/GoalStatus.svg, gui/GoalStatus.png    OpenDungeonsPlus contributors    CC0-1.0    Original AI-assisted procedural vector artwork; source: gui/GoalStatus.svg. Raster export for the graphical open, reached and failed goal markers.

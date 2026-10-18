@@ -8168,12 +8168,20 @@ Name	intro
 Mode	once
 Cond	time	3
 Action	message	-1	The final duel. Only one keeper will rule this part of the underground.
-Action	objective	-1	Destroy the rival keeper and keep your dungeon heart alive.
+Action	objectiveid	-1	campaign3-o01	Defeat the rival keeper; protect your heart.
 [/Trigger]
 [Trigger]
 Name	half
 Mode	once
 Cond	time	300
 Action	message	-1	Heroes will try to steal gold from both of you. Guard your treasury.
+[/Trigger]
+
+[Trigger]
+Name	goalClassicComplete
+Mode	once
+Cond	goalmet	1	KillAllEnemies
+Cond	goalmet	1	ProtectDungeonTemple
+Action	objectivestate	-1	campaign3-o01	reached
 [/Trigger]
 [/Triggers]
