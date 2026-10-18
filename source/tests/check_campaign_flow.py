@@ -37,14 +37,17 @@ assert victory.index('sendLevelStatistics(true)') < victory.index('onLevelWon()'
 assert 'Open the menu and quit' not in victory
 goals = game_map[game_map.index('std::string GameMap::getGoalsStringForPlayer('):game_map.index('int GameMap::addGoldToSeat(')]
 assert 'else if (seat->numFailedGoals()' not in goals
-for state in ('Open: ', 'Done: ', 'Failed: '):
-    assert state in goals, state
+for state in ('Open', 'Reached', 'Failed'):
+    assert "[image='GoalStatus/" + state + "'] " in goals, state
+for old_label in ('Open: ', 'Done: ', 'Failed: '):
+    assert old_label not in goals, old_label
 assert 'Victory!\\n' in goals
 assert 'script.getTriggers()' in goals and 'LevelScriptActionType::objective' in goals
 assert 'action.mSeatId >= 0 && action.mSeatId != seat->getId()' in goals
 assert 'Script objectives:' not in goals and 'scriptObjectives.push_back(action.mText)' in goals
-assert 'stateText + ": " + action.mText' in goals
-assert 'stateText + " ("' not in goals
+assert 'scriptObjectives.push_back(stateMark + action.mText)' in goals
+assert 'stateMark = reachedGoalMark' in goals and 'stateMark = failedGoalMark' in goals
+assert 'stateText' not in goals
 assert 'getObjectiveState(seat->getId(), action.mObjectiveId)' in goals
 script_header = read('source/gamemap/LevelScript.h')
 script_source = read('source/gamemap/LevelScript.cpp')
@@ -70,6 +73,30 @@ refresh = client_source[client_source.index('case ServerNotificationType::refres
 assert 'packetReceived >> goalsString' in refresh and 'refreshMainUI(goalsString)' in refresh
 refresh_ui = client_source[client_source.index('void ODClient::refreshMainUI('):client_source.index('bool ODClient::connect(')]
 assert 'gm->refreshPlayerGoals(goalsString);' in refresh_ui and 'getHasGoalsChanged' not in refresh_ui
+
+# The approved status marks are graphical, registered, scalable, and separate from text labels.
+import xml.etree.ElementTree as ET
+from PIL import Image
+scheme = ET.fromstring(read('gui/ODSkin.scheme'))
+assert scheme.find("Imageset[@filename='GoalStatus.imageset']") is not None
+atlas = ET.fromstring(read('gui/GoalStatus.imageset'))
+assert atlas.get('autoScaled') == 'true'
+assert atlas.get('nativeHorzRes') == '1024' and atlas.get('nativeVertRes') == '768'
+marks = {item.get('name'): item for item in atlas.findall('Image')}
+assert set(marks) == {'Open', 'Reached', 'Failed'}
+with Image.open(repo / 'gui' / atlas.get('imagefile')) as artwork:
+    assert artwork.mode == 'RGBA' and artwork.size == (60, 20)
+    assert artwork.getpixel((0, 0))[3] == 0
+    for index, state in enumerate(('Open', 'Reached', 'Failed')):
+        mark = marks[state]
+        assert [int(mark.get(key)) for key in ('xPos', 'yPos', 'width', 'height')] == [index * 20, 0, 20, 20]
+        pixels = [artwork.getpixel((x, y)) for y in range(20) for x in range(index * 20, (index + 1) * 20)]
+        if state == 'Reached':
+            assert any(g > 140 and g > r * 1.5 and g > b * 1.5 and a > 200 for r, g, b, a in pixels)
+        if state == 'Failed':
+            assert any(r > 160 and r > g * 1.5 and r > b * 1.5 and a > 200 for r, g, b, a in pixels)
+assert 'name.compare(0, 11, "GoalStatus/") == 0' in read('source/render/Gui.cpp')
+assert 'gui/GoalStatus.svg, gui/GoalStatus.png' in read('CREDITS')
 
 # A new minimap entry uses existing artwork and the same objectives toggle.
 import xml.etree.ElementTree as ET

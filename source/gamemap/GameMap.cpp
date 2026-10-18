@@ -3208,13 +3208,16 @@ std::vector<Tile*> GameMap::getBuildableTilesForPlayerInArea(int x1, int y1, int
     return tiles;
 }
 
-//! \brief Formats every authoritative goal state without hiding the list after victory.
+//! \brief Displays authoritative goal states with graphical marks, including after victory.
 std::string GameMap::getGoalsStringForPlayer(Player* player)
 {
     bool playerIsAWinner = seatIsAWinner(player->getSeat());
     std::stringstream tempSS("");
     Seat* seat = player->getSeat();
     seat->resetGoalsChanged();
+    const std::string openGoalMark = "[image='GoalStatus/Open'] ";
+    const std::string reachedGoalMark = "[image='GoalStatus/Reached'] ";
+    const std::string failedGoalMark = "[image='GoalStatus/Failed'] ";
 
     if (playerIsAWinner)
     {
@@ -3226,7 +3229,7 @@ std::string GameMap::getGoalsStringForPlayer(Player* player)
         for (unsigned int i = 0; i < seat->numFailedGoals(); ++i)
         {
             Goal *tempGoal = seat->getFailedGoal(i);
-            tempSS << "Failed: " << tempGoal->getDescription(*seat) << "\n";
+            tempSS << failedGoalMark << tempGoal->getDescription(*seat) << "\n";
         }
     }
 
@@ -3236,7 +3239,7 @@ std::string GameMap::getGoalsStringForPlayer(Player* player)
         for (unsigned int i = 0; i < seat->numUncompleteGoals(); ++i)
         {
             Goal *tempGoal = seat->getUncompleteGoal(i);
-            tempSS << "Open: " << tempGoal->getDescription(*seat) << "\n";
+            tempSS << openGoalMark << tempGoal->getDescription(*seat) << "\n";
         }
     }
 
@@ -3246,7 +3249,7 @@ std::string GameMap::getGoalsStringForPlayer(Player* player)
         for (unsigned int i = 0; i < seat->numCompletedGoals(); ++i)
         {
             Goal *tempGoal = seat->getCompletedGoal(i);
-            tempSS << "Done: " << tempGoal->getDescription(*seat) << "\n";
+            tempSS << reachedGoalMark << tempGoal->getDescription(*seat) << "\n";
         }
     }
 
@@ -3271,12 +3274,12 @@ std::string GameMap::getGoalsStringForPlayer(Player* player)
             else
             {
                 const LevelScriptObjectiveState state = script.getObjectiveState(seat->getId(), action.mObjectiveId);
-                std::string stateText = "Open";
+                std::string stateMark = openGoalMark;
                 if(state == LevelScriptObjectiveState::reached)
-                    stateText = "Done";
+                    stateMark = reachedGoalMark;
                 else if(state == LevelScriptObjectiveState::failed)
-                    stateText = "Failed";
-                scriptObjectives.push_back(stateText + ": " + action.mText);
+                    stateMark = failedGoalMark;
+                scriptObjectives.push_back(stateMark + action.mText);
             }
         }
     }
