@@ -224,7 +224,7 @@ Creature::Creature(GameMap* gameMap, const CreatureDefinition* definition, Seat*
     mJobCooldown             (0),
     mGoldFee                 (0),
     mGoldCarried             (0),
-    mGoldCarriedNotified     (0),
+    mGoldCarriedCosmeticNotified(0),
     mSkillTypeDropDeath      (SkillType::nullSkillType),
     mWeaponDropDeath         ("none"),
     mStatsWindow             (nullptr),
@@ -324,7 +324,7 @@ Creature::Creature(GameMap* gameMap) :
     mJobCooldown             (0),
     mGoldFee                 (0),
     mGoldCarried             (0),
-    mGoldCarriedNotified     (0),
+    mGoldCarriedCosmeticNotified(0),
     mSkillTypeDropDeath      (SkillType::nullSkillType),
     mWeaponDropDeath         ("none"),
     mStatsWindow             (nullptr),
@@ -1188,9 +1188,9 @@ void Creature::doUpkeep()
     }
 
     // The clients show the gold on the body of the carrier. They are told when it changed (cosmetic only).
-    if(mGoldCarried != mGoldCarriedNotified)
+    if(mGoldCarried != mGoldCarriedCosmeticNotified)
     {
-        mGoldCarriedNotified = mGoldCarried;
+        mGoldCarriedCosmeticNotified = mGoldCarried;
         fireCosmeticEvent(static_cast<int32_t>(CosmeticEventType::carriedGold), mGoldCarried,
             getDefinition()->getMaxGoldCarryable(), false);
     }
