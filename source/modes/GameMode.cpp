@@ -25,6 +25,7 @@
 #include "entities/GameEntityType.h"
 #include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
+#include "game/Campaign.h"
 #include "game/HeartHealthRing.h"
 #include "game/Player.h"
 #include "game/Skill.h"
@@ -87,6 +88,42 @@ const std::string TEXT_SEAT_ID_PREFIX = "TextSeat";
 const std::string TEXT_SEAT_PLAYER_NICKNAME_PREFIX = "TextSeatPlayerNick";
 const std::string TEXT_SEAT_TEAM_ID_PREFIX = "TextSeatTeam";
 
+//! Text colour of the time limit display (ARGB)
+static const char* const TIME_LIMIT_COLOUR = "FFF6CB62";
+//! Text colour of the time limit display during its last minute (ARGB)
+static const char* const TIME_LIMIT_WARNING_COLOUR = "FFE05A4A";
+//! From this many seconds left the time limit is shown in the warning colour
+static const int32_t TIME_LIMIT_WARNING_SECONDS = 60;
+//! Tooltip of the display while it shows a countdown that ends without a defeat
+static const char* const TIME_LIMIT_TOOLTIP_COUNTDOWN = "Time left until the next stage of the level";
+//! Tooltip of the display while it shows a time limit
+static const char* const TIME_LIMIT_TOOLTIP_LIMIT = "Time left until the level is lost";
+static const int64_t SECONDS_PER_HOUR = 3600;
+static const int64_t SECONDS_PER_MINUTE = 60;
+
+//! \brief Formats seconds as mm:ss, or h:mm:ss from one hour on. Negative values give 00:00.
+//! \param seconds The time to show
+//! \return The text shown on the countdown displays
+static std::string formatCountdownTime(int64_t seconds)
+{
+    if(seconds < 0)
+        seconds = 0;
+
+    const int64_t hours = seconds / SECONDS_PER_HOUR;
+    const int64_t minutes = (seconds / SECONDS_PER_MINUTE) % SECONDS_PER_MINUTE;
+    const int64_t rest = seconds % SECONDS_PER_MINUTE;
+    std::string result;
+    if(hours > 0)
+        result += std::to_string(hours) + ":";
+    if(minutes < 10)
+        result += "0";
+    result += std::to_string(minutes) + ":";
+    if(rest < 10)
+        result += "0";
+    result += std::to_string(rest);
+    return result;
+}
+
 const double AUTOSCROLL_EDGE_RATIO = 0.02;
 const float HAND_DROP_ALL_HOLD_DURATION = 0.35f;
 const std::string DEFEAT_EXPLOSION_EFFECT_NAME = "DefeatHeartExplosion";
@@ -138,6 +175,7 @@ static bool blocksEdgeScrolling(CEGUI::Window* window)
     return true;
 }
 
+//! \brief Connects game controls, including both entry points to the existing objectives window.
 GameMode::GameMode(ModeManager *modeManager):
     GameEditorModeBase(modeManager, ModeManager::GAME, modeManager->getGui().getGuiSheet(Gui::guiSheet::inGameMenu)),
     mDigSetBool(false),
@@ -250,6 +288,12 @@ GameMode::GameMode(ModeManager *modeManager):
     );
 
     //Objectives window
+    addEventConnection(
+        guiSheet->getChild("GoalsButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&GameMode::toggleObjectivesWindow, this)
+        )
+    );
     addEventConnection(
         guiSheet->getChild("ObjectivesButton")->subscribeEvent(
             CEGUI::PushButton::EventClicked,
@@ -955,7 +999,9 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
             {
                 ODClient::getSingleton().queueClientNotification(ClientNotificationType::askSlapEntity,
                      closestEntity->getObjectType(),
-                     closestEntity->getName());
+                     closestEntity->getName(),
+                     inputManager.mKeeperHandPos.x,
+                     inputManager.mKeeperHandPos.y);
                 return true;
             }
         }
@@ -1783,6 +1829,52 @@ void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
     // After frameStarted, so that the countdown shown is the one just computed.
     refreshActionFeedback(evt.timeSinceLastFrame);
 
+    // The countdown of a level with a time limit (the server sends -1 when there is none)
+    CEGUI::Window* timeLimitDisplay = mRootWindow->getChild("HorizontalPipe/TimeLimitDisplay");
+    const int32_t timeLimitReceived = ODClient::getSingleton().getTimeLimitSeconds();
+    const bool isCountdown = (timeLimitReceived >= 0) && ((timeLimitReceived & GameMap::TIME_LIMIT_COUNTDOWN_FLAG) != 0);
+    int32_t timeLimitSeconds = timeLimitReceived;
+    if(isCountdown)
+        timeLimitSeconds = timeLimitReceived & ~GameMap::TIME_LIMIT_COUNTDOWN_FLAG;
+    if(timeLimitReceived < 0)
+    {
+        if(mTimeLimitShown >= 0)
+        {
+            timeLimitDisplay->hide();
+            mTimeLimitShown = -1;
+        }
+    }
+    else if(timeLimitReceived != mTimeLimitShown)
+    {
+        mTimeLimitShown = timeLimitReceived;
+        timeLimitDisplay->setText(formatCountdownTime(timeLimitSeconds));
+        // The last minute of a time limit is shown in red
+        if(!isCountdown && (timeLimitSeconds <= TIME_LIMIT_WARNING_SECONDS))
+            timeLimitDisplay->setProperty("TextColours", TIME_LIMIT_WARNING_COLOUR);
+        else
+            timeLimitDisplay->setProperty("TextColours", TIME_LIMIT_COLOUR);
+        updateTimeLimitTooltip(isCountdown);
+        timeLimitDisplay->show();
+    }
+
+    // The countdown to the next hero wave of the level script, beside the time limit
+    CEGUI::Window* waveCountdownDisplay = mRootWindow->getChild("HorizontalPipe/WaveCountdownDisplay");
+    const int32_t waveCountdownReceived = ODClient::getSingleton().getWaveCountdownSeconds();
+    if(waveCountdownReceived < 0)
+    {
+        if(mWaveCountdownShown >= 0)
+        {
+            waveCountdownDisplay->hide();
+            mWaveCountdownShown = -1;
+        }
+    }
+    else if(waveCountdownReceived != mWaveCountdownShown)
+    {
+        mWaveCountdownShown = waveCountdownReceived;
+        waveCountdownDisplay->setText("Next wave in " + formatCountdownTime(waveCountdownReceived));
+        waveCountdownDisplay->show();
+    }
+
     if((mSkillCurrentCompletion.mProgressBar != nullptr) &&
        (mSkillCurrentCompletion.mCompletenessDisplayed < mSkillCurrentCompletion.mCompleteness))
     {
@@ -1851,12 +1943,37 @@ void GameMode::notifyGuiAction(GuiAction guiAction)
     }
 }
 
+//! \brief Opens the result window once for the local campaign winner.
+void GameMode::showCampaignVictory(const std::string& goalsDisplay)
+{
+    if(!Campaign::getSingleton().isActive() || mDefeatDebriefing != nullptr)
+        return;
+    refreshPlayerGoals(goalsDisplay);
+    showObjectivesWindow();
+    showDefeatDebriefing();
+}
+
+//! \brief Uses the ordinary campaign exit after acknowledging the saved victory.
+bool GameMode::onClickCampaignVictoryConfirm(const CEGUI::EventArgs&)
+{
+    if(mDefeatDebriefing == nullptr || !mDefeatDebriefing->isVisible())
+        return true;
+    mDefeatDebriefing->hide();
+    mModeManager->requestMode(AbstractModeManager::MENU_CAMPAIGN);
+    return true;
+}
+
 bool GameMode::onClickDefeatDebriefingConfirm(const CEGUI::EventArgs& /*arg*/)
 {
     if(!mDefeatSequence.confirmDebriefing())
         return true;
-    // Same way out as the quit menu, but the main menu opens with the skirmish sub-menu
-    mModeManager->requestMainMenuWithSkirmishSubMenu();
+    // In a campaign the way out of a lost level is the campaign menu, where the level can be
+    // played again. Otherwise it is the same way out as the quit menu, but the main menu
+    // opens with the skirmish sub-menu.
+    if(Campaign::getSingleton().isActive())
+        mModeManager->requestMode(AbstractModeManager::MENU_CAMPAIGN);
+    else
+        mModeManager->requestMainMenuWithSkirmishSubMenu();
     return true;
 }
 
@@ -1864,6 +1981,8 @@ bool GameMode::onClickYesQuitMenu(const CEGUI::EventArgs& /*arg*/)
 {
     if(mExitToDesktop)
         ODFrameListener::getSingleton().requestExit();
+    else if(Campaign::getSingleton().isActive())
+        mModeManager->requestMode(AbstractModeManager::MENU_CAMPAIGN);
     else
         mModeManager->requestMode(AbstractModeManager::MENU_MAIN);
     return true;
@@ -2427,6 +2546,7 @@ void GameMode::onDefeatSequenceFinished()
     showDefeatDebriefing();
 }
 
+//! \brief Shows the existing result window for defeat or an acknowledged campaign victory.
 void GameMode::showDefeatDebriefing()
 {
     mDefeatDebriefing = CEGUI::WindowManager::getSingleton().loadLayoutFromFile("WindowDefeatDebriefing.layout");
@@ -2448,7 +2568,9 @@ void GameMode::showDefeatDebriefing()
     addEventConnection(
         mDefeatDebriefing->getChild("Panel/ConfirmButton")->subscribeEvent(
             CEGUI::PushButton::EventClicked,
-            CEGUI::Event::Subscriber(&GameMode::onClickDefeatDebriefingConfirm, this)
+            debriefingLevelWon(hasStatistics, statistics, false) && Campaign::getSingleton().isActive()
+                ? CEGUI::Event::Subscriber(&GameMode::onClickCampaignVictoryConfirm, this)
+                : CEGUI::Event::Subscriber(&GameMode::onClickDefeatDebriefingConfirm, this)
         )
     );
 
@@ -3148,6 +3270,15 @@ void GameMode::refreshSpellButtonCoolDowns()
             progressBar->hide();
         }
     });
+}
+
+void GameMode::updateTimeLimitTooltip(bool isCountdown)
+{
+    CEGUI::Window* timeLimitDisplay = mRootWindow->getChild("HorizontalPipe/TimeLimitDisplay");
+    if(isCountdown)
+        timeLimitDisplay->setTooltipText(TIME_LIMIT_TOOLTIP_COUNTDOWN);
+    else
+        timeLimitDisplay->setTooltipText(TIME_LIMIT_TOOLTIP_LIMIT);
 }
 
 void GameMode::refreshActionFeedback(float elapsed)

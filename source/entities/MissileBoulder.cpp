@@ -17,7 +17,10 @@
 
 #include "entities/MissileBoulder.h"
 
+#include "entities/Tile.h"
+#include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/LevelScript.h"
 #include "network/ODPacket.h"
 #include "utils/LogManager.h"
 #include "utils/Random.h"
@@ -41,8 +44,83 @@ MissileBoulder::MissileBoulder(GameMap* gameMap) :
 {
 }
 
+//! A golf ball leaves the hand with this speed (tiles per turn) and loses this share of it each turn
+static const double GOLF_START_SPEED = 1.5;
+static const double GOLF_FRICTION = 0.85;
+static const double GOLF_MIN_SPEED = 0.15;
+
+MissileBoulder* MissileBoulder::createGolfBall(GameMap* gameMap, Seat* seat, const std::string& name)
+{
+    MissileBoulder* ball = new MissileBoulder(gameMap, seat, name, "Boulder", Ogre::Vector3::ZERO, 0.0, -1.0, nullptr, false);
+    // The ball lies still until it is slapped
+    ball->stopMissile();
+    return ball;
+}
+
+bool MissileBoulder::isResting()
+{
+    return isGolfBall() && !isMoving();
+}
+
+bool MissileBoulder::canSlap(Seat* seat)
+{
+    if(!getIsOnMap() || (seat != getSeat()))
+        return false;
+
+    // The client does not know the damage that marks a golf ball: the server decides
+    if(!getIsOnServerMap())
+        return !isMoving();
+
+    if(!isResting())
+        return false;
+
+    Tile* tile = getPositionTile();
+    return (tile != nullptr) && !getGameMap()->getLevelScript().isBoulderHole(tile->getX(), tile->getY());
+}
+
+void MissileBoulder::slap()
+{
+    // Without the place of the hand the ball rolls to the east
+    slapFrom(getPosition().x - 1.0f, getPosition().y);
+}
+
+void MissileBoulder::slapFrom(float fromX, float fromY)
+{
+    Ogre::Vector3 direction(getPosition().x - fromX, getPosition().y - fromY, 0.0f);
+    if(direction.length() < 0.01f)
+        direction = Ogre::Vector3(1.0f, 0.0f, 0.0f);
+
+    direction.normalise();
+    launch(direction, GOLF_START_SPEED);
+}
+
+bool MissileBoulder::stopsOnTile(Tile* tile)
+{
+    return isGolfBall() && getGameMap()->getLevelScript().isBoulderHole(tile->getX(), tile->getY());
+}
+
+void MissileBoulder::updateDirection()
+{
+    if(!isGolfBall())
+        return;
+
+    double speed = getMoveSpeed() * GOLF_FRICTION;
+    if(speed < GOLF_MIN_SPEED)
+    {
+        setSpeed(0.0);
+        stopMissile();
+        return;
+    }
+
+    setSpeed(speed);
+}
+
 bool MissileBoulder::hitCreature(Tile* tile, GameEntity* entity)
 {
+    // A golf ball does not hurt
+    if(isGolfBall())
+        return true;
+
     entity->takeDamage(this, 0.0, mDamage, 0.0, 0.0, tile, false);
     if(mNotifyPlayerIfHit)
         entity->notifyFightPlayer(tile);
@@ -56,6 +134,10 @@ bool MissileBoulder::hitCreature(Tile* tile, GameEntity* entity)
 
 bool MissileBoulder::wallHitNextDirection(const Ogre::Vector3& actDirection, Tile* tile, Ogre::Vector3& nextDirection)
 {
+    // A golf ball stops at the wall
+    if(isGolfBall())
+        return false;
+
     // When we hit a wall, we might break
     if(Random::Uint(1, 2) == 1)
         return false;

@@ -122,6 +122,9 @@ enum class ServerNotificationType
     // Owner-only reply to a production query or reorder request.
     trapProductionQueue,
 
+    //! The team of a seat changed (an alliance of a level script): + int32_t seatId, int32_t teamId
+    seatTeam,
+
     // Owner-only start of the defeat sequence for a defeated human player:
     // + int32_t conquerorSeatId (-1 if unknown), int32_t heartTileX, int32_t heartTileY (-1/-1 if unknown).
     // Appended last so that no existing numeric value changes.
@@ -150,11 +153,21 @@ enum class ServerNotificationType
     possessionStart,
     //! The player no longer possesses a creature: + bool lost (the creature fell: dead, knocked out or gone)
     possessionEnd,
+    //! Answer to editorRegionEdit, all the region markers of the level script:
+    //! + uint32_t count, then per region: string name and 4 int32_t (the corners).
+    editorRegionData,
     //! Presentation-only effect of a trap or door, sent to the human seats that see the tile:
     //! + int32_t kind (TrapEffectKind), int32_t tileX, int32_t tileY, string type name of the trap or door
     //! (e.g. Alarm, DoorSteel), float health fraction (0 to 1, doors only, else 1).
     //! Appended last so that no existing numeric value changes.
-    trapEffect
+    trapEffect,
+    //! The time left until the level is lost: + int32_t seconds (-1: there is no time limit; a countdown that
+    //! ends without a defeat has GameMap::TIME_LIMIT_COUNTDOWN_FLAG added), then an int32_t with the seconds
+    //! left until the next hero wave of a level script (-1: none is shown)
+    timeLimit,
+    //! \brief Owner-only campaign victory after levelStatistics and saved progress: string goalsDisplay.
+    //! Appended so existing notification values remain unchanged.
+    campaignVictory
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);
@@ -175,6 +188,7 @@ class ServerNotification
 
         ODPacket mPacket;
 
+        //! \brief Returns the diagnostic name of the notification type.
         static std::string typeString(ServerNotificationType type);
 
     private:

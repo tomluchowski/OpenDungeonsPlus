@@ -166,6 +166,7 @@ public:
 
     inline CreatureJob          getCreatureJob  () const    { return mCreatureJob; }
     inline CombatClass          getCombatClass  () const    { return mCombatClass; }
+    inline int32_t              getStealGold    () const    { return mStealGold; }
     //! \brief True for creatures that are never scared by a Fear trap.
     inline bool                 isFearless      () const    { return mFearless; }
     //! \brief True for the champion definition (the creature the Summon champion spell calls).
@@ -267,6 +268,8 @@ private:
 
     //! \brief The role in group fights (default blocker)
     CombatClass mCombatClass;
+    //! brief Gold taken from one free gold pile by a thief, 0 for creatures that do not steal
+    int32_t mStealGold;
     //! \brief True for creatures that are never scared by a Fear trap
     bool mFearless;
     //! \brief True for the summoned champion: it cannot be hurt, possessed or turned, needs no fee and charges at enemies

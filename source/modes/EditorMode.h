@@ -20,7 +20,9 @@
 
 #include "GameEditorModeBase.h"
 
+#include "gamemap/LevelScript.h"
 #include "gamemap/TileMarker.h"
+#include "network/ClientNotification.h"
 #include "modes/InputCommand.h"
 #include "modes/SettingsWindow.h"
 #include "rooms/RoomPortalWave.h"
@@ -54,6 +56,8 @@ class EditorMode final: public GameEditorModeBase, public InputCommand
 friend class ODClient;
     
 public:
+    //! \brief Creates the level editor mode and its widgets.
+    //! \param modeManager The manager that owns the mode.
     EditorMode(ModeManager* modeManager);
 
     virtual ~EditorMode();
@@ -62,10 +66,12 @@ public:
     virtual bool mouseMoved     (const OIS::MouseEvent &arg) override;
     virtual bool mousePressed   (const OIS::MouseEvent &arg, OIS::MouseButtonID id) override;
     virtual bool mouseReleased  (const OIS::MouseEvent &arg, OIS::MouseButtonID id) override;
+    //! \brief Handles the keyboard shortcuts of the editor (including R for the region markers).
     virtual bool keyPressed     (const OIS::KeyEvent &arg) override;
     virtual bool keyReleased    (const OIS::KeyEvent &arg) override;
     virtual void handleHotkeys  (OIS::KeyCode keycode) override;
 
+    //! \brief Asks for the region markers once the level has arrived and draws the markers and the tile marker.
     void onFrameStarted(const Ogre::FrameEvent& evt) override;
     void onFrameEnded(const Ogre::FrameEvent& evt) override;
 
@@ -124,6 +130,9 @@ public:
     //! Called when the answer to the request sent by askPortalWaveData comes back. An empty
     //! room name means the tile asked about holds no wave portal, and only a hint is shown.
     void showPortalWaveWindow(const std::string& roomName, const RoomPortalWaveConfig& config);
+
+    //! \brief Replaces the region markers shown by the ones the server has just sent
+    void setRegions(const std::vector<LevelScriptRegion>& regions);
 private:
 
     DraggableTileContainer* draggableTileContainer;
@@ -169,6 +178,9 @@ private:
     //! the widgets ourselves are not read back as if the player had made them.
     bool mPortalWaveRefreshing;
 
+    //! \brief True once the region markers have been asked for after the level arrived
+    bool mRegionsRequested;
+
     //! \brief The creature node name being dragged by the mouse
     std::string mDraggedCreature;
 
@@ -187,7 +199,8 @@ private:
     void handleMouseWheel(const OIS::MouseEvent& arg);
 
     //! \brief Updates the text seen next to the cursor position.
-    //! This text gives the tile position, and the current left-click action
+    //! This text gives the tile position (with the name of the region marker on it, if any),
+    //! and the current left-click action
     void updateCursorText();
 
     //! \brief Asks the server to give the creatures currently held in the hand the level
@@ -208,6 +221,22 @@ private:
     //! \brief Asks the server what the waves of the wave portal covering the given tile are.
     //! They only exist on the server, so the window can only be filled once it answers.
     void askPortalWaveData(Tile* tile);
+
+    //! \brief Sends a region marker change to the server.
+    //! \param operation Whether to list the markers, set the region with the name to the rectangle or remove it.
+    //! \param name The name of the region (not used by list).
+    //! \param x1 The first corner of the rectangle (used by set only).
+    //! \param y1 The first corner of the rectangle (used by set only).
+    //! \param x2 The opposite corner of the rectangle (used by set only).
+    //! \param y2 The opposite corner of the rectangle (used by set only).
+    void askRegionEdit(EditorRegionOperation operation, const std::string& name,
+        int32_t x1, int32_t y1, int32_t x2, int32_t y2);
+
+    //! \brief Makes the marked tiles a region with a new name (key R)
+    void markRegion();
+
+    //! \brief Removes the region under the mouse (key Shift + R)
+    void unmarkRegion();
 
     //! \brief Writes the room wide settings and the fields of the wave being shown back into
     //! the working copy. Called before anything that changes which wave is shown, so that

@@ -32,10 +32,13 @@
 #include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
 #include "entities/Weapon.h"
+#include "game/Campaign.h"
 #include "game/Player.h"
 #include "game/Skill.h"
 #include "game/SkillType.h"
 #include "game/Seat.h"
+#include "gamemap/LevelScript.h"
+#include "gamemap/LevelScriptRunner.h"
 #include "gamemap/MapHandler.h"
 #include "gamemap/Pathfinding.h"
 #include "gamemap/TileSet.h"
@@ -63,6 +66,7 @@
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 #include "utils/ResourceManager.h"
+#include "ODApplication.h"
 
 #include "ODApplication.h"
 
@@ -217,6 +221,10 @@ GameMap::GameMap(bool isServerGameMap, NodeType nt) :
         mTurnNumber(-1),
         mIsPaused(false),
         mTimePayDay(0),
+        mGameDurationAnnounced(false),
+        mTimeLimitSentSeconds(-1),
+        mWaveCountdownSentSeconds(-1),
+        mWaveCountdownToSend(-1),
         mFloodFillEnabled(false),
         mIsFOWActivated(true),
         mNumCallsTo_path(0),
@@ -225,12 +233,23 @@ GameMap::GameMap(bool isServerGameMap, NodeType nt) :
         mHighMap(nullptr),
         generator(42)
 {
+    mLevelScript.reset(new LevelScript());
     resetUniqueNumbers();
 }
 
 GameMap::~GameMap()
 {
     clearAll();
+}
+
+LevelScript& GameMap::getLevelScript()
+{
+    return *mLevelScript;
+}
+
+const LevelScript& GameMap::getLevelScript() const
+{
+    return *mLevelScript;
 }
 
 std::string GameMap::serverStr()
@@ -352,6 +371,11 @@ void GameMap::clearAll()
         processDeletionQueues();
 
         clearGoalsForAllSeats();
+        mLevelScript->clear();
+        mGameDurationAnnounced = false;
+        mTimeLimitSentSeconds = -1;
+        mWaveCountdownSentSeconds = -1;
+        mWaveCountdownToSend = -1;
         clearSeats();
         mLocalPlayer = nullptr;
         clearPlayers();
@@ -1161,6 +1185,12 @@ void GameMap::doTurn(double timeSinceLastTurn)
 
     uint32_t miscUpkeepTime = doMiscUpkeep(timeSinceLastTurn);
 
+    if(isServerGameMap())
+    {
+        LevelScriptRunner::doTurn(*this);
+        checkGameDuration();
+    }
+
     for (Seat* seat : mSeats)
     {
         if(seat->getPlayer() == nullptr)
@@ -1189,6 +1219,7 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
     if((mTimePayDay >= ConfigManager::getSingleton().getTimePayDay()))
     {
         mTimePayDay = 0;
+        getLevelScript().recordEvent("Level", "payday");
         // We only notify players with a dungeon temple
         for(Player* player : getPlayers())
         {
@@ -2581,11 +2612,143 @@ Seat* GameMap::getSeatById(int id) const
     return nullptr;
 }
 
+void GameMap::setScriptTimeLimit(int64_t seconds)
+{
+    if(seconds <= 0)
+    {
+        mLevelScript->setTimeLimitSeconds(LevelScript::TIME_LIMIT_REMOVED);
+        return;
+    }
+
+    int64_t elapsedSeconds = static_cast<int64_t>(static_cast<double>(mTurnNumber) / ODApplication::turnsPerSecond);
+    mLevelScript->setTimeLimitSeconds(elapsedSeconds + seconds);
+    // A new limit can run out again, even after an earlier one did
+    mGameDurationAnnounced = false;
+}
+
+void GameMap::setScriptCountdown(int64_t seconds)
+{
+    if(seconds <= 0)
+    {
+        mLevelScript->setCountdownSeconds(LevelScript::COUNTDOWN_NOT_SET);
+        return;
+    }
+
+    int64_t elapsedSeconds = static_cast<int64_t>(static_cast<double>(mTurnNumber) / ODApplication::turnsPerSecond);
+    mLevelScript->setCountdownSeconds(elapsedSeconds + seconds);
+}
+
+void GameMap::setScriptWaveCountdown(int64_t seconds)
+{
+    if(seconds <= 0)
+    {
+        mLevelScript->setWaveCountdownSeconds(LevelScript::COUNTDOWN_NOT_SET);
+        return;
+    }
+
+    int64_t elapsedSeconds = static_cast<int64_t>(static_cast<double>(mTurnNumber) / ODApplication::turnsPerSecond);
+    mLevelScript->setWaveCountdownSeconds(elapsedSeconds + seconds);
+}
+
+void GameMap::sendTimeLimit(int32_t remainingSeconds)
+{
+    if((remainingSeconds == mTimeLimitSentSeconds) && (mWaveCountdownToSend == mWaveCountdownSentSeconds))
+        return;
+
+    mTimeLimitSentSeconds = remainingSeconds;
+    mWaveCountdownSentSeconds = mWaveCountdownToSend;
+    for(Player* player : getPlayers())
+    {
+        if(!player->getIsHuman())
+            continue;
+
+        ServerNotification* serverNotification = new ServerNotification(
+            ServerNotificationType::timeLimit, player);
+        serverNotification->mPacket << remainingSeconds;
+        serverNotification->mPacket << mWaveCountdownToSend;
+        ODServer::getSingleton().queueServerNotification(serverNotification);
+    }
+}
+
+void GameMap::checkGameDuration()
+{
+    // The wave countdown of the script is shown beside the other displays, whatever else runs;
+    // sendTimeLimit below sends it together with the time limit
+    const int64_t waveCountdown = mLevelScript->getWaveCountdownSeconds();
+    double waveCountdownLeft = -1.0;
+    if(waveCountdown >= 0)
+    {
+        waveCountdownLeft = static_cast<double>(waveCountdown)
+            - static_cast<double>(mTurnNumber) / ODApplication::turnsPerSecond;
+    }
+    mWaveCountdownToSend = (waveCountdownLeft > 0.0) ? static_cast<int32_t>(std::ceil(waveCountdownLeft)) : -1;
+
+    // The limit counts game time, not real time, so the game speed does not change it
+    const int64_t scriptLimit = mLevelScript->getTimeLimitSeconds();
+    double endTurn = -1.0;
+    if(scriptLimit >= 0)
+        endTurn = static_cast<double>(scriptLimit) * ODApplication::turnsPerSecond;
+
+    if(endTurn < 0.0)
+    {
+        // Without a limit, a countdown of the script is shown until it ends
+        const int64_t countdown = mLevelScript->getCountdownSeconds();
+        double countdownLeft = -1.0;
+        if(countdown >= 0)
+        {
+            countdownLeft = static_cast<double>(countdown)
+                - static_cast<double>(mTurnNumber) / ODApplication::turnsPerSecond;
+        }
+        if(countdownLeft > 0.0)
+            sendTimeLimit(static_cast<int32_t>(std::ceil(countdownLeft)) | TIME_LIMIT_COUNTDOWN_FLAG);
+        else
+            sendTimeLimit(-1);
+        return;
+    }
+
+    double secondsLeft = (endTurn - static_cast<double>(mTurnNumber)) / ODApplication::turnsPerSecond;
+    int32_t secondsToSend = 0;
+    if(secondsLeft > 0.0)
+        secondsToSend = static_cast<int32_t>(std::ceil(secondsLeft));
+    sendTimeLimit(secondsToSend);
+
+    if(mGameDurationAnnounced)
+        return;
+
+    if(static_cast<double>(mTurnNumber) < endTurn)
+        return;
+
+    mGameDurationAnnounced = true;
+    for(Player* player : getPlayers())
+    {
+        if(!player->getIsHuman())
+            continue;
+
+        ServerNotification* serverNotification = new ServerNotification(
+            ServerNotificationType::chatServer, player);
+        serverNotification->mPacket << "Time is up! The time limit of this level has run out."
+            << EventShortNoticeType::majorGameEvent;
+        ODServer::getSingleton().queueServerNotification(serverNotification);
+    }
+
+    // When the time runs out every keeper loses, there is no winner
+    for(Seat* seat : mSeats)
+    {
+        if(seat->getPlayer() == nullptr)
+            continue;
+
+        seat->getPlayer()->notifyTimeUp();
+    }
+}
+
+//! \brief Records a seat victory once and opens the campaign result after saving its progress.
 void GameMap::addWinningSeat(Seat *s)
 {
     // Make sure the seat has not already been added.
     if(std::find(mWinningSeats.begin(), mWinningSeats.end(), s) != mWinningSeats.end())
         return;
+
+    mWinningSeats.push_back(s);
 
     Player* player = getPlayerBySeat(s);
     if (player && player->getIsHuman())
@@ -2594,13 +2757,24 @@ void GameMap::addWinningSeat(Seat *s)
             ServerNotificationType::chatServer, player);
         serverNotification->mPacket << "You Won" << EventShortNoticeType::majorGameEvent;
         ODServer::getSingleton().queueServerNotification(serverNotification);
+
+        // The numbers of the level at the moment of the victory (the campaign menu shows them)
+        player->sendLevelStatistics(true);
+
+        // In a campaign, the progress is saved and the player is told how to go on
+        if(Campaign::getSingleton().onLevelWon())
+        {
+            ServerNotification* campaignNotification = new ServerNotification(
+                ServerNotificationType::campaignVictory, player);
+            campaignNotification->mPacket << getGoalsStringForPlayer(player);
+            ODServer::getSingleton().queueServerNotification(campaignNotification);
+        }
     }
 
     std::vector<Seat*> seats;
     seats.push_back(s);
     fireRelativeSound(seats, SoundRelativeKeeperStatements::Victory);
 
-    mWinningSeats.push_back(s);
 }
 
 bool GameMap::seatIsAWinner(Seat *s) const
@@ -3034,52 +3208,85 @@ std::vector<Tile*> GameMap::getBuildableTilesForPlayerInArea(int x1, int y1, int
     return tiles;
 }
 
+//! \brief Displays authoritative goal states with graphical marks, including after victory.
 std::string GameMap::getGoalsStringForPlayer(Player* player)
 {
     bool playerIsAWinner = seatIsAWinner(player->getSeat());
     std::stringstream tempSS("");
     Seat* seat = player->getSeat();
     seat->resetGoalsChanged();
-
-    const std::string formatTitleOn = "[font='MedievalSharp-12'][colour='CCBBBBFF']";
-    const std::string formatTitleOff = "[font='MedievalSharp-10'][colour='FFFFFFFF']";
+    const std::string openGoalMark = "[image='GoalStatus/Open'] ";
+    const std::string reachedGoalMark = "[image='GoalStatus/Reached'] ";
+    const std::string failedGoalMark = "[image='GoalStatus/Failed'] ";
 
     if (playerIsAWinner)
     {
-        tempSS << "Congratulations, you have completed this level.";
+        tempSS << "Victory!\n";
     }
-    else if (seat->numFailedGoals() > 0)
+    if (seat->numFailedGoals() > 0)
     {
         // Loop over the list of completed goals for the seat we are sitting in an print them.
-        tempSS << formatTitleOn << "Failed Goals:\n" << formatTitleOff
-               << "(You cannot complete this level!)\n\n";
         for (unsigned int i = 0; i < seat->numFailedGoals(); ++i)
         {
             Goal *tempGoal = seat->getFailedGoal(i);
-            tempSS << tempGoal->getFailedMessage(*seat) << "\n";
+            tempSS << failedGoalMark << tempGoal->getDescription(*seat) << "\n";
         }
     }
 
     if (seat->numUncompleteGoals() > 0)
     {
         // Loop over the list of unmet goals for the seat we are sitting in an print them.
-        tempSS << formatTitleOn << "Unfinished Goals:" << formatTitleOff << "\n\n";
         for (unsigned int i = 0; i < seat->numUncompleteGoals(); ++i)
         {
             Goal *tempGoal = seat->getUncompleteGoal(i);
-            tempSS << tempGoal->getDescription(*seat) << "\n";
+            tempSS << openGoalMark << tempGoal->getDescription(*seat) << "\n";
         }
     }
 
     if (seat->numCompletedGoals() > 0)
     {
         // Loop over the list of completed goals for the seat we are sitting in an print them.
-        tempSS << "\n" << formatTitleOn << "Completed Goals:" << formatTitleOff << "\n\n";
         for (unsigned int i = 0; i < seat->numCompletedGoals(); ++i)
         {
             Goal *tempGoal = seat->getCompletedGoal(i);
-            tempSS << tempGoal->getSuccessMessage(*seat) << "\n";
+            tempSS << reachedGoalMark << tempGoal->getDescription(*seat) << "\n";
         }
+    }
+
+    std::vector<std::string> scriptObjectives;
+    std::vector<std::string> scriptObjectiveIds;
+    const LevelScript& script = getLevelScript();
+    for(const LevelScriptTrigger& trigger : script.getTriggers())
+    {
+        for(const LevelScriptAction& action : trigger.mActions)
+        {
+            if((action.mType != LevelScriptActionType::objective && action.mType != LevelScriptActionType::hint) ||
+               (action.mSeatId >= 0 && action.mSeatId != seat->getId()) ||
+               (action.mObjectiveId.empty()
+                   ? std::find(scriptObjectives.begin(), scriptObjectives.end(), action.mText) != scriptObjectives.end()
+                   : std::find(scriptObjectiveIds.begin(), scriptObjectiveIds.end(), action.mObjectiveId) != scriptObjectiveIds.end()))
+                continue;
+            scriptObjectiveIds.push_back(action.mObjectiveId);
+            if(action.mType == LevelScriptActionType::hint)
+                scriptObjectives.push_back("Hint: " + action.mText);
+            else if(action.mObjectiveId.empty())
+                scriptObjectives.push_back(action.mText);
+            else
+            {
+                const LevelScriptObjectiveState state = script.getObjectiveState(seat->getId(), action.mObjectiveId);
+                std::string stateMark = openGoalMark;
+                if(state == LevelScriptObjectiveState::reached)
+                    stateMark = reachedGoalMark;
+                else if(state == LevelScriptObjectiveState::failed)
+                    stateMark = failedGoalMark;
+                scriptObjectives.push_back(stateMark + action.mText);
+            }
+        }
+    }
+    if(!scriptObjectives.empty())
+    {
+        for(const std::string& objective : scriptObjectives)
+            tempSS << objective << "\n";
     }
 
     return tempSS.str();

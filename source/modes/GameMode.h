@@ -88,6 +88,7 @@ public:
 class GameMode final : public GameEditorModeBase, public InputCommand
 {
  public:
+    //! \brief Connects the in-game controls and existing objectives window to the mode manager.
     GameMode(ModeManager*);
 
     virtual ~GameMode();
@@ -192,6 +193,12 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     //! Opens the debriefing window on the black screen.
     void onDefeatSequenceFinished();
 
+    //! \brief Shows the victory result after the server saved campaign progress.
+    void showCampaignVictory(const std::string& goalsDisplay);
+
+    //! \brief Returns to the campaign map after the player acknowledges victory.
+    bool onClickCampaignVictoryConfirm(const CEGUI::EventArgs&);
+
     //! \brief Shows/hides/toggles the options window
     bool showOptionsWindow(const CEGUI::EventArgs& = {});
     bool hideOptionsWindow(const CEGUI::EventArgs& = {});
@@ -239,6 +246,10 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     //! Refresh the selected action, target preview and resource/cooldown feedback without executing it.
     void refreshActionFeedback(float elapsed);
 
+    //! \brief Sets the tooltip of the time limit display: a script countdown or a time limit
+    //! \param isCountdown true for a countdown that ends without a defeat, false for a time limit
+    void updateTimeLimitTooltip(bool isCountdown);
+
     Creature* getClosestCreature(Tile*);
 
     //! \brief Called on client side when the local player takes control of a creature (possession)
@@ -248,6 +259,7 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     void notifyPossessionEnded();
 
 protected:
+    //! \brief Leaves the game: to the desktop, to the campaign menu while a campaign level is played, otherwise to the main menu
     bool onClickYesQuitMenu(const CEGUI::EventArgs& /*arg*/);
 
     //! \brief The different Game Options Menu handlers
@@ -295,6 +307,11 @@ private:
     //! rather than back to the main menu. Set by the button that opened the
     //! confirmation popup.
     bool mExitToDesktop = false;
+
+    //! \brief Seconds of the time limit countdown that is shown on the HUD, -1 while it is hidden
+    int32_t mTimeLimitShown = -1;
+    //! \brief Seconds of the wave countdown that is shown on the HUD, -1 while it is hidden
+    int32_t mWaveCountdownShown = -1;
 
     //! \brief Sets whether a tile must marked or unmarked for digging.
     //! this value is based on the first marked flag tile selected.
@@ -459,11 +476,12 @@ private:
     void cutCameraToHeart(const Ogre::Vector3& heartPosition);
     void createDefeatWindows();
     void destroyDefeatWindows();
-    //! Loads the debriefing window (summary lines, confirm button) and shows the pointer again
+    //! \brief Loads the defeat or campaign victory result (summary lines and confirm button) and shows the pointer.
     void showDefeatDebriefing();
     //! Fills the hidden statistics area of the debriefing with the rows and shows it (nothing for no rows)
     void fillDefeatStatistics(const std::vector<DebriefingTableRow>& rows);
-    //! The confirm button of the debriefing: leaves to the main menu with the skirmish sub-menu open
+    //! The confirm button of the debriefing: leaves to the campaign menu while a campaign level is played, otherwise to the
+    //! main menu with the skirmish sub-menu open
     bool onClickDefeatDebriefingConfirm(const CEGUI::EventArgs& arg);
     //! \brief Hides every window of the game interface except the ones of the defeat sequence
     void hideInterfaceForDefeat();

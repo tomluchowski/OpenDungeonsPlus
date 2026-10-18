@@ -511,6 +511,23 @@ void Player::notifyNoMoreDungeonTemple()
         }
     }
 
+    notifyDefeat(hasTeamLost);
+}
+
+void Player::notifyTimeUp()
+{
+    if(mHasLost)
+        return;
+
+    mHasLost = true;
+    OD_LOG_INF("Player seatId=" + Helper::toString(getSeat()->getId()) + " lost: time is up");
+
+    // No heart was destroyed and the time limit ends the game for everybody, so the whole team loses with the player
+    notifyDefeat(true);
+}
+
+void Player::notifyDefeat(bool hasTeamLost)
+{
     if(hasTeamLost)
     {
         // This message will be sent in 1v1 or multiplayer so it should not talk about team. If we want to be
@@ -576,30 +593,34 @@ void Player::notifyNoMoreDungeonTemple()
         serverNotification->mPacket << mConquerorSeatId << mDefeatHeartTileX << mDefeatHeartTileY;
         ODServer::getSingleton().queueServerNotification(serverNotification);
 
-        // Snapshot of the debriefing counters of every seat with a player (not the rogue seat)
-        std::vector<Seat*> statisticsSeats;
-        for(Seat* seat : mGameMap->getSeats())
-        {
-            if(seat->isRogueSeat() || (seat->getPlayer() == nullptr))
-                continue;
-
-            statisticsSeats.push_back(seat);
-        }
-
-        serverNotification = new ServerNotification(ServerNotificationType::levelStatistics, this);
-        int32_t elapsedSeconds = static_cast<int32_t>(mGameMap->getTurnNumber() / ODApplication::turnsPerSecond);
-        bool levelWon = false;
-        serverNotification->mPacket << elapsedSeconds << levelWon << static_cast<int32_t>(statisticsSeats.size());
-        for(Seat* seat : statisticsSeats)
-        {
-            const SeatStatistics& statistics = seat->getStatistics();
-            serverNotification->mPacket << static_cast<int32_t>(seat->getId());
-            serverNotification->mPacket << statistics.mKeepersDefeated << statistics.mCreaturesKilled
-                << statistics.mHeroesDestroyed << statistics.mRoomsCaptured << statistics.mItemsMade
-                << statistics.mCreaturesConverted;
-        }
-        ODServer::getSingleton().queueServerNotification(serverNotification);
+        sendLevelStatistics(false);
     }
+}
+
+void Player::sendLevelStatistics(bool levelWon)
+{
+    // Snapshot of the debriefing counters of every seat with a player (not the rogue seat)
+    std::vector<Seat*> statisticsSeats;
+    for(Seat* seat : mGameMap->getSeats())
+    {
+        if(seat->isRogueSeat() || (seat->getPlayer() == nullptr))
+            continue;
+
+        statisticsSeats.push_back(seat);
+    }
+
+    ServerNotification* serverNotification = new ServerNotification(ServerNotificationType::levelStatistics, this);
+    int32_t elapsedSeconds = static_cast<int32_t>(mGameMap->getTurnNumber() / ODApplication::turnsPerSecond);
+    serverNotification->mPacket << elapsedSeconds << levelWon << static_cast<int32_t>(statisticsSeats.size());
+    for(Seat* seat : statisticsSeats)
+    {
+        const SeatStatistics& statistics = seat->getStatistics();
+        serverNotification->mPacket << static_cast<int32_t>(seat->getId());
+        serverNotification->mPacket << statistics.mKeepersDefeated << statistics.mCreaturesKilled
+            << statistics.mHeroesDestroyed << statistics.mRoomsCaptured << statistics.mItemsMade
+            << statistics.mCreaturesConverted;
+    }
+    ODServer::getSingleton().queueServerNotification(serverNotification);
 }
 
 void Player::notifyTeamFighting(Player* player, Tile* tile)

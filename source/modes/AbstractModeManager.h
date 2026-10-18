@@ -39,6 +39,7 @@ public:
         MENU_CONFIGURE_SEATS,
         MENU_REPLAY,
         MENU_LOAD_SAVEDGAME,
+        MENU_CAMPAIGN,
         GAME,
         EDITOR,
         NUM_ELEMS //Number of types
