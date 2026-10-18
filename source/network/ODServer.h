@@ -86,7 +86,6 @@ class ODServer: public Ogre::Singleton<ODServer>,
     //! Whether the recipient negotiated full mood in creature snapshots and updates.
     bool supportsCreatureMood(Player* player);
     bool supportsCreatureActivity(Player* player);
-
     //! Whether the recipient negotiated cosmetic events (see CosmeticEvent.h)
     bool supportsCosmeticEvents(Player* player);
 

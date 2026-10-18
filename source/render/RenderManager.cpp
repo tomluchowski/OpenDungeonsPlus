@@ -101,6 +101,10 @@ const Ogre::Real KEEPER_HAND_CREATURE_PICKED_OFFSET = 0.05f;
 const Ogre::Real KEEPER_HAND_CREATURE_PICKED_SCALE = 0.05f;
 const Ogre::Real CREATURE_DROP_ANIMATION_DURATION = 0.35f;
 const Ogre::Real CREATURE_GET_UP_ANIMATION_DURATION = 0.35f;
+//! Existing bed-settling duration, also used to return naturally to the stored standing pose.
+static const Ogre::Real CREATURE_SLEEP_TRANSITION_DURATION = 1.2f;
+//! Reuse the hand's short four-frame pose blend when entering a native wake clip.
+static const Ogre::Real CREATURE_WAKE_BLEND_DURATION = 4.0f / 30.0f;
 const Ogre::Real ROOM_CONSTRUCTION_EFFECT_DURATION = 1.1f;
 const Ogre::Real CREATURE_COMBAT_IMPACT_DURATION = 0.55f;
 
@@ -717,6 +721,7 @@ void RenderManager::initGameRenderer(GameMap* gameMap)
     OD_ASSERT_TRUE(gameMap);
     OD_ASSERT_TRUE(mHandKeeperNode);
     mCreatureTextOverlayDisplayed = false;
+    mGameMap = gameMap;
 
     // Create the light which follows the single tile selection mesh
     if(mHandLight == nullptr)
@@ -968,6 +973,7 @@ void RenderManager::preRenderTargetUpdate(const Ogre::RenderTargetEvent& evt)
 
 void RenderManager::stopGameRenderer(GameMap* gameMap)
 {
+    mGameMap = nullptr;
     cancelCreatureSleepAnimation();
     cancelCreatureFeedingAnimation();
     clearChickenFeatherEffects();
@@ -1285,6 +1291,7 @@ const Ogre::Vector3& RenderManager::getMenuEntityScale(Ogre::SceneNode* node)
     return node->getScale();
 }
 
+//! \brief Advances the hand in real time and world poses in unpaused game time.
 void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
 {
     if(mHandAnimationState != nullptr)
@@ -1299,6 +1306,19 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
         }
         alignKeeperHandPointer(mSceneManager->getEntity("keeperHandEnt"), mHandAnimationState);
     }
+
+    // Ogre advances particle lifetimes separately from our pose timers, so both use the same world clock.
+    const bool playing = (mGameMap != nullptr) && (mGameMap->getTurnNumber() > 0);
+    const Ogre::Real particleSpeed = !playing ? 1.0f : (mGameMap->getGamePaused() ? 0.0f :
+        static_cast<Ogre::Real>(mGameMap->getGameSpeedFactor()));
+    for(const std::pair<const Ogre::String, Ogre::MovableObject*>& object :
+        mSceneManager->getMovableObjects("ParticleSystem"))
+        static_cast<Ogre::ParticleSystem*>(object.second)->setSpeedFactor(particleSpeed);
+
+    if((mGameMap == nullptr) || mGameMap->getGamePaused() || (mGameMap->getTurnNumber() <= 0))
+        return;
+
+    timeSinceLastFrame *= static_cast<Ogre::Real>(mGameMap->getGameSpeedFactor());
 
 
     for(std::vector<ChickenFeatherEffect>::iterator it = mChickenFeatherEffects.begin(); it != mChickenFeatherEffects.end();)
@@ -1316,8 +1336,37 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
     }
 
     std::vector<Creature*> finishedFeeding;
+    std::vector<Creature*> finishedWaking;
     for(CreatureSleepAnimation& sleeping : mCreatureSleepAnimations)
     {
+        if(sleeping.mWaking)
+        {
+            sleeping.mElapsed += timeSinceLastFrame;
+            if(sleeping.mWakeFromAnimation != nullptr)
+            {
+                const Ogre::Real phase = std::min(sleeping.mElapsed / CREATURE_WAKE_BLEND_DURATION, 1.0f);
+                const Ogre::Real weight = phase * phase * (3.0f - 2.0f * phase);
+                sleeping.mWakeFromAnimation->setWeight(1.0f - weight);
+                sleeping.mAnimation->setWeight(weight);
+                if(phase >= 1.0f)
+                {
+                    sleeping.mWakeFromAnimation->setEnabled(false);
+                    sleeping.mWakeFromAnimation = nullptr;
+                }
+            }
+            const Ogre::Real progress = std::min(sleeping.mElapsed / CREATURE_SLEEP_TRANSITION_DURATION, 1.0f);
+            const Ogre::Real blend = progress * progress * (3.0f - 2.0f * progress);
+            sleeping.mAnimation->setTimePosition(sleeping.mReverseWake ?
+                sleeping.mWakeStartTime * (1.0f - progress) : sleeping.mAnimation->getLength() * progress);
+            sleeping.mNode->setPosition(sleeping.mRestPosition +
+                (sleeping.mBasePosition - sleeping.mRestPosition) * blend);
+            sleeping.mNode->setOrientation(Ogre::Quaternion::Slerp(blend,
+                sleeping.mRestOrientation, sleeping.mBaseOrientation, true));
+            sleeping.mNode->setScale(sleeping.mWakeScale + (sleeping.mBaseScale - sleeping.mWakeScale) * blend);
+            if(progress >= 1.0f)
+                finishedWaking.push_back(sleeping.mCreature);
+            continue;
+        }
         if(sleeping.mElapsed == 0.0f)
             fitCreatureToBed(sleeping);
         sleeping.mElapsed += timeSinceLastFrame;
@@ -1329,7 +1378,7 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
             sleeping.mCreature->setAnimationState(sleeping.mAnimation);
             sleeping.mNativeEntry = false;
         }
-        const Ogre::Real settled = std::min(sleeping.mElapsed / SLEEP_SETTLE_DURATION, 1.0f);
+        const Ogre::Real settled = std::min(sleeping.mElapsed / CREATURE_SLEEP_TRANSITION_DURATION, 1.0f);
         const Ogre::Real blend = settled * settled * (3.0f - 2.0f * settled);
         sleeping.mNode->setPosition(sleeping.mBasePosition +
             (sleeping.mRestPosition - sleeping.mBasePosition) * blend);
@@ -1339,6 +1388,11 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
             sleeping.mElapsed * Ogre::Math::TWO_PI / SLEEP_BREATH_PERIOD) * settled;
         sleeping.mNode->setScale(sleeping.mBaseScale * Ogre::Vector3(
             1.0f + breath * SLEEP_BREATH_WIDTH_RATIO, 1.0f + breath * SLEEP_BREATH_WIDTH_RATIO, 1.0f + breath));
+    }
+    for(Creature* creature : finishedWaking)
+    {
+        cancelCreatureSleepAnimation(creature);
+        rrSetObjectAnimationState(creature, EntityAnimation::idle_anim, true);
     }
     for(CreatureFeedingAnimation& feeding : mCreatureFeedingAnimations)
     {
@@ -2723,6 +2777,7 @@ void RenderManager::rrDestroySeatVisionVisualDebug(int seatId, Tile* tile)
     }
 }
 
+//! \brief Selects the rendered clip and preserves a natural wake transition when gameplay returns to idle.
 void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObject, const std::string& animation, bool loop)
 {
     std::string objectName = curAnimatedObject->getOgreNamePrefix()
@@ -2743,6 +2798,8 @@ void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObje
 
     if(dropCreature != nullptr)
     {
+        if((anim == EntityAnimation::idle_anim) && startCreatureWakeAnimation(dropCreature, objectEntity))
+            return;
         cancelCreatureSleepAnimation(dropCreature);
         cancelCreatureFeedingAnimation(dropCreature);
     }
@@ -3471,6 +3528,7 @@ void RenderManager::rrSetFeedingChicken(Creature* creature, MovableGameEntity* c
     }
 }
 
+//! \brief Starts the sleep-entry clip and stores the standing transform for bed fitting and waking.
 void RenderManager::startCreatureSleepAnimation(Creature* creature, Ogre::Entity* entity)
 {
     cancelCreatureDropAnimation(creature);
@@ -3478,7 +3536,7 @@ void RenderManager::startCreatureSleepAnimation(Creature* creature, Ogre::Entity
     const bool nativeEntry = entity->hasAnimationState("Sleep_Start") &&
         entity->hasAnimationState(EntityAnimation::sleep_anim);
     const std::string entry = nativeEntry ? "Sleep_Start" : "SettleToSleep";
-    const Ogre::Real duration = SLEEP_SETTLE_DURATION;
+    const Ogre::Real duration = CREATURE_SLEEP_TRANSITION_DURATION;
     Ogre::Skeleton* skeleton = entity->getMesh()->getSkeleton().get();
     if(!nativeEntry && !skeleton->hasAnimation(entry))
     {
@@ -3516,8 +3574,60 @@ void RenderManager::startCreatureSleepAnimation(Creature* creature, Ogre::Entity
     Ogre::SceneNode* node = creature->getEntityNode();
     CreatureSleepAnimation sleeping = {creature, entity, node, node->getScale(),
         animation, 0.0f, nativeEntry, node->getPosition(), node->getPosition(),
-        node->getOrientation(), node->getOrientation()};
+        node->getOrientation(), node->getOrientation(), false, false, 0.0f, node->getScale(), nullptr};
     mCreatureSleepAnimations.push_back(sleeping);
+}
+
+//! \brief Keeps room occupancy true until the visible wake transition has completed.
+bool RenderManager::rrIsCreatureSleeping(const Creature* creature) const
+{
+    if(creature == nullptr)
+        return false;
+    if(creature->getAnimationStateName() == EntityAnimation::sleep_anim)
+        return true;
+    for(const CreatureSleepAnimation& sleeping : mCreatureSleepAnimations)
+        if(sleeping.mCreature == creature)
+            return true;
+    return false;
+}
+
+//! \brief Returns from the actual bed pose to standing without delaying any non-idle gameplay action.
+bool RenderManager::startCreatureWakeAnimation(Creature* creature, Ogre::Entity* entity)
+{
+    for(CreatureSleepAnimation& sleeping : mCreatureSleepAnimations)
+    {
+        if(sleeping.mCreature != creature)
+            continue;
+        if(sleeping.mWaking)
+            return true;
+        sleeping.mWaking = true;
+        sleeping.mElapsed = 0.0f;
+        sleeping.mRestPosition = sleeping.mNode->getPosition();
+        sleeping.mRestOrientation = sleeping.mNode->getOrientation();
+        sleeping.mWakeScale = sleeping.mNode->getScale();
+        const std::string previousClip = sleeping.mAnimation->getAnimationName();
+        const Ogre::Real previousTime = sleeping.mAnimation->getTimePosition();
+        std::string clip = "Sleep_End";
+        sleeping.mReverseWake = (previousClip == "SettleToSleep") || (previousClip == "Sleep_Start") ||
+            !entity->hasAnimationState(clip);
+        if(sleeping.mReverseWake)
+            clip = entity->hasAnimationState("Sleep_Start") ? "Sleep_Start" : "SettleToSleep";
+        Ogre::AnimationState* previousAnimation = sleeping.mAnimation;
+        sleeping.mAnimation = setEntityAnimation(entity, clip, false);
+        sleeping.mWakeStartTime = (clip == previousClip) ? previousTime : sleeping.mAnimation->getLength();
+        if(sleeping.mReverseWake)
+            sleeping.mAnimation->setTimePosition(sleeping.mWakeStartTime);
+        if(previousAnimation != sleeping.mAnimation)
+        {
+            sleeping.mWakeFromAnimation = previousAnimation;
+            previousAnimation->setWeight(1.0f);
+            previousAnimation->setEnabled(true);
+            sleeping.mAnimation->setWeight(0.0f);
+        }
+        creature->setAnimationState(sleeping.mAnimation);
+        return true;
+    }
+    return false;
 }
 
 void RenderManager::fitCreatureToBed(CreatureSleepAnimation& sleeping)
@@ -3565,6 +3675,7 @@ void RenderManager::fitCreatureToBed(CreatureSleepAnimation& sleeping)
     }
 }
 
+//! \brief Restores the standing transform and releases a retained native sleep-to-wake blend.
 void RenderManager::cancelCreatureSleepAnimation(Creature* creature)
 {
     for(std::vector<CreatureSleepAnimation>::iterator it = mCreatureSleepAnimations.begin(); it != mCreatureSleepAnimations.end();)
@@ -3577,6 +3688,11 @@ void RenderManager::cancelCreatureSleepAnimation(Creature* creature)
         it->mNode->setScale(it->mBaseScale);
         it->mNode->setPosition(it->mBasePosition);
         it->mNode->setOrientation(it->mBaseOrientation);
+        if(it->mWakeFromAnimation != nullptr)
+        {
+            it->mWakeFromAnimation->setEnabled(false);
+            it->mAnimation->setWeight(1.0f);
+        }
         it = mCreatureSleepAnimations.erase(it);
     }
 }

@@ -7,8 +7,12 @@ import tempfile
 root = Path(__file__).resolve().parents[2]
 prefix = Path(os.environ["CMAKE_PREFIX_PATH"])
 source = (root / "source/render/RenderManager.cpp").read_text(encoding="utf-8")
-solver = source[source.index("Ogre::Bone* findFeedingBone("):
-                source.index("Ogre::Vector3 getBedSupportPoint(")]
+end = source.index('{', source.index('void solveFeedingLimb(')) + 1
+depth = 1
+while depth:
+    depth += (source[end] == '{') - (source[end] == '}')
+    end += 1
+solver = source[source.index("Ogre::Bone* findFeedingBone("):end]
 probe = r'''
 #include <Ogre.h>
 #include <cmath>

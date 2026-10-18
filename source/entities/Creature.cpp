@@ -3655,9 +3655,9 @@ void Creature::computeMood()
     if(mMoodValue == oldMoodValue)
         return;
 
+    mNeedFireRefresh = true;
     fireCosmeticEvent(static_cast<int32_t>(CosmeticEventType::moodStage), static_cast<int32_t>(mMoodValue),
         static_cast<int32_t>(oldMoodValue), true);
-    mNeedFireRefresh = true;
 
     if((mMoodValue >= CreatureMoodLevel::Furious) &&
        (oldMoodValue < CreatureMoodLevel::Furious))
