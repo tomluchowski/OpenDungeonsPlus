@@ -58,7 +58,7 @@ for needle in ("updateTurrets(dt);", "updateRollers(dt);", "TURRET_HOLD_SECONDS"
 turn = source[source.index("void turnNodeToward"):source.index("double hashPhase")]
 if "setOrientation" in turn:
     problems.append("turnNodeToward must not overwrite the orientation")
-fired = source[source.index("case 0:", source.index("void RoomAmbience::notifyTrapEffect")):]
+fired = source[source.index("case TrapEffectKind::fired:", source.index("void RoomAmbience::notifyTrapEffect")):]
 if fired.index("mTurretHoldUntil") > fired.index('triggerEvent("TrapFired"'):
     problems.append("the hold of the turn must be set before TrapFired is shown")
 
@@ -114,8 +114,8 @@ else:
     if float(shake["Amount"][0]) > 0.5 or float(shake["Duration"][0]) > 2.0:
         problems.append("BoulderRollShake is too strong or too long")
 
-# The boulder keeps its sounds and particles from before
-for name in ("TrapBoulderFireSound", "TrapBoulderReloadSound", "TrapBoulderIdleSound", "BoulderEmptyNiche"):
+# The boulder keeps its particles from before (its sound effects belong to another change)
+for name in ("BoulderEmptyNiche",):
     if name not in effects:
         problems.append("effect %s was removed" % name)
 

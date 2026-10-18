@@ -4608,11 +4608,6 @@ void Creature::endPossession()
     player->setPossessedCreatureName(std::string());
     // Whether the creature fell (dead, knocked out or gone), so the client does not have to guess it
     const bool lost = !isAlive() || isKo() || !getIsOnMap();
-    // The aura is permanent on the clients and a refresh never removes an effect that is missing from it. The turn
-    // deletes the ended effect before the refresh of the turn is built, so the clients are told now, while the effect
-    // is still there with no turns left
-    mNeedFireRefresh = true;
-    fireCreatureRefreshIfNeeded();
 
     // The group does not follow anymore and goes back to its normal behaviour
     for(const std::string& memberName : mGroupMemberNames)
