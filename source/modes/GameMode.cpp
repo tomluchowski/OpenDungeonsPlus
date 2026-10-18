@@ -376,6 +376,26 @@ void GameMode::activate()
     syncPlayerSettings();
 }
 
+//! \brief Picks eligible room floors through walls while preserving surface picking for other actions.
+bool GameMode::findActionTilePositionFromMouse(const OIS::MouseEvent& arg, Ogre::Vector3& position)
+{
+    ODFrameListener& frameListener = ODFrameListener::getSingleton();
+    if(mPlayerSelection.getCurrentAction() != SelectedAction::buildRoom)
+        return frameListener.findTilePositionFromMouse(arg, position);
+
+    const Ogre::Real roomFloorHeight = 0.0f;
+    if(!frameListener.findWorldPositionFromMouse(arg, position, roomFloorHeight))
+        return false;
+    Tile* tile = mGameMap->getTile(Helper::round(position.x), Helper::round(position.y));
+    if(tile == nullptr || tile->isFullTile())
+        return false;
+    const RoomType roomType = mPlayerSelection.getNewRoomType();
+    if(roomType == RoomType::bridgeWooden || roomType == RoomType::bridgeStone)
+        return true;
+    return tile->isBuildableUpon(mGameMap->getLocalPlayer()->getSeat());
+}
+
+//! \brief Updates pointer targeting and selection as the mouse moves.
 bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
 {
     AbstractApplicationMode::mouseMoved(arg);
@@ -438,10 +458,12 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
 
     // Since this is a tile selection query we loop over the result set
     // and look for the first object which is actually a tile.
-    if(!ODFrameListener::getSingleton().findTilePositionFromMouse(arg, inputManager.mKeeperHandPos))
+    if(!findActionTilePositionFromMouse(arg, inputManager.mKeeperHandPos))
     {
         inputManager.mXPos = -1;
         inputManager.mYPos = -1;
+        if(mPlayerSelection.getCurrentAction() == SelectedAction::buildRoom)
+            unselectAllTiles();
         return true;
     }
     RenderManager::getSingleton().moveWorldCoords(inputManager.mKeeperHandPos.x, inputManager.mKeeperHandPos.y);
@@ -527,6 +549,7 @@ bool GameMode::isMouseWheelOnCEGUIWindow()
     return true;
 }
 
+//! \brief Starts a world action only when its pointer target is valid.
 bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
 {
     InputManager& inputManager = mModeManager->getInputManager();
@@ -580,7 +603,7 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
         return true;
     }
 
-    if(ODFrameListener::getSingleton().findTilePositionFromMouse(arg, inputManager.mKeeperHandPos))
+    if(findActionTilePositionFromMouse(arg, inputManager.mKeeperHandPos))
     {
         inputManager.mXPos = Helper::round(inputManager.mKeeperHandPos.x);
         inputManager.mYPos = Helper::round(inputManager.mKeeperHandPos.y);
@@ -763,6 +786,7 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
     return true;
 }
 
+//! \brief Completes a world action using the current action-specific pointer target.
 bool GameMode::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
 {
     CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonUp(Gui::convertButton(id));
@@ -804,7 +828,7 @@ bool GameMode::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
         return true;
     }
 
-    if(ODFrameListener::getSingleton().findTilePositionFromMouse(arg, inputManager.mKeeperHandPos))
+    if(findActionTilePositionFromMouse(arg, inputManager.mKeeperHandPos))
     {
         inputManager.mXPos = Helper::round(inputManager.mKeeperHandPos.x);
         inputManager.mYPos = Helper::round(inputManager.mKeeperHandPos.y);
@@ -1749,6 +1773,7 @@ void GameMode::refreshSpellButtonCoolDowns()
     });
 }
 
+//! \brief Refreshes action feedback and the eligible pointer target without executing an action.
 void GameMode::refreshActionFeedback(float elapsed)
 {
     InputManager& inputManager = mModeManager->getInputManager();
@@ -1774,7 +1799,7 @@ void GameMode::refreshActionFeedback(float elapsed)
         mouseState.width = static_cast<int>(size.d_width);
         mouseState.height = static_cast<int>(size.d_height);
         const OIS::MouseEvent mouseEvent(nullptr, mouseState);
-        if(ODFrameListener::getSingleton().findTilePositionFromMouse(mouseEvent, inputManager.mKeeperHandPos))
+        if(findActionTilePositionFromMouse(mouseEvent, inputManager.mKeeperHandPos))
         {
             inputManager.mXPos = Helper::round(inputManager.mKeeperHandPos.x);
             inputManager.mYPos = Helper::round(inputManager.mKeeperHandPos.y);
