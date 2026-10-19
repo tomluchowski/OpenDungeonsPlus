@@ -996,6 +996,22 @@ void solveFeedingLimb(Ogre::Bone* upper, Ogre::Bone* lower,
         target - lower->_getDerivedPosition());
 }
 
+//! Length in seconds of the movement into the bed and of the sleep entry animation.
+const Ogre::Real SLEEP_SETTLE_DURATION = 1.2f;
+//! Number of keyframe intervals sampled for the generated sleep entry animation.
+const unsigned int SLEEP_SETTLE_KEY_COUNT = 36;
+//! Breathing of a sleeping creature: relative body growth, period in seconds and the part of it
+//! that widens the body.
+const Ogre::Real SLEEP_BREATH_AMPLITUDE = 0.008f;
+const Ogre::Real SLEEP_BREATH_PERIOD = 4.0f;
+const Ogre::Real SLEEP_BREATH_WIDTH_RATIO = 0.4f;
+//! A bed is only used if it is closer than this (squared distance in tiles) to the creature.
+const Ogre::Real SLEEP_BED_MAX_SQUARED_DISTANCE = 1.0f;
+//! Gap between the mattress and the sleeping creature.
+const Ogre::Real SLEEP_BED_CLEARANCE = 0.01f;
+
+//! \brief Returns the bounds of the creature in its current animation pose after turning
+//! and scaling it. The skeletal animation is computed in software for this.
 Ogre::AxisAlignedBox getSleepingPoseBounds(Ogre::Entity* entity,
     const Ogre::Quaternion& orientation, const Ogre::Vector3& scale)
 {
@@ -1026,10 +1042,12 @@ Ogre::AxisAlignedBox getSleepingPoseBounds(Ogre::Entity* entity,
     return bounds;
 }
 
+//! \brief Returns the point of the bed mesh on which a creature lies, in the space of the mesh.
 Ogre::Vector3 getBedSupportPoint(const Ogre::MeshPtr& mesh)
 {
     // A ray through the centre finds the mattress, not the tops of bed posts.
     Ogre::Vector3 point = mesh->getBounds().getCenter();
+    // Start the ray one unit above the mesh, outside of it.
     point.z = mesh->getBounds().getMaximum().z + 1.0f;
     const Ogre::Ray ray(point, Ogre::Vector3::NEGATIVE_UNIT_Z);
     Ogre::Real nearest = Ogre::Math::POS_INFINITY;
@@ -1857,16 +1875,16 @@ void RenderManager::updateRenderAnimations(Ogre::Real timeSinceLastFrame)
             sleeping.mCreature->setAnimationState(sleeping.mAnimation);
             sleeping.mNativeEntry = false;
         }
-        const Ogre::Real settled = std::min(sleeping.mElapsed / 1.2f, 1.0f);
+        const Ogre::Real settled = std::min(sleeping.mElapsed / SLEEP_SETTLE_DURATION, 1.0f);
         const Ogre::Real blend = settled * settled * (3.0f - 2.0f * settled);
         sleeping.mNode->setPosition(sleeping.mBasePosition +
             (sleeping.mRestPosition - sleeping.mBasePosition) * blend);
         sleeping.mNode->setOrientation(Ogre::Quaternion::Slerp(blend,
             sleeping.mBaseOrientation, sleeping.mRestOrientation, true));
-        const Ogre::Real breath = 0.008f * Ogre::Math::Sin(
-            sleeping.mElapsed * Ogre::Math::TWO_PI / 4.0f) * settled;
+        const Ogre::Real breath = SLEEP_BREATH_AMPLITUDE * Ogre::Math::Sin(
+            sleeping.mElapsed * Ogre::Math::TWO_PI / SLEEP_BREATH_PERIOD) * settled;
         sleeping.mNode->setScale(sleeping.mBaseScale * Ogre::Vector3(
-            1.0f + breath * 0.4f, 1.0f + breath * 0.4f, 1.0f + breath));
+            1.0f + breath * SLEEP_BREATH_WIDTH_RATIO, 1.0f + breath * SLEEP_BREATH_WIDTH_RATIO, 1.0f + breath));
     }
     for(CreatureFeedingAnimation& feeding : mCreatureFeedingAnimations)
     {
@@ -3945,6 +3963,14 @@ void RenderManager::rrSetObjectAnimationState(MovableGameEntity* curAnimatedObje
         }
     }
 
+    // A badly hurt creature limps when the skeleton has the clip. Same clip length and key times as Walk and the
+    // same entity state, so the speed factors stay as they are
+    if((dropCreature != nullptr) && (anim == EntityAnimation::walk_anim) && dropCreature->isLowHealthWalking() &&
+       objectEntity->getSkeleton()->hasAnimation(EntityAnimation::walk_hurt_anim))
+    {
+        anim = EntityAnimation::walk_hurt_anim;
+    }
+
     // Handle the case where this entity does not have the requested animation.
     while (!objectEntity->getSkeleton()->hasAnimation(anim))
     {
@@ -4498,7 +4524,7 @@ void RenderManager::startCreatureSleepAnimation(Creature* creature, Ogre::Entity
     const bool nativeEntry = entity->hasAnimationState("Sleep_Start") &&
         entity->hasAnimationState(EntityAnimation::sleep_anim);
     const std::string entry = nativeEntry ? "Sleep_Start" : "SettleToSleep";
-    const Ogre::Real duration = 1.2f;
+    const Ogre::Real duration = SLEEP_SETTLE_DURATION;
     Ogre::Skeleton* skeleton = entity->getMesh()->getSkeleton().get();
     if(!nativeEntry && !skeleton->hasAnimation(entry))
     {
@@ -4515,9 +4541,9 @@ void RenderManager::startCreatureSleepAnimation(Creature* creature, Ogre::Entity
             if(rest->hasNodeTrack(bone))
                 rest->getNodeTrack(bone)->getInterpolatedKeyFrame(Ogre::TimeIndex(rest->getLength()), &lying);
             Ogre::NodeAnimationTrack* track = settling->createNodeTrack(bone);
-            for(unsigned int key = 0; key <= 36; ++key)
+            for(unsigned int key = 0; key <= SLEEP_SETTLE_KEY_COUNT; ++key)
             {
-                const Ogre::Real progress = key / 36.0f;
+                const Ogre::Real progress = key / static_cast<Ogre::Real>(SLEEP_SETTLE_KEY_COUNT);
                 const Ogre::Real blend = progress * progress * (3.0f - 2.0f * progress);
                 Ogre::TransformKeyFrame* frame = track->createNodeKeyFrame(progress * duration);
                 frame->setTranslate(standing.getTranslate() +
@@ -4549,16 +4575,16 @@ void RenderManager::fitCreatureToBed(CreatureSleepAnimation& sleeping)
     const bool nativeEntry = sleeping.mNativeEntry;
     const std::string entry = animation->getAnimationName();
     RenderedMovableEntity* bed = nullptr;
-    Ogre::Real distance = 1.0f;
+    Ogre::Real nearestSquaredDistance = SLEEP_BED_MAX_SQUARED_DISTANCE;
     for(RenderedMovableEntity* candidate : creature->getGameMap()->getRenderedMovableEntities())
     {
         if(candidate->getObjectType() != GameEntityType::buildingObject || candidate->getEntityNode() == nullptr ||
            candidate->getMeshName() != creature->getDefinition()->getBedMeshName())
             continue;
         const Ogre::Real candidateDistance = candidate->getPosition().squaredDistance(creature->getPosition());
-        if(candidateDistance < distance)
+        if(candidateDistance < nearestSquaredDistance)
         {
-            distance = candidateDistance;
+            nearestSquaredDistance = candidateDistance;
             bed = candidate;
         }
     }
@@ -4579,7 +4605,7 @@ void RenderManager::fitCreatureToBed(CreatureSleepAnimation& sleeping)
         const Ogre::Vector3 support = creature->getParentSceneNode()->convertWorldToLocalPosition(
             bed->getParentSceneNode()->convertLocalToWorldPosition(bedSupport));
         sleeping.mRestPosition = support - Ogre::Vector3(bounds.getCenter().x, bounds.getCenter().y,
-            bounds.getMinimum().z) + Ogre::Vector3(0, 0, 0.01f);
+            bounds.getMinimum().z) + Ogre::Vector3(0, 0, SLEEP_BED_CLEARANCE);
         sleeping.mAnimation = setEntityAnimation(entity, entry, false);
         creature->setAnimationState(sleeping.mAnimation);
     }
