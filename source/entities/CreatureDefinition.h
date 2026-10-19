@@ -88,6 +88,16 @@ public:
         CombatSupport
     };
 
+    //! \brief The single avoidance mechanism available to this creature type.
+    enum class Avoidance
+    {
+        none,
+        dodge,
+        parry,
+        block
+    };
+
+    //! \brief Creates a creature definition with backwards-compatible stat defaults.
     CreatureDefinition(
             const std::string&      className   = std::string(),
             CreatureJob             job         = Fighter,
@@ -133,6 +143,7 @@ public:
             int32_t                 sleepHeal           = 1.0,
             int32_t                 turnsStunDropped    = 0);
 
+    //! \brief Copies a definition, including combat ratings and avoidance.
     CreatureDefinition(const CreatureDefinition& def);
 
     virtual ~CreatureDefinition();
@@ -143,6 +154,10 @@ public:
     static CombatClass combatClassFromString(const std::string& s);
     //! \brief Converts a combat class to the name used in the configuration
     static std::string combatClassToString(CombatClass c);
+    //! \brief Converts a configured avoidance name to its mechanism; unknown names use none.
+    static Avoidance avoidanceFromString(const std::string& s);
+    //! \brief Returns the configuration name of an avoidance mechanism.
+    static std::string avoidanceToString(Avoidance avoidance);
     //! \brief Writes the differences between def1 and def2 in the given file. Note that def1 can be null. In
     //! this case, every parameters in def2 will be written. def2 cannot be null.
     static void writeCreatureDefinitionDiff(
@@ -156,12 +171,15 @@ public:
     inline bool isHeartDefenceRunner() const
     { return isWorker() || mClassName == "CaveHornet" || mClassName == "Goblin"; }
 
+    //! \brief Sends the creature definition, including its combat model, to a client.
     friend ODPacket& operator <<(ODPacket& os, const CreatureDefinition *c);
+    //! \brief Reads a creature definition and its combat model from a packet.
     friend ODPacket& operator >>(ODPacket& is, CreatureDefinition *c);
 
     //! \brief Loads a definition from the creature definition file sub [Creature][/Creature] part
     //! \returns A creature definition if valid, nullptr otherwise.
     static CreatureDefinition* load(std::stringstream& defFile, const std::map<std::string, CreatureDefinition*>& defMap);
+    //! \brief Applies the configured fields to an existing creature definition.
     static bool update(CreatureDefinition* creatureDef, std::stringstream& defFile, const std::map<std::string, CreatureDefinition*>& defMap);
 
     inline CreatureJob          getCreatureJob  () const    { return mCreatureJob; }
@@ -213,6 +231,13 @@ public:
     inline double               getMagicalDefPerLevel () const  { return mMagicalDefPerLevel; }
     inline double               getElementDefense  () const     { return mElementDefense; }
     inline double               getElementDefPerLevel () const  { return mElementDefPerLevel; }
+
+    //! \brief Returns the natural attack rating at level one.
+    inline double getAttackRating() const { return mAttackRating; }
+    //! \brief Returns the natural defense rating at level one.
+    inline double getDefenseRating() const { return mDefenseRating; }
+    //! \brief Returns this creature type's avoidance mechanism.
+    inline Avoidance getAvoidance() const { return mAvoidance; }
 
     inline int32_t              getFightIdleDist() const        { return mFightIdleDist; }
 
@@ -348,6 +373,12 @@ private:
     double mMagicalDefPerLevel;
     double mElementDefense;
     double mElementDefPerLevel;
+
+    //! \brief Natural accuracy and evasion ratings at level one, without equipment.
+    double mAttackRating;
+    double mDefenseRating;
+    //! \brief The one avoidance mechanism configured for this creature type.
+    Avoidance mAvoidance;
 
     //! \brief Distance from the nearest enemy creature that the creature will try to let when no skill can be used
     int32_t mFightIdleDist;

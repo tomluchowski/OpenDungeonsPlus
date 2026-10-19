@@ -31,6 +31,11 @@
 
 static CreatureRoomAffinity EMPTY_AFFINITY(RoomType::nullRoomType, 0, 0);
 
+//! Default level-one combat ratings used by definitions without explicit ratings.
+static const double DEFAULT_ATTACK_RATING = 300.0;
+static const double DEFAULT_DEFENSE_RATING = 100.0;
+
+//! \brief Initializes a creature definition, defaulting absent combat ratings and avoidance.
 CreatureDefinition::CreatureDefinition(
             const std::string&      className,
             CreatureJob             job,
@@ -107,6 +112,9 @@ CreatureDefinition::CreatureDefinition(
         mMagicalDefPerLevel (magicalDefPerLevel),
         mElementDefense     (elementDefense),
         mElementDefPerLevel (elementDefPerLevel),
+        mAttackRating       (DEFAULT_ATTACK_RATING),
+        mDefenseRating      (DEFAULT_DEFENSE_RATING),
+        mAvoidance          (Avoidance::none),
         mFightIdleDist      (fightIdleDist),
         mFeeBase            (feeBase),
         mFeePerLevel        (feePerLevel),
@@ -124,6 +132,7 @@ CreatureDefinition::CreatureDefinition(
     mXPTable.assign(MAX_LEVEL - 1, 100.0);
 }
 
+//! \brief Copies a creature definition, including its combat model.
 CreatureDefinition::CreatureDefinition(const CreatureDefinition& def) :
         mCreatureJob(def.mCreatureJob),
         mCombatClass(def.mCombatClass),
@@ -162,6 +171,9 @@ CreatureDefinition::CreatureDefinition(const CreatureDefinition& def) :
         mMagicalDefPerLevel(def.mMagicalDefPerLevel),
         mElementDefense(def.mElementDefense),
         mElementDefPerLevel(def.mElementDefPerLevel),
+        mAttackRating(def.mAttackRating),
+        mDefenseRating(def.mDefenseRating),
+        mAvoidance(def.mAvoidance),
         mFightIdleDist(def.mFightIdleDist),
         mFeeBase(def.mFeeBase),
         mFeePerLevel(def.mFeePerLevel),
@@ -258,6 +270,30 @@ CreatureDefinition::CreatureJob CreatureDefinition::creatureJobFromString(const 
     return Fighter;
 }
 
+//! \brief Reads the configured single avoidance mechanism.
+CreatureDefinition::Avoidance CreatureDefinition::avoidanceFromString(const std::string& s)
+{
+    if(s == "dodge")
+        return Avoidance::dodge;
+    if(s == "parry")
+        return Avoidance::parry;
+    if(s == "block")
+        return Avoidance::block;
+    return Avoidance::none;
+}
+
+//! \brief Writes the configuration name of the configured avoidance mechanism.
+std::string CreatureDefinition::avoidanceToString(Avoidance avoidance)
+{
+    switch(avoidance)
+    {
+        case Avoidance::dodge: return "dodge";
+        case Avoidance::parry: return "parry";
+        case Avoidance::block: return "block";
+        default: return "none";
+    }
+}
+
 CreatureDefinition::CombatClass CreatureDefinition::combatClassFromString(const std::string& s)
 {
     if (s.compare("Blitzer") == 0)
@@ -306,6 +342,7 @@ int32_t CreatureDefinition::getFee(unsigned int level) const
     return mFeeBase + (mFeePerLevel * level);
 }
 
+//! \brief Sends a definition and its configured combat ratings and avoidance.
 ODPacket& operator<<(ODPacket& os, const CreatureDefinition* c)
 {
     std::string creatureJob = CreatureDefinition::creatureJobToString(c->mCreatureJob);
@@ -327,6 +364,7 @@ ODPacket& operator<<(ODPacket& os, const CreatureDefinition* c)
     os << c->mPhysicalDefense << c->mPhysicalDefPerLevel;
     os << c->mMagicalDefense << c->mMagicalDefPerLevel;
     os << c->mElementDefense << c->mElementDefPerLevel;
+    os << c->mAttackRating << c->mDefenseRating << CreatureDefinition::avoidanceToString(c->mAvoidance);
     os << c->mFightIdleDist;
     os << c->mFeeBase;
     os << c->mFeePerLevel;
@@ -352,6 +390,7 @@ ODPacket& operator<<(ODPacket& os, const CreatureDefinition* c)
     return os;
 }
 
+//! \brief Reads a definition with the same combat fields and order used by its writer.
 ODPacket& operator>>(ODPacket& is, CreatureDefinition* c)
 {
     std::string tempString;
@@ -370,6 +409,8 @@ ODPacket& operator>>(ODPacket& is, CreatureDefinition* c)
     is >> c->mPhysicalDefense >> c->mPhysicalDefPerLevel;
     is >> c->mMagicalDefense >> c->mMagicalDefPerLevel;
     is >> c->mElementDefense >> c->mElementDefPerLevel;
+    is >> c->mAttackRating >> c->mDefenseRating >> tempString;
+    c->mAvoidance = CreatureDefinition::avoidanceFromString(tempString);
     is >> c->mFightIdleDist;
     is >> c->mFeeBase;
     is >> c->mFeePerLevel;
@@ -416,6 +457,7 @@ CreatureDefinition* CreatureDefinition::load(std::stringstream& defFile, const s
 
 }
 
+//! \brief Applies definition fields, including optional combat ratings and avoidance.
 bool CreatureDefinition::update(CreatureDefinition* creatureDef, std::stringstream& defFile, const std::map<std::string, CreatureDefinition*>& defMap)
 {
     std::string nextParam;
@@ -674,6 +716,24 @@ bool CreatureDefinition::update(CreatureDefinition* creatureDef, std::stringstre
                 continue;
             }
 
+            else if (nextParam == "AttackRating")
+            {
+                defFile >> nextParam;
+                creatureDef->mAttackRating = Helper::toDouble(nextParam);
+                continue;
+            }
+            else if (nextParam == "DefenseRating")
+            {
+                defFile >> nextParam;
+                creatureDef->mDefenseRating = Helper::toDouble(nextParam);
+                continue;
+            }
+            else if (nextParam == "Avoidance")
+            {
+                defFile >> nextParam;
+                creatureDef->mAvoidance = avoidanceFromString(nextParam);
+                continue;
+            }
             else if (nextParam == "PhysicalDefense")
             {
                 defFile >> nextParam;
@@ -801,6 +861,7 @@ bool CreatureDefinition::update(CreatureDefinition* creatureDef, std::stringstre
     return true;
 }
 
+//! \brief Writes changed definition fields, preserving combat ratings and avoidance in saved overrides.
 void CreatureDefinition::writeCreatureDefinitionDiff(
     const CreatureDefinition* def1, const CreatureDefinition* def2,
     std::ostream& file, const std::map<std::string, CreatureDefinition*>& defMap)
@@ -900,6 +961,13 @@ void CreatureDefinition::writeCreatureDefinitionDiff(
 
     if(def1 == nullptr || (def1->mPhysicalDefense != def2->mPhysicalDefense))
         file << "    PhysicalDefense\t" << def2->mPhysicalDefense << std::endl;
+
+    if(def1 == nullptr || (def1->mAttackRating != def2->mAttackRating))
+        file << "    AttackRating\t" << def2->mAttackRating << std::endl;
+    if(def1 == nullptr || (def1->mDefenseRating != def2->mDefenseRating))
+        file << "    DefenseRating\t" << def2->mDefenseRating << std::endl;
+    if(def1 == nullptr || (def1->mAvoidance != def2->mAvoidance))
+        file << "    Avoidance\t" << avoidanceToString(def2->mAvoidance) << std::endl;
 
     if(def1 == nullptr || (def1->mPhysicalDefPerLevel != def2->mPhysicalDefPerLevel))
         file << "    PhysicalDef/Level\t" << def2->mPhysicalDefPerLevel << std::endl;

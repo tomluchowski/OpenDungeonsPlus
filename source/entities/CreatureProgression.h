@@ -3,11 +3,51 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <cmath>
 
 namespace CreatureProgression
 {
+//! Combat growth coefficients and exponents for health, damage and accuracy.
+static const double HP_GROWTH = 0.173;
+static const double HP_EXPONENT = 1.37;
+static const double DAMAGE_GROWTH = 0.278;
+static const double DAMAGE_EXPONENT = 1.02;
+static const double ATTACK_RATING_GROWTH = 0.847;
+static const double ATTACK_RATING_EXPONENT = 1.13;
 //! Highest creature level; the power curve is spread over the levels 1 to this value.
 const uint32_t MAX_POWER_LEVEL = 30;
+
+//! \brief Returns the creature health multiplier, clamped to levels 1 through 30.
+inline double hpMultiplier(uint32_t level)
+{
+    return 1.0 + HP_GROWTH * std::pow(std::max(1u, std::min(MAX_POWER_LEVEL, level)) - 1, HP_EXPONENT);
+}
+
+//! \brief Returns the creature damage and defense multiplier, clamped to levels 1 through 30.
+inline double damageMultiplier(uint32_t level)
+{
+    return 1.0 + DAMAGE_GROWTH * std::pow(std::max(1u, std::min(MAX_POWER_LEVEL, level)) - 1, DAMAGE_EXPONENT);
+}
+
+//! \brief Returns the attack rating multiplier, clamped to levels 1 through 30.
+inline double attackRatingMultiplier(uint32_t level)
+{
+    return 1.0 + ATTACK_RATING_GROWTH * std::pow(std::max(1u, std::min(MAX_POWER_LEVEL, level)) - 1, ATTACK_RATING_EXPONENT);
+}
+
+//! \brief Returns the defense rating multiplier, clamped to levels 1 through 30.
+inline double defenseRatingMultiplier(uint32_t level)
+{
+    return std::max(1u, std::min(MAX_POWER_LEVEL, level));
+}
+
+//! \brief Returns the larger of linear growth and the supplied combat curve at the clamped level.
+//! \param multiplier The health, damage or rating multiplier to apply to the base stat.
+inline double combatStat(double base, double perLevel, uint32_t level, double (*multiplier)(uint32_t))
+{
+    level = std::max(1u, std::min(MAX_POWER_LEVEL, level));
+    return std::max(base + (level - 1) * perLevel, base * multiplier(level));
+}
 
 //! Returns the factor by which a creature's base power grows at the given level: 1 at level 1 and
 //! 6 at the highest level. The levels are clamped to 1..MAX_POWER_LEVEL.

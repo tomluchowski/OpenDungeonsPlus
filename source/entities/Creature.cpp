@@ -609,6 +609,7 @@ bool Creature::importFromStream(std::istream& is)
     return true;
 }
 
+//! \brief Builds natural health and defenses with their combat curves, retaining other stat growth.
 void Creature::buildStats()
 {
     // Get the base value
@@ -628,16 +629,20 @@ void Creature::buildStats()
     if (multiplier <= 0.0)
         return;
 
-    mMaxHP = CreatureProgression::stat(mMaxHP, mDefinition->getHpPerLevel(), mLevel);
+    mMaxHP = CreatureProgression::combatStat(mMaxHP, mDefinition->getHpPerLevel(), mLevel,
+        CreatureProgression::hpMultiplier);
     mDigRate += mDefinition->getDigRatePerLevel() * multiplier;
     mClaimRate += mDefinition->getClaimRatePerLevel() * multiplier;
     mGroundSpeed += mDefinition->getGroundSpeedPerLevel() * multiplier;
     mWaterSpeed += mDefinition->getWaterSpeedPerLevel() * multiplier;
     mLavaSpeed += mDefinition->getLavaSpeedPerLevel() * multiplier;
 
-    mPhysicalDefense = CreatureProgression::stat(mPhysicalDefense, mDefinition->getPhysicalDefPerLevel(), mLevel);
-    mMagicalDefense = CreatureProgression::stat(mMagicalDefense, mDefinition->getMagicalDefPerLevel(), mLevel);
-    mElementDefense = CreatureProgression::stat(mElementDefense, mDefinition->getElementDefPerLevel(), mLevel);
+    mPhysicalDefense = CreatureProgression::combatStat(mPhysicalDefense, mDefinition->getPhysicalDefPerLevel(), mLevel,
+        CreatureProgression::damageMultiplier);
+    mMagicalDefense = CreatureProgression::combatStat(mMagicalDefense, mDefinition->getMagicalDefPerLevel(), mLevel,
+        CreatureProgression::damageMultiplier);
+    mElementDefense = CreatureProgression::combatStat(mElementDefense, mDefinition->getElementDefPerLevel(), mLevel,
+        CreatureProgression::damageMultiplier);
 }
 
 Creature* Creature::getCreatureFromStream(GameMap* gameMap, std::istream& is)
@@ -1936,6 +1941,30 @@ double Creature::getMoveSpeed(Tile* tile) const
         else
             return tile->getCreatureSpeedDefault(this);
     }
+}
+
+//! \brief Returns level-scaled attack rating with the unscaled ratings of both held items.
+double Creature::getAttackRating() const
+{
+    double rating = CreatureProgression::combatStat(mDefinition->getAttackRating(), 0.0, mLevel,
+        CreatureProgression::attackRatingMultiplier);
+    if(mWeaponL != nullptr)
+        rating += mWeaponL->getAttackRating();
+    if(mWeaponR != nullptr)
+        rating += mWeaponR->getAttackRating();
+    return rating;
+}
+
+//! \brief Returns level-scaled defense rating with the unscaled ratings of both held items.
+double Creature::getDefenseRating() const
+{
+    double rating = CreatureProgression::combatStat(mDefinition->getDefenseRating(), 0.0, mLevel,
+        CreatureProgression::defenseRatingMultiplier);
+    if(mWeaponL != nullptr)
+        rating += mWeaponL->getDefenseRating();
+    if(mWeaponR != nullptr)
+        rating += mWeaponR->getDefenseRating();
+    return rating;
 }
 
 double Creature::getPhysicalDefense() const
@@ -4369,24 +4398,21 @@ void Creature::clearMoveSpeedModifier()
     setMoveSpeedModifier(1.0);
 }
 
+//! \brief Adds temporary defense bonuses to the same natural combat curves used by stat creation.
 void Creature::setDefenseModifier(double phy, double mag, double ele)
 {
-    mPhysicalDefense = mDefinition->getPhysicalDefense();
-    mMagicalDefense = mDefinition->getMagicalDefense();
-    mElementDefense = mDefinition->getElementDefense();
+    mPhysicalDefense = CreatureProgression::combatStat(mDefinition->getPhysicalDefense(),
+        mDefinition->getPhysicalDefPerLevel(), mLevel, CreatureProgression::damageMultiplier);
+    mMagicalDefense = CreatureProgression::combatStat(mDefinition->getMagicalDefense(),
+        mDefinition->getMagicalDefPerLevel(), mLevel, CreatureProgression::damageMultiplier);
+    mElementDefense = CreatureProgression::combatStat(mDefinition->getElementDefense(),
+        mDefinition->getElementDefPerLevel(), mLevel, CreatureProgression::damageMultiplier);
 
     mPhysicalDefense += phy;
     mMagicalDefense += mag;
     mElementDefense += ele;
 
-    // Improve the stats to the current level
-    double multiplier = mLevel - 1;
-    if (multiplier <= 0.0)
-        return;
-
-    mPhysicalDefense += mDefinition->getPhysicalDefPerLevel() * multiplier;
-    mMagicalDefense += mDefinition->getMagicalDefPerLevel() * multiplier;
-    mElementDefense += mDefinition->getElementDefPerLevel() * multiplier;
+    // Improve the stats to the current level through the natural combat curves above.
 
     mNeedFireRefresh = true;
 }
