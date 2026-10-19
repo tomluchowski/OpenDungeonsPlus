@@ -211,7 +211,7 @@ public:
     double getAttackRecoveryTurns() const { return mAttackRecoveryTurns; }
     //! \brief Turns the recovery after the last attack lasts in total (may be a fraction of a turn)
     double getAttackRecoveryDuration() const { return mAttackRecoveryDuration; }
-    //! rief Counter increased for each attack or job-pause restart, distinguishing equal remaining values
+    //! \brief Counter increased for each attack or job-pause restart, distinguishing equal remaining values
     uint32_t getAttackRecoverySerial() const { return mAttackRecoverySerial; }
     //! \brief Whether experience and attack recovery were received from the server. Only a client sets it,
     //! and only if the server sent them.
