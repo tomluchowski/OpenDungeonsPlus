@@ -107,10 +107,13 @@ bool CreatureSkillMissileLaunch::tryUseFight(GameMap& gameMap, Creature* creatur
         mMissileMesh, mMissilePartScript, missileDirection, mMissileSpeed, phyAtk, magAtk, eleAtk,
         attackedObject, false, ko, notifyPlayerIfHit);
     // The missile tells the clients what the shot did (cosmetic event hitResult)
-    std::string targetName;
-    if(attackedObject->getObjectType() == GameEntityType::creature)
-        targetName = attackedObject->getName();
-    missile->setShooter(creature->getName(), targetName);
+    if(missile->getMissileType() == MissileObjectType::oneHit)
+    {
+        std::string targetName;
+        if(attackedObject->getObjectType() == GameEntityType::creature)
+            targetName = attackedObject->getName();
+        missile->setShooter(creature->getName(), targetName);
+    }
     missile->addToGameMap();
     missile->createMesh();
     missile->setPosition(position);
