@@ -36,8 +36,11 @@ struct Seat {Player* player;Player* getPlayer(){return player;}};
 struct Tile {std::vector<Seat*> visible;int getX(){return 2;}int getY(){return 3;}const std::vector<Seat*>& getSeatsWithVision(){return visible;}};
 struct Event {std::string kind;Seat* seat;Ogre::Vector3 position;};
 struct GameMap {std::vector<Event> events;};
+enum class GameEntityType {creature,missileObject};
+enum class MissileObjectType {oneHit};
 struct GameEntity {
  std::vector<Seat*> mSeatsWithVisionNotified;GameMap* map;Ogre::Vector3 position;
+ GameEntityType getObjectType()const{return GameEntityType::creature;}std::string getName()const{return "Target";}
  void notifySeatsWithVision(const std::vector<Seat*>&,NodeType=NodeType::MTILES_NODE);
  void fireRemoveEntity(Seat* s){map->events.push_back({"remove",s,position});}
  void fireAddEntity(Seat* s,bool,NodeType){map->events.push_back({"add",s,position});}
@@ -63,6 +66,8 @@ struct MissileOneHit:GameEntity {
  void setCreatureShot(bool possessed){creatureShot=true;possessedShot=possessed;}
  MissileOneHit(GameMap* game,Seat*,const std::string&,const std::string&,const std::string&,const Ogre::Vector3& d,double s,double,double,double,GameEntity*,bool,bool,bool):direction(d),speed(s){map=game;created.push_back(this);}
  std::string getName(){return "Missile";}
+ MissileObjectType getMissileType()const{return MissileObjectType::oneHit;}
+ void setShooter(const std::string&,const std::string&){}
  void addToGameMap(){}void createMesh(){}void setPosition(const Ogre::Vector3& p){position=p;}
  void doUpkeep(){++upkeep;for(Seat* seat:mSeatsWithVisionNotified)if(seat->getPlayer()&&seat->getPlayer()->getIsHuman())map->events.push_back({"path",seat,position});}
 };
