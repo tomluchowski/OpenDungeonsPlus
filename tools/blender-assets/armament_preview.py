@@ -2,12 +2,14 @@
 from pathlib import Path
 import json
 import math
+import os
 import re
 import sys
 import xml.etree.ElementTree as ET
 import bpy
 import numpy as np
 from mathutils import Matrix, Vector, Quaternion
+from mathutils.bvhtree import BVHTree
 
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import odp_ogre_io
@@ -142,6 +144,86 @@ def verify_original(arm, original, cumulative, clip, seconds):
         raise ValueError('Original Ogre transform differs: '+clip+' '+worst+' '+str(error))
     return {'error':float(error),'bone':worst,'clip':clip,'seconds':seconds}
 
+# Measure the Troll weapon's inward distances to the actual posed body surface for mount-trial comparison.
+def troll_surface_distances(body, weapon, mount, parent_matrix):
+    evaluated=body.evaluated_get(bpy.context.evaluated_depsgraph_get())
+    mesh=evaluated.to_mesh()
+    try:
+        vertices=[evaluated.matrix_world @ vertex.co for vertex in mesh.vertices]
+        tree=BVHTree.FromPolygons(vertices,[list(face.vertices) for face in mesh.polygons])
+        inward=[]
+        worst_point=None
+        worst_vertex=None
+        for vertex in weapon.data.vertices:
+            point=weapon.matrix_world @ vertex.co
+            nearest,normal,index,distance=tree.find_nearest(point)
+            if nearest is not None and (point-nearest).dot(normal)<0:
+                if not inward or distance>max(inward):
+                    worst_point,worst_vertex=point.copy(),vertex.index
+                inward.append(distance)
+        crossings=[]
+        if worst_point is not None:
+            for vector in ((1,.173,.317),(-1,-.173,-.317),(.213,1,.419),(-.213,-1,-.419),(.137,.271,1),(-.137,-.271,-1)):
+                direction=Vector(vector).normalized()
+                start=worst_point.copy()
+                hits=0
+                for attempt in range(128):
+                    hit,normal,index,distance=tree.ray_cast(start,direction,10)
+                    if hit is None:
+                        break
+                    hits+=1
+                    start=hit+direction*0.000001
+                crossings.append(hits)
+        origin_nearest,origin_normal,index,origin_distance=tree.find_nearest(mount.translation)
+        escape=parent_matrix.inverted().to_3x3() @ (origin_nearest-mount.translation)
+        return {'max_inward_distance':max(inward,default=0),'inside_vertex_count':len(inward),'grip_length':(mount.to_3x3() @ Vector((0,0,0.12))).length,'origin_nearest_surface_local_delta':list(escape),'worst_vertex':worst_vertex,'worst_point':list(worst_point) if worst_point is not None else None,'ray_crossings':crossings,'odd_ray_count':sum(count%2 for count in crossings)}
+    finally:
+        evaluated.to_mesh_clear()
+
+# Return every evaluated creature and weapon vertex in world coordinates.
+def world_vertices(objects):
+    points=[]
+    graph=bpy.context.evaluated_depsgraph_get()
+    for obj in objects:
+        evaluated=obj.evaluated_get(graph)
+        mesh=evaluated.to_mesh()
+        try:
+            points.extend(evaluated.matrix_world @ vertex.co for vertex in mesh.vertices)
+        finally:
+            evaluated.to_mesh_clear()
+    return points
+
+# Project actual vertices using the unchanged camera lens and view angles.
+def projected_bounds(points, elevation, azimuth, distance, target):
+    e,a=math.radians(elevation),math.radians(azimuth)
+    camera=Vector((math.sin(a)*math.cos(e),-math.cos(a)*math.cos(e),math.sin(e)))
+    right=Vector((math.cos(a),math.sin(a),0))
+    up=Vector((-math.sin(a)*math.sin(e),math.cos(a)*math.sin(e),math.cos(e)))
+    projected=[]
+    for point in points:
+        delta=point-Vector(target)
+        depth=distance-delta.dot(camera)
+        if depth<=0:
+            raise ValueError('Geometry behind preview camera')
+        projected.append((0.5+delta.dot(right)/(0.6*depth),0.5-delta.dot(up)/(0.6*depth)))
+    return [min(p[0] for p in projected),min(p[1] for p in projected),max(p[0] for p in projected),max(p[1] for p in projected)]
+
+# Fit the combined posed bounding box with a ten-percent framing margin at the same view angle.
+def full_camera(points, elevation, azimuth):
+    low=Vector(tuple(min(p[i] for p in points) for i in range(3)))
+    high=Vector(tuple(max(p[i] for p in points) for i in range(3)))
+    target=(low+high)/2
+    e,a=math.radians(elevation),math.radians(azimuth)
+    camera=Vector((math.sin(a)*math.cos(e),-math.cos(a)*math.cos(e),math.sin(e)))
+    right=Vector((math.cos(a),math.sin(a),0))
+    up=Vector((-math.sin(a)*math.sin(e),math.cos(a)*math.sin(e),math.cos(e)))
+    corners=[Vector((x,y,z))-target for x in (low.x,high.x) for y in (low.y,high.y) for z in (low.z,high.z)]
+    distance=max(delta.dot(camera)+max(abs(delta.dot(right)),abs(delta.dot(up)))/0.27 for delta in corners)
+    bounds=projected_bounds(points,elevation,azimuth,distance,target)
+    if min(bounds[:2])<0.049 or max(bounds[2:])>0.951:
+        raise ValueError('Full preview does not contain every actual vertex')
+    return distance,target,bounds
+
 # Render each available clip at both fractions and all three prescribed camera views.
 def main():
     repo,out,name=sys.argv[sys.argv.index('--')+1:]
@@ -172,7 +254,7 @@ def main():
     positions=[float(p.get('z')) for p in creature_mesh.iter('position')]
     height=max(positions)-min(positions)
     clips={a.get('name'):float(a.get('length')) for a in ET.parse(skeleton_xml).getroot().findall('animations/animation')}
-    report={'creature':name,'height':height,'weapon':equipment['MeshName'],'missing_clips':[],'images':[],'mount_max_error':0,'original_matrix_max_error':0,'original_matrix_samples':[],'rest_scale':cumulative['Weapon_R'],'mount_samples':[]}
+    report={'creature':name,'height':height,'weapon':equipment['MeshName'],'missing_clips':[],'images':[],'full_images':[],'troll_surface_samples':[],'mount_max_error':0,'original_matrix_max_error':0,'original_matrix_samples':[],'rest_scale':cumulative['Weapon_R'],'mount_samples':[]}
     out.mkdir(parents=True,exist_ok=True)
     arm.animation_data_create()
     for clip in ('Idle','Walk','Attack1','Attack2','Dragged'):
@@ -195,10 +277,23 @@ def main():
             report['mount_samples'].append({'clip':clip,'percent':percent,'origin':list(expected.translation),'tip':list(expected @ weapon_tip),'hand':list((arm.matrix_world @ arm.pose.bones[arm.pose.bones['Weapon_R'].parent.name].matrix).translation)})
             if error>1e-5:
                 raise ValueError('Bone mount differs from game transform: '+str(error))
+            if name=='Troll':
+                surface=troll_surface_distances(obj,weapon,expected,arm.matrix_world @ arm.pose.bones[arm.pose.bones['Weapon_R'].parent.name].matrix)
+                surface.update({'clip':clip,'percent':percent})
+                report['troll_surface_samples'].append(surface)
+            points=world_vertices((obj,weapon))
+            weapon_points=[weapon.matrix_world @ vertex.co for vertex in weapon.data.vertices]
             for elevation,azimuth in ((25,0),(70,0),(70,90)):
                 filename=name+'_'+clip+'_'+str(percent)+'_e'+str(elevation)+'a'+str(azimuth)+'.png'
-                wake_preview.render(str(out/filename),elevation=elevation,azimuth=azimuth,distance=3*height,target=(0,0,height/2))
+                if os.environ.get('ODP_ARMAMENT_FULL_ONLY')!='1':
+                    wake_preview.render(str(out/filename),elevation=elevation,azimuth=azimuth,distance=3*height,target=(0,0,height/2))
                 report['images'].append(str(out/filename))
+                bounds=projected_bounds(weapon_points,elevation,azimuth,3*height,(0,0,height/2))
+                if min(bounds[:2])<0 or max(bounds[2:])>1:
+                    distance,target,full_bounds=full_camera(points,elevation,azimuth)
+                    full=Path(filename).stem+'_full.png'
+                    wake_preview.render(str(out/full),elevation=elevation,azimuth=azimuth,distance=distance,target=target)
+                    report['full_images'].append({'file':str(out/full),'source':filename,'clip':clip,'percent':percent,'seconds':bpy.context.scene.frame_current/odp_ogre_io.FPS,'elevation':elevation,'azimuth':azimuth,'lens':60,'distance':distance,'target':list(target),'bounds':full_bounds,'actual_vertex_count':len(points),'source_weapon_bounds':bounds})
     (out.parent/'logs'/(name+'-preview.json')).write_text(json.dumps(report,indent=2))
     print(json.dumps(report),flush=True)
 
