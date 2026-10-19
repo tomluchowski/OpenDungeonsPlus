@@ -232,6 +232,10 @@ def check_other_damage(roster):
             if "shield" not in name.lower():
                 assert roster.number(fields, channel + "DamageMin") == math.ceil(maximum * 2 / 3 * 100 - 1e-9) / 100, (name, channel)
         assert roster.number(fields, "AttackRating") == 0 and roster.number(fields, "DefenseRating") == 0
+    champion = roster.creatures["Champion"][0]
+    assert roster.number(champion, "AttackRating") == 300 and roster.number(champion, "DefenseRating") == 100
+    attack, _, start = roster.attack("Champion")
+    assert tuple(map(float, attack[start:start + 6])) == (54.67, 82, 0, 0, 0, 0)
 
 
 # Verify deterministic simulation thresholds without adjusting the approved roster.
