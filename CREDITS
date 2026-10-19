@@ -83,7 +83,6 @@ skirmish/
 -> ForgottenTreasures.level            OD Team                 GPLv3+
 -> Sandbox.level                       OD Team                 GPLv3+
 -> StonekeepSiege.level                OD Team                 GPLv3+
--> TestCreatureShowcase.level          OD Team                 GPLv3+
 -> TestLegacy.level                    OD Team                 GPLv3+
 -> TestModelsFair.level                OD Team                 GPLv3+
 -> TestSingleplayerSmall.level         OD Team                 GPLv3+
@@ -487,6 +486,8 @@ Relative/Default/Keeper/WeAreUnderAttack/
 
 Relative/KeeperGroan/Keeper/Lost
 -> OD_voice_keeper(groan)_defeat*.ogg            eugeneloza    CC-BY-SA 3.0            http://opengameart.org/content/voice-acting-sketch-open-dungeons
+tools/gen_creature_showcase_level.py    OD Team                 GPLv3+
+levels/skirmish/TestCreatureShowcase.level  OD Team             GPLv3+                  Own work, written by tools/gen_creature_showcase_level.py
 
 ================================
 ==  Distribution data: dist/  ==
@@ -498,10 +499,3 @@ icon.rc                                OD Team                 GPLv3+
 logo.svg                               Svenskmand              CC-BY-SA 3.0
 OD-Logo.ico                            Svenskmand              CC-BY-SA 3.0
 opendungeons.appdata.xml               OD Team                 GPLv3+
-
-
-====================================
-==  Test level generator: tools/  ==
-====================================
-
-tools/gen_creature_showcase_level.py    OD Team                 GPLv3+                  Writes levels/skirmish/TestCreatureShowcase.level
