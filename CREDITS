@@ -493,7 +493,7 @@ Name                                   Author                  License          
 config/roomAmbience*.cfg               OD Team                 GPLv3+
 materials/scripts/RoomAmbience*.material   OD Team            GPLv3+
 particles/RoomAmbience*.particle       OD Team                 GPLv3+
-materials/textures/RoomAmb*.png        OD Team                 GPLv3+                  Drawn from simple shapes and gradients by tools/gen_room_ambience_art.py (script generated, original work, not AI generated)
+materials/textures/RoomAmb*.png        OD Team                 GPLv3+                  Drawn from simple shapes and gradients by tools/gen_room_ambience_art.py (script generated, original work)
 tools/gen_room_ambience_art.py         OD Team                 GPLv3+
 tools/check_room_ambience.py           OD Team                 GPLv3+
 
