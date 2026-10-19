@@ -100,6 +100,36 @@ bool Weapon::update(Weapon* weapon, std::stringstream& defFile)
                 break;
             }
 
+            if (nextParam == "PhysicalDamageMin")
+            {
+                defFile >> weapon->mPhysicalDamageMin;
+                continue;
+            }
+
+            if (nextParam == "MagicalDamageMin")
+            {
+                defFile >> weapon->mMagicalDamageMin;
+                continue;
+            }
+
+            if (nextParam == "ElementDamageMin")
+            {
+                defFile >> weapon->mElementDamageMin;
+                continue;
+            }
+
+            if (nextParam == "AttackRating")
+            {
+                defFile >> weapon->mAttackRating;
+                continue;
+            }
+
+            if (nextParam == "DefenseRating")
+            {
+                defFile >> weapon->mDefenseRating;
+                continue;
+            }
+
             if (nextParam == "MeshName")
             {
                 defFile >> nextParam;
@@ -244,6 +274,21 @@ void Weapon::writeWeaponDiff(const Weapon* def1, const Weapon* def2, std::ofstre
     if(parryMaxRef != def2->mParryMax)
         file << "    ParryMax\t" << def2->mParryMax << std::endl;
 
+    if(def1 == nullptr || def1->mPhysicalDamageMin != def2->mPhysicalDamageMin)
+        file << "    PhysicalDamageMin\t" << def2->mPhysicalDamageMin << std::endl;
+
+    if(def1 == nullptr || def1->mMagicalDamageMin != def2->mMagicalDamageMin)
+        file << "    MagicalDamageMin\t" << def2->mMagicalDamageMin << std::endl;
+
+    if(def1 == nullptr || def1->mElementDamageMin != def2->mElementDamageMin)
+        file << "    ElementDamageMin\t" << def2->mElementDamageMin << std::endl;
+
+    if(def1 == nullptr || def1->mAttackRating != def2->mAttackRating)
+        file << "    AttackRating\t" << def2->mAttackRating << std::endl;
+
+    if(def1 == nullptr || def1->mDefenseRating != def2->mDefenseRating)
+        file << "    DefenseRating\t" << def2->mDefenseRating << std::endl;
+
     file << "    [/Stats]" << std::endl;
     file << "[/Equipment]" << std::endl;
 }
@@ -290,6 +335,11 @@ ODPacket& operator <<(ODPacket& os, const Weapon *weapon)
     os << weapon->mParryBase;
     os << weapon->mParryPerLevel;
     os << weapon->mParryMax;
+    os << weapon->mPhysicalDamageMin;
+    os << weapon->mMagicalDamageMin;
+    os << weapon->mElementDamageMin;
+    os << weapon->mAttackRating;
+    os << weapon->mDefenseRating;
     return os;
 }
 
@@ -308,5 +358,10 @@ ODPacket& operator >>(ODPacket& is, Weapon *weapon)
     OD_ASSERT_TRUE(is >> weapon->mParryBase);
     OD_ASSERT_TRUE(is >> weapon->mParryPerLevel);
     OD_ASSERT_TRUE(is >> weapon->mParryMax);
+    OD_ASSERT_TRUE(is >> weapon->mPhysicalDamageMin);
+    OD_ASSERT_TRUE(is >> weapon->mMagicalDamageMin);
+    OD_ASSERT_TRUE(is >> weapon->mElementDamageMin);
+    OD_ASSERT_TRUE(is >> weapon->mAttackRating);
+    OD_ASSERT_TRUE(is >> weapon->mDefenseRating);
     return is;
 }

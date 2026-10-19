@@ -78,6 +78,7 @@ bool CreatureSkillExplosion::tryUseFight(GameMap& gameMap, Creature* creature, f
 
     Creature* attackedCreature = static_cast<Creature*>(attackedObject);
     CreatureEffectExplosion* effect = new CreatureEffectExplosion(mEffectDuration, mEffectValue, "SpellCreatureExplosion");
+    effect->setDamageMin(mEffectValueMin);
     attackedCreature->addCreatureEffect(effect);
 
     return true;
@@ -94,7 +95,7 @@ void CreatureSkillExplosion::getFormatString(std::string& format) const
     if(!format.empty())
         format += "\t";
 
-    format += "RangeMax\tLevelMin\tEffectDuration\tEffectValue";
+    format += "RangeMax\tLevelMin\tEffectDuration\tEffectValue\tEffectValueMin";
 
 }
 
@@ -105,6 +106,7 @@ void CreatureSkillExplosion::exportToStream(std::ostream& os) const
     os << "\t" << mCreatureLevelMin;
     os << "\t" << mEffectDuration;
     os << "\t" << mEffectValue;
+    os << "\t" << mEffectValueMin;
 }
 
 bool CreatureSkillExplosion::importFromStream(std::istream& is)
@@ -119,6 +121,12 @@ bool CreatureSkillExplosion::importFromStream(std::istream& is)
     if(!(is >> mEffectDuration))
         return false;
     if(!(is >> mEffectValue))
+        return false;
+    mEffectValueMin = mEffectValue;
+    is >> std::ws;
+    if(is.eof())
+        is.clear();
+    else if(!(is >> mEffectValueMin))
         return false;
 
     return true;
@@ -140,6 +148,8 @@ bool CreatureSkillExplosion::isEqual(const CreatureSkill& creatureSkill) const
     if(mEffectDuration != skill->mEffectDuration)
         return false;
     if(mEffectValue != skill->mEffectValue)
+        return false;
+    if(mEffectValueMin != skill->mEffectValueMin)
         return false;
 
     return true;

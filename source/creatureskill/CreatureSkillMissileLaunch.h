@@ -31,6 +31,7 @@ class CreatureSkillMissileLaunch : public CreatureSkill
 {
 public:
     // Constructors
+    //! \brief Creates a skill with empty creature damage ranges until its definition is loaded.
     CreatureSkillMissileLaunch() :
         mRangeMax(0.0),
         mRangePerLvl(0.0),
@@ -41,7 +42,10 @@ public:
         mMagAtk(0.0),
         mMagAtkPerLvl(0.0),
         mEleAtk(0.0),
-        mEleAtkPerLvl(0.0)
+        mEleAtkPerLvl(0.0),
+        mPhyMin(0.0), mPhyMax(0.0),
+        mMagMin(0.0), mMagMax(0.0),
+        mEleMin(0.0), mEleMax(0.0)
     {}
 
     virtual ~CreatureSkillMissileLaunch()
@@ -62,10 +66,14 @@ public:
 
     virtual CreatureSkillMissileLaunch* clone() const override;
 
+    //! \brief Compares the complete skill definition, including its creature damage range.
     virtual bool isEqual(const CreatureSkill& creatureSkill) const override;
 
+    //! \brief Describes the legacy columns followed by the optional creature damage range.
     virtual void getFormatString(std::string& format) const override;
+    //! \brief Writes all skill columns, including the creature damage range.
     virtual void exportToStream(std::ostream& os) const override;
+    //! \brief Reads the skill, falling back to the old fixed damage when range columns are absent.
     virtual bool importFromStream(std::istream& is) override;
 
 private:
@@ -81,6 +89,8 @@ private:
     double mMagAtkPerLvl;
     double mEleAtk;
     double mEleAtkPerLvl;
+    //! \brief Level-one damage range against creatures; the old attack fields remain for buildings.
+    double mPhyMin, mPhyMax, mMagMin, mMagMax, mEleMin, mEleMax;
 
 };
 

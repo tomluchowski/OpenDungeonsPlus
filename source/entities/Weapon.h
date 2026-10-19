@@ -36,6 +36,8 @@ public:
        mPhysicalDamage(0.0),
        mMagicalDamage(0.0),
        mElementDamage(0.0),
+       mPhysicalDamageMin(-1.0), mMagicalDamageMin(-1.0), mElementDamageMin(-1.0),
+       mAttackRating(0.0), mDefenseRating(0.0),
        mPhysicalDefense(0.0),
        mMagicalDefense(0.0),
        mElementDefense(0.0),
@@ -51,6 +53,8 @@ public:
        mPhysicalDamage(0.0),
        mMagicalDamage(0.0),
        mElementDamage(0.0),
+       mPhysicalDamageMin(-1.0), mMagicalDamageMin(-1.0), mElementDamageMin(-1.0),
+       mAttackRating(0.0), mDefenseRating(0.0),
        mPhysicalDefense(0.0),
        mMagicalDefense(0.0),
        mElementDefense(0.0),
@@ -69,6 +73,7 @@ public:
     static Weapon* load(std::stringstream& defFile);
     //! \brief Reads the stats of one [Equipment] block into the given weapon, including the optional
     //! CooldownNbTurns field (missing = no weapon cooldown) and the optional ParryBase, ParryPerLevel and ParryMax fields.
+    //! Optional damage minima default to the maxima; optional attack and defense ratings default to zero.
     //! \returns true if the block is valid, false otherwise.
     static bool update(Weapon* weapon, std::stringstream& defFile);
     //! \brief Writes the differences between def1 and def2 in the given file. Note that def1 can be null. In
@@ -93,6 +98,17 @@ public:
 
     inline double getElementDamage() const
     { return mElementDamage; }
+
+    //! \brief Minimum physical damage, defaulting to the maximum for legacy equipment.
+    double getPhysicalDamageMin() const { return mPhysicalDamageMin < 0.0 ? mPhysicalDamage : mPhysicalDamageMin; }
+    //! \brief Minimum magical damage, defaulting to the maximum for legacy equipment.
+    double getMagicalDamageMin() const { return mMagicalDamageMin < 0.0 ? mMagicalDamage : mMagicalDamageMin; }
+    //! \brief Minimum elemental damage, defaulting to the maximum for legacy equipment.
+    double getElementDamageMin() const { return mElementDamageMin < 0.0 ? mElementDamage : mElementDamageMin; }
+    //! \brief Equipment contribution to the attack rating.
+    double getAttackRating() const { return mAttackRating; }
+    //! \brief Equipment contribution to the defense rating.
+    double getDefenseRating() const { return mDefenseRating; }
 
     inline double getPhysicalDefense() const
     { return mPhysicalDefense; }
@@ -122,7 +138,7 @@ public:
     //! A weapon without its own ParryMax uses the global ParryMax.
     double getParryMax() const;
 
-    //! \brief Writes the weapon to a packet, including the cooldown and the parry values.
+    //! \brief Writes the weapon to a packet, including cooldown, parry, damage minima and rating values.
     friend ODPacket& operator <<(ODPacket& os, const Weapon *weapon);
     //! \brief Reads the weapon from a packet in the order written by operator <<.
     friend ODPacket& operator >>(ODPacket& is, Weapon *weapon);
@@ -135,6 +151,10 @@ private:
     double          mPhysicalDamage;
     double          mMagicalDamage;
     double          mElementDamage;
+    //! \brief Optional minimum channel damage; negative means use the maximum.
+    double mPhysicalDamageMin, mMagicalDamageMin, mElementDamageMin;
+    //! \brief Optional equipment rating contributions.
+    double mAttackRating, mDefenseRating;
     double          mPhysicalDefense;
     double          mMagicalDefense;
     double          mElementDefense;

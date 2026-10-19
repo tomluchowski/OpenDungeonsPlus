@@ -52,6 +52,7 @@ public:
 
     virtual void updateActiveSpots(GameMap* gameMap = nullptr) override;
     
+    //! Prison damage is rolled independently for every prisoner and turn.
     void doUpkeep() override;
 
     bool hasOpenCreatureSpot(Creature* creature) override;

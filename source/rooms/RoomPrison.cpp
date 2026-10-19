@@ -324,7 +324,8 @@ void RoomPrison::doUpkeep()
 
             ++nbCreatures;
             // We slightly damage the prisoner
-            double damage = ConfigManager::getSingleton().getRoomConfigDouble("PrisonDamagePerTurn");
+            double damage = Random::Double(ConfigManager::getSingleton().getRoomConfigDouble("PrisonDamagePerTurnMin"),
+                ConfigManager::getSingleton().getRoomConfigDouble("PrisonDamagePerTurn"));
             creature->takeDamage(this, damage, 0.0, 0.0, 0.0, creatureTile, false);
             creature->increaseTurnsPrison();
 

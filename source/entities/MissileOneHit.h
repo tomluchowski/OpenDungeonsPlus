@@ -32,7 +32,7 @@ class ODPacket;
 class MissileOneHit: public MissileObject
 {
 public:
-    //! \brief Creates a projectile and records the creature shooter's launch accuracy when available.
+    //! \brief Creates a projectile with unchanged building damage, a creature range and recorded launch accuracy.
     MissileOneHit(GameMap* gameMap, Seat* seat, const std::string& senderName, const std::string& meshName,
         const std::string& particleScript, const Ogre::Vector3& direction, double speed, double physicalDamage, double magicalDamage,
         double elementDamage, GameEntity* entityTarget, bool damageAllies, bool koEnemyCreature, bool notifyPlayerIfHit);
@@ -57,12 +57,16 @@ public:
         mTargetName = targetName;
     }
 
+    //! \brief Sets the scaled creature range while preserving the original building damage channels.
+    void setCreatureDamageRange(double phyMin, double phyMax, double magMin, double magMax,
+        double eleMin, double eleMax, double strength);
+
     static MissileOneHit* getMissileOneHitFromStream(GameMap* gameMap, std::istream& is);
     static MissileOneHit* getMissileOneHitFromPacket(GameMap* gameMap, ODPacket& is);
 protected:
-    //! \brief Saves damage and optional creature-shot launch accuracy.
+    //! \brief Writes building channels, the creature range and optional launch accuracy.
     void exportToStream(std::ostream& os) const override;
-    //! \brief Loads damage and optional launch accuracy without consuming derived projectile fields.
+    //! \brief Reads separate damage paths and launch accuracy while accepting older saves and derived fields.
     bool importFromStream(std::istream& is) override;
     //! \brief Called when the shot ended: a shot at a creature that hurt nothing is reported as missed (cosmetic only)
     virtual void missileStopped() override;
@@ -78,6 +82,12 @@ private:
     double mPhysicalDamage;
     double mMagicalDamage;
     double mElementDamage;
+    //! \brief Creature-only ranges; the original channels are retained for building hits.
+    double mPhysicalDamageMin, mPhysicalDamageMax, mMagicalDamageMin, mMagicalDamageMax;
+    double mElementDamageMin, mElementDamageMax;
+    //! \brief Whether a creature skill supplied the range, and its captured strength modifier.
+    bool mHasCreatureDamageRange;
+    double mCreatureStrength;
     bool mNotifyPlayerIfHit;
     //! \brief Accuracy and level at launch; level zero means no accuracy snapshot exists in a legacy save.
     double mShotAttackRating;

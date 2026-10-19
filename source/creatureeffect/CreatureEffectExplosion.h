@@ -23,31 +23,43 @@
 class CreatureEffectExplosion : public CreatureEffect
 {
 public:
+    //! \brief Creates a fixed damage effect whose minimum may be supplied separately.
     CreatureEffectExplosion(int32_t nbTurnsEffect, double effectValue, const std::string& particleEffectName) :
         CreatureEffect(nbTurnsEffect, particleEffectName),
-        mEffectValue(effectValue)
+        mEffectValue(effectValue),
+        mEffectValueMin(effectValue)
     {}
 
+    //! \brief Creates an empty effect for loading.
     CreatureEffectExplosion() :
         CreatureEffect(),
-        mEffectValue(0.0)
+        mEffectValue(0.0),
+        mEffectValueMin(0.0)
     {}
+
+    //! \brief Sets the minimum damage used for each application of this effect.
+    void setDamageMin(double value) { mEffectValueMin = value; }
 
     virtual ~CreatureEffectExplosion()
     {}
 
     virtual const std::string& getEffectName() const override;
 
+    //! \brief Writes the effect with both damage endpoints.
     virtual void exportToStream(std::ostream& os) const override;
+    //! \brief Reads both endpoints, accepting legacy fixed damage effects.
     virtual bool importFromStream(std::istream& is) override;
 
     static CreatureEffectExplosion* load(std::istream& is);
 
 protected:
+    //! \brief Rolls a fresh damage value for every affected creature and turn.
     virtual void applyEffect(Creature& creature) override;
 
 private:
     double mEffectValue;
+    //! \brief Minimum damage, retained separately for a fresh roll every application.
+    double mEffectValueMin;
 };
 
 #endif // CREATUREEFFECTEXPLOSION_H

@@ -16,6 +16,8 @@
  */
 
 #include "creatureeffect/CreatureEffectExplosion.h"
+#include "utils/Random.h"
+#include "entities/CombatDamage.h"
 
 #include "creatureeffect/CreatureEffectManager.h"
 #include "entities/Creature.h"
@@ -51,7 +53,7 @@ void CreatureEffectExplosion::applyEffect(Creature& creature)
         return;
 
     Tile* posTile = creature.getPositionTile();
-    creature.takeDamage(nullptr, 0.0, 0.0, mEffectValue, 0.0, posTile, false);
+    creature.takeDamage(nullptr, 0.0, 0.0, Random::Double(mEffectValueMin, mEffectValue), 0.0, posTile, false);
 }
 
 CreatureEffectExplosion* CreatureEffectExplosion::load(std::istream& is)
@@ -65,6 +67,7 @@ void CreatureEffectExplosion::exportToStream(std::ostream& os) const
 {
     CreatureEffect::exportToStream(os);
     os << "\t" << mEffectValue;
+    os << "\tDamageRangeMin\t" << mEffectValueMin;
 }
 
 bool CreatureEffectExplosion::importFromStream(std::istream& is)
@@ -72,6 +75,9 @@ bool CreatureEffectExplosion::importFromStream(std::istream& is)
     if(!CreatureEffect::importFromStream(is))
         return false;
     if(!(is >> mEffectValue))
+        return false;
+    mEffectValueMin = mEffectValue;
+    if(!CombatDamage::readEffectMinimum(is, mEffectValueMin))
         return false;
 
     return true;
