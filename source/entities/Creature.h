@@ -75,9 +75,14 @@ enum class CreatureSound
     Dig
 };
 
+//! \brief A skill of a creature together with its running cooldown and warmup counters.
 class CreatureSkillData
 {
 public:
+    //! \brief Creates the counters for the given skill.
+    //! \param skill The skill (not owned).
+    //! \param cooldown Turns left until the skill can be used again (may be a fraction of a turn).
+    //! \param warmup Turns left of the warmup before the skill takes effect.
     CreatureSkillData(const CreatureSkill* skill, double cooldown, uint32_t warmup) :
         mSkill(skill),
         mCooldown(cooldown),
@@ -86,7 +91,7 @@ public:
     }
 
     const CreatureSkill* mSkill;
-    //! Turns left until the skill can be used again; fractions of a turn are possible (level scaled cooldown)
+    //! \brief Turns left until the skill can be used again; fractions of a turn are possible (level scaled cooldown)
     double mCooldown;
     uint32_t mWarmup;
 };
@@ -910,6 +915,8 @@ private:
     void exportActivityToPacket(ODPacket& os, const Seat* seat) const;
     void importActivityFromPacket(ODPacket& is);
     void exportProgressToPacket(ODPacket& os, const Seat* seat) const;
+    //! \brief Client only: reads the experience progress and the attack recovery (remaining and total turns,
+    //! both may be fractions of a turn) sent by the server. Invalid values are logged and ignored.
     void importProgressFromPacket(ODPacket& is);
 
     void computeCreatureOverlayMoodValue();

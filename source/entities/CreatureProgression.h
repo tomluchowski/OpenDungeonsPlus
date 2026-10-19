@@ -41,6 +41,7 @@ const double COOLDOWN_REDUCTION_PER_LEVEL = 0.0075;
 //! A base cooldown of 0 stays 0.
 //! \param baseTurns The cooldown at level 1 in turns.
 //! \param level The creature level.
+//! \return The cooldown in turns, possibly a fraction of a turn.
 inline double cooldownAtLevel(uint32_t baseTurns, uint32_t level)
 {
     if(baseTurns == 0)

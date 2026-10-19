@@ -29,6 +29,8 @@ class WeaponDefinition;
 class Weapon
 {
 public:
+    //! \brief Creates an empty weapon with the given name: no damage, no defense, no cooldown and no own
+    //! parry values (the global ones apply).
     Weapon(const std::string& name) :
        mName(name),
        mPhysicalDamage(0.0),
@@ -43,6 +45,8 @@ public:
        mParryMax(-1.0)
     {}
 
+    //! \brief Creates an empty unnamed weapon (filled from a packet): no damage, no defense, no cooldown and
+    //! no own parry values.
     Weapon() :
        mPhysicalDamage(0.0),
        mMagicalDamage(0.0),
@@ -68,7 +72,8 @@ public:
     //! \returns true if the block is valid, false otherwise.
     static bool update(Weapon* weapon, std::stringstream& defFile);
     //! \brief Writes the differences between def1 and def2 in the given file. Note that def1 can be null. In
-    //! this case, every parameters in def2 will be written (CooldownNbTurns only if it is not 0, the parry values only if they are set). def2 cannot be null.
+    //! this case, every parameters in def2 will be written (CooldownNbTurns only if it is not 0, the parry values only if they are set).
+    //! Otherwise CooldownNbTurns and the parry values are written only when they differ from def1. def2 cannot be null.
     static void writeWeaponDiff(const Weapon* def1, const Weapon* def2, std::ofstream& file);
 
     inline const std::string getOgreNamePrefix() const
@@ -98,7 +103,8 @@ public:
     inline double getElementDefense() const
     { return mElementDefense; }
 
-    //! \brief Number of turns the melee cooldown lasts when a creature carries this weapon.
+    //! \brief Number of turns the melee cooldown lasts at level 1 when a creature carries this weapon; the
+    //! creature level then shortens it (see Creature::getAppliedCooldownNbTurns).
     //! 0 means the weapon defines no cooldown (shields and other non-weapons), so it is ignored when the
     //! cooldown is chosen. When a creature carries two weapons, the larger value is used.
     inline uint32_t getCooldownNbTurns() const
@@ -116,7 +122,9 @@ public:
     //! A weapon without its own ParryMax uses the global ParryMax.
     double getParryMax() const;
 
+    //! \brief Writes the weapon to a packet, including the cooldown and the parry values.
     friend ODPacket& operator <<(ODPacket& os, const Weapon *weapon);
+    //! \brief Reads the weapon from a packet in the order written by operator <<.
     friend ODPacket& operator >>(ODPacket& is, Weapon *weapon);
 
 private:
