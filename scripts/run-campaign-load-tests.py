@@ -49,9 +49,15 @@ def game_is_running(executable):
         raise RuntimeError('Game process detection requires the Windows integration host')
     result = subprocess.run(['tasklist', '/FI', 'IMAGENAME eq ' + executable.name,
                              '/FO', 'CSV', '/NH'], stdin=subprocess.DEVNULL,
-                            capture_output=True, text=True, timeout=30, check=True)
+                            capture_output=True, timeout=30, check=True)
+    # tasklist writes console-codepage bytes (e.g. a non-ASCII thousands separator in the
+    # memory column); decode UTF-8 first, then the OEM codepage, never fail on odd bytes.
+    try:
+        output = result.stdout.decode('utf-8')
+    except UnicodeDecodeError:
+        output = result.stdout.decode('oem', errors='replace')
     return any(row and row[0].casefold() == executable.name.casefold()
-               for row in csv.reader(result.stdout.splitlines()))
+               for row in csv.reader(output.splitlines()))
 
 
 # Run every configured map once, retaining logs and real process exit codes.
