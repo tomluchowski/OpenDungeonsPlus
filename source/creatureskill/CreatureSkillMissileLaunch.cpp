@@ -106,7 +106,8 @@ bool CreatureSkillMissileLaunch::tryUseFight(GameMap& gameMap, Creature* creatur
     MissileOneHit* missile = new MissileOneHit(&gameMap, creature->getSeat(), creature->getName(),
         mMissileMesh, mMissilePartScript, missileDirection, mMissileSpeed, phyAtk, magAtk, eleAtk,
         attackedObject, false, ko, notifyPlayerIfHit);
-    // The missile tells the clients what the shot did (cosmetic event hitResult)
+    // The plain missile tells the clients what the shot did (cosmetic event hitResult). Blast missiles do their own
+    // damage and report nothing.
     if(missile->getMissileType() == MissileObjectType::oneHit)
     {
         std::string targetName;
