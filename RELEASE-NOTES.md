@@ -8,7 +8,7 @@ our repository at https://github.com/OpenDungeons/OpenDungeons
 
 ### Unreleased
 
-* Equip twelve creature types with fitted weapons, classify held equipment by type and occupied hands, and preserve melee damage when weapon recovery is longer.
+* Equip twelve creature types with fitted weapons without additional weapon damage, classify held equipment by type and occupied hands, and preserve melee damage when weapon recovery is longer.
 
 ### Version 0.7.1 - 24 Aug 2016
 

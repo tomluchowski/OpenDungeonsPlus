@@ -100,7 +100,7 @@ def skeleton_bones(path):
     return bones, parents
 
 
-# Check exact equipment metadata, neutral new damage, and unchanged values of scaled copies.
+# Check exact metadata, damage-free assigned weapons and otherwise matching scaled copies.
 def check_equipment(equipment):
     assert set(equipment) == set(EXPECTED_TYPES), set(equipment) ^ set(EXPECTED_TYPES)
     for name, (kind, hands) in EXPECTED_TYPES.items():
@@ -115,6 +115,11 @@ def check_equipment(equipment):
                       'ElementDamageMin', 'AttackRating', 'DefenseRating'):
             assert float(item.get(field, '0')) == 0, (name, field)
         assert tuple(float(item[key]) for key in ('ParryBase', 'ParryPerLevel', 'ParryMax')) == (3, .5, 15), name
+    for name in ('BasicSword', 'BasicAxe', 'BasicHammer', 'Staff', 'BasicAxeOrc',
+                 'BasicHammerDwarf2', 'StaffLich'):
+        for field in ('PhysicalDamage', 'PhysicalDamageMin', 'MagicalDamage', 'MagicalDamageMin',
+                      'ElementDamage', 'ElementDamageMin'):
+            assert float(equipment[name][field]) == 0, (name, field)
     for name, original in (('BasicAxeOrc', 'BasicAxe'), ('BasicHammerDwarf2', 'BasicHammer'), ('StaffLich', 'Staff')):
         expected = dict(equipment[original], Name=name, MeshName=name + '.mesh')
         assert equipment[name] == expected, (name, equipment[name], expected)
