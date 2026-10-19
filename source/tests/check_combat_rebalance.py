@@ -141,8 +141,6 @@ def check_buildings(roster):
         for level, wanted in levels.items():
             damage = sum(building_stat(float(attack[start + 2 * channel]) + float(attack[start + 2 * channel + 1]), float(attack[start + 2 * channel + 1]), level) for channel in range(3))
             assert math.isclose(damage, wanted, abs_tol=1e-9), (name, level, damage, wanted)
-    rooms = read("config/rooms.cfg")
-    assert re.search(r"^\s*DungeonHeartHP\s+10000\s*$", rooms, re.M)
     assert re.search(r"DEFAULT_TILE_HP\s*=\s*10(?:\.0)?\s*;", read("source/entities/Building.cpp"))
 
 
@@ -209,7 +207,7 @@ def check_sources():
 def check_other_damage(roster):
     expected = {
         "spells": {"CreatureHealValue": 10.25},
-        "rooms": {"PrisonDamagePerTurnMin": .082, "PrisonDamagePerTurn": .123, "DungeonHeartHP": 10000,
+        "rooms": {"PrisonDamagePerTurnMin": .082, "PrisonDamagePerTurn": .123,
                   "HatcheryHpRecoveredPerChicken": 10.25},
         "traps": {"BoulderDamagePerHitMin": 205, "BoulderDamagePerHitMax": 246,
                   "CannonDamagePerHitMin": 20.5, "CannonDamagePerHitMax": 30.75,

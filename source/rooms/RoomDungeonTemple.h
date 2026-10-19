@@ -26,7 +26,6 @@
 
 enum class TileVisual;
 
-//! \brief Owns the dungeon heart with configured health independent of its room floor.
 class RoomDungeonTemple: public Room
 {
 public:
