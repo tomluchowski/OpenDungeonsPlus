@@ -6,6 +6,7 @@ material Wood : RTSS/PerPixel_SinglePass
     {
         pass
         {
+            specular 0.0 0.0 0.0 0.0 1.0
             texture_unit
             {
                 texture BedWood.png
@@ -20,9 +21,10 @@ material WhiteCloth : RTSS/PerPixel_SinglePass
     {
         pass
         {
+            specular 0.0 0.0 0.0 0.0 1.0
             texture_unit
             {
-                texture White.png
+                texture BedLinen.png
             }
         }
     }
@@ -34,6 +36,7 @@ material Blanket : RTSS/PerPixel_SinglePass
     {
         pass
         {
+            specular 0.0 0.0 0.0 0.0 1.0
             texture_unit
             {
                 texture BedBlanket.png
