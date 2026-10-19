@@ -54,7 +54,7 @@ material DirtInstanced //: RTSS/NormalMapping_MultiPass
             // We use blending, so that we can see the underlying texture.
             texture_unit decalmap
             {
-                texture DirtWall.png
+                texture Dirt.png
                 
             }
             texture_unit normalmap
