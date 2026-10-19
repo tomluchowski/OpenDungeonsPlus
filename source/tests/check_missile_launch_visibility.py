@@ -43,6 +43,8 @@ struct GameEntity {
  void fireAddEntity(Seat* s,bool,NodeType){map->events.push_back({"add",s,position});}
 };
 void GameEntity::notifySeatsWithVision(VISIBILITY
+namespace CosmeticEventType {const int missileLaunch=6;}
+struct CosmeticEvent {CosmeticEvent(int){} std::string mSubject,mObject,mText;int mValue=0,mValue2=0;Ogre::Vector3 mPosition;};
 struct Weapon {double getPhysicalDamage(){return 0;}double getMagicalDamage(){return 0;}double getElementDamage(){return 0;}};
 // Creature launch state used by the actual skill method.
 struct Creature {
@@ -51,6 +53,7 @@ struct Creature {
  bool isPossessed(){return possessed;}
  Tile* getPositionTile(){return invalid?nullptr:&tile;}const Ogre::Vector3& getPosition(){return position;}
  std::string getName(){return "Caster";}int getLevel(){return 1;}Seat* getSeat(){return seat;}
+ void fireCosmeticEvent(const CosmeticEvent&,bool){}
  Weapon* getWeaponL(){return nullptr;}Weapon* getWeaponR(){return nullptr;}
 };
 // Projectile spy records the launch metadata and visibility order.
@@ -59,6 +62,7 @@ struct MissileOneHit:GameEntity {
  // Capture provenance before initial upkeep in the production launch method.
  void setCreatureShot(bool possessed){creatureShot=true;possessedShot=possessed;}
  MissileOneHit(GameMap* game,Seat*,const std::string&,const std::string&,const std::string&,const Ogre::Vector3& d,double s,double,double,double,GameEntity*,bool,bool,bool):direction(d),speed(s){map=game;created.push_back(this);}
+ std::string getName(){return "Missile";}
  void addToGameMap(){}void createMesh(){}void setPosition(const Ogre::Vector3& p){position=p;}
  void doUpkeep(){++upkeep;for(Seat* seat:mSeatsWithVisionNotified)if(seat->getPlayer()&&seat->getPlayer()->getIsHuman())map->events.push_back({"path",seat,position});}
 };
