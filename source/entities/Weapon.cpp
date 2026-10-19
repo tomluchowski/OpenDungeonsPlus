@@ -256,7 +256,8 @@ void Weapon::writeWeaponDiff(const Weapon* def1, const Weapon* def2, std::ofstre
     if(def1 == nullptr || (def1->mMeshName.compare(def2->mMeshName) != 0))
         file << "    MeshName\t" << def2->mMeshName << std::endl;
 
-    if(def1 == nullptr || def1->getWeaponType() != def2->getWeaponType())
+    if(def1 == nullptr || def1->mWeaponType != def2->mWeaponType ||
+        def1->getWeaponType() != def2->getWeaponType())
         file << "    WeaponType\t" << def2->getWeaponType() << std::endl;
     if(def1 == nullptr || def1->mHands != def2->mHands)
         file << "    Hands\t" << def2->mHands << std::endl;

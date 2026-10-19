@@ -2,7 +2,6 @@
 from pathlib import Path
 import re
 import struct
-import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
 ASSIGNMENTS = {
@@ -10,8 +9,14 @@ ASSIGNMENTS = {
     'Gnome': 'Wand', 'Adventurer': 'BasicSword', 'Skeleton': 'BasicSword', 'Dwarf1': 'HandAxe',
     'Dwarf2': 'BasicHammerDwarf2', 'Wizard': 'Staff', 'Lich': 'StaffLich', 'LizardMan': 'Staff',
 }
-UNCHANGED = ('Kobold', 'DwarfWorker', 'LavaSpawn', 'Goblin', 'Monk', 'Knight', 'DarkElf', 'Elf',
-             'RunelordDwarf', 'NatureMonster', 'Defender')
+UNCHANGED = {
+    'Kobold': ('KoboldPick', 'none'), 'DwarfWorker': ('Pickaxe', 'none'),
+    'LavaSpawn': ('Sabre', 'RustyShield'), 'Goblin': ('Knife', 'none'),
+    'Monk': ('RustySword', 'RustyShield'), 'Knight': ('RustySword', 'RustyShield'),
+    'DarkElf': ('Crossbow', 'none'), 'Elf': ('none', 'Bow'),
+    'RunelordDwarf': ('RustySword', 'RustyShield'), 'NatureMonster': ('RustySword', 'RustyShield'),
+    'Defender': ('DefenderWeapon', 'none'),
+}
 UNARMED = ('Rat', 'Spider', 'Roach', 'CaveHornet', 'Slime', 'Scarab', 'TentacleAlbine', 'TentacleGreen',
            'Wyvern', 'Dragon', 'Champion', 'Kreatur')
 TYPES = {
@@ -117,15 +122,11 @@ def check_equipment(equipment):
 
 # Check all requested assignments and reject any occupied second hand beside a two-handed item.
 def check_creatures(creatures, equipment):
-    baseline = subprocess.run(['git', 'show', 'feature/combat-rebalance:config/creatures.cfg'], cwd=ROOT,
-                              stdin=subprocess.DEVNULL, capture_output=True, check=True, timeout=30).stdout.decode('utf-8')
-    previous = definitions(baseline, 'Creature')
     for name, weapon in ASSIGNMENTS.items():
         assert creatures[name].get('WeaponSpawnR') == weapon, name
         assert creatures[name].get('WeaponSpawnL', 'none') == 'none', name
-    for name in UNCHANGED:
-        for hand in ('R', 'L'):
-            assert creatures[name].get('WeaponSpawn' + hand, 'none') == previous[name].get('WeaponSpawn' + hand, 'none'), name
+    for name, expected in UNCHANGED.items():
+        assert tuple(creatures[name].get('WeaponSpawn' + hand, 'none') for hand in ('R', 'L')) == expected, name
     for name in UNARMED:
         assert all(creatures[name].get('WeaponSpawn' + hand, 'none') == 'none' for hand in ('R', 'L')), name
     for name, creature in creatures.items():
@@ -172,6 +173,10 @@ def check_source():
         assert 'file << "    ' + field + '\\t"' in weapon
         assert 'os << weapon->m' + field + ';' in weapon
         assert 'is >> weapon->m' + field in weapon
+    writer = body(weapon, 'void Weapon::writeWeaponDiff(')
+    assert re.search(r'def1->mWeaponType != def2->mWeaponType\s*\|\|\s*'
+                     r'def1->getWeaponType\(\) != def2->getWeaponType\(\)', writer), \
+        'Explicit type overrides must survive a changed mesh on an inherited legacy definition'
     fallback = body(weapon, 'std::string Weapon::getWeaponType() const')
     assert 'if(!mWeaponType.empty())' in fallback and 'return mWeaponType;' in fallback
     for keyword in ('shield', 'bow', 'axe', 'hammer', 'mace', 'spear', 'lance', 'pike', 'dagger', 'knife', 'staff', 'wand'):
