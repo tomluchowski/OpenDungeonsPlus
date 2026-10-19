@@ -261,7 +261,7 @@ private:
 
     //! \brief Colorize the material with the corresponding team id color.
     //! \note If the material (wall tiles only) is marked for digging, a yellow color is added
-    //! to the given color.
+    //! to the given color. Tiles that were discovered but are out of sight are not darkened.
     //! \returns The new material name according to the current colorization.
     std::string colourizeMaterial(const std::string& materialName, const Seat* seat, bool markedForDigging, bool playerHasVision);
 

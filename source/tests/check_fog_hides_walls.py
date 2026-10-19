@@ -67,6 +67,16 @@ check("getLocalLighting(FragPos, Normal, cameraPosition.xyz, shadow.r) + ambient
       and "color = vec4(enhanceDungeonColour(result)" in dirt_frag,
       "explored earth lighting changed: update the fog earth to match")
 
+# Discovered tiles out of sight are never darkened: the colourized clone of a tile material must not
+# lower its diffuse, specular, ambient or emissive colour for a missing vision.
+_colourize = render[render.index("std::string RenderManager::colourizeMaterial("):]
+_colourize = _colourize[:_colourize.index("\n}\n")]
+_code = re.sub(r"//.*", "", _colourize)
+check("current_color.r = 0.1" not in _code and "= 0.1;" not in _code,
+      "tiles out of sight are darkened again")
+check("if (!markedForDigging && !playerHasVision)" not in _code,
+      "a vision-dependent colour change is back in colourizeMaterial")
+
 if failures:
     print("\n".join("FAIL: " + f for f in failures))
     sys.exit(1)
