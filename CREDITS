@@ -584,12 +584,12 @@ tools/gen_armament_weapons.py                            OD Team  GPLv3+  Own wo
 tools/gen_scaled_weapons.py                              OD Team  GPLv3+  Own work: uniform weapon and skeleton scaling tool
 tools/blender-assets/armament_blend.py                   OD Team  GPLv3+  Own work: individual weapon Blender scene exporter
 tools/add_weapon_bones.py                                OD Team  GPLv3+  Own work: right-hand weapon mount insertion and skeleton round-trip verification
-models/skeleton.skeleton                                 OD Team  GPLv3+  Own work: right-hand weapon mount added by tools/add_weapon_bones.py, converted with OgreXMLConverter; existing data keeps its existing licence
-models/lich.skeleton                                     OD Team  GPLv3+  Own work: right-hand weapon mount added by tools/add_weapon_bones.py, converted with OgreXMLConverter; existing data keeps its existing licence
-models/PitDemon.skeleton                                 OD Team  GPLv3+  Own work: right-hand weapon mount added by tools/add_weapon_bones.py, converted with OgreXMLConverter; existing data keeps its existing licence
+models/skeleton.skeleton                                 OD Team  GPLv3+  Own work: right-hand weapon mount added by tools/add_weapon_bones.py, converted with OgreXMLConverter; existing data keeps its existing licence; original native animation keys retained byte for byte
+models/lich.skeleton                                     OD Team  GPLv3+  Own work: right-hand weapon mount added by tools/add_weapon_bones.py, converted with OgreXMLConverter; existing data keeps its existing licence; original native animation keys retained byte for byte
+models/PitDemon.skeleton                                 OD Team  GPLv3+  Own work: right-hand weapon mount added by tools/add_weapon_bones.py, converted with OgreXMLConverter; existing data keeps its existing licence; original native animation keys retained byte for byte
 source/tests/check_creature_armament.py                 OD Team  GPLv3+  Own work: static creature armament config, asset and source verification
 tools/blender-assets/armament_preview.py                  OD Team  GPLv3+  Own work: configured creature and weapon animation previews with the game attachment transform
-models/Troll.skeleton                                    OD Team  GPLv3+  Own work: fitted right-hand weapon rest position and rotation, converted with OgreXMLConverter; existing data keeps its existing licence
+models/Troll.skeleton                                    OD Team  GPLv3+  Own work: fitted right-hand weapon rest position and rotation, converted with OgreXMLConverter; existing data keeps its existing licence; original native animation keys retained byte for byte
 tools/gen_walk_hurt.py                   OD Team                 GPLv3+
 tools/fix_walk_feet.py                  OD Team                 GPLv3+
 tools/fix_walk_feet_rigs.py             OD Team                 GPLv3+

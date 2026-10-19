@@ -33,7 +33,22 @@ def check_floor(points, floor, height):
     assert float(error.max()) <= author.MAX_CONTACT_ERROR_RATIO + 2e-5, ('floor contact', float(error.max()))
 
 
-# Verify actual configured mesh coverage, native clip data, partial strengths and both return poses.
+# Require every original rest track while verifying the three new unweighted mounts remain passive.
+def rest_track_names(skeleton, skeleton_name, weighted):
+    required = set(skeleton.names)
+    parent = {'skeleton.skeleton': 'itemRightHand', 'lich.skeleton': 'itemRightHand',
+              'PitDemon.skeleton': 'Hand_R'}.get(skeleton_name)
+    if parent is not None:
+        assert 'Weapon_R' in skeleton.idx, (skeleton_name, 'missing passive weapon mount')
+        mount = skeleton.idx['Weapon_R']
+        assert mount not in weighted, (skeleton_name, 'passive mount deforms creature')
+        assert skeleton.names[skeleton.parent[mount]] == parent, (skeleton_name, 'wrong weapon parent')
+        assert all('Weapon_R' not in clip.tracks for clip in skeleton.clips.values()), (skeleton_name, 'animated passive mount')
+        required.remove('Weapon_R')
+    return required
+
+
+# Verify actual configured mesh coverage, native deforming-track coverage and passive mounts, partial strengths and both return poses.
 def main():
     source = (ROOT / 'source/render/CreatureReactions.cpp').read_text(encoding='utf-8')
     share = float(re.search(r'ARTICULATED_TRANSITION_SHARE = ([0-9.]+);', source).group(1))
@@ -60,12 +75,13 @@ def main():
         height = float(np.ptp(original[0, :, 2]))
         assert height > 0.0
         weighted = {bone for row in weights for bone, weight in row if weight > 0.0}
+        required_tracks = rest_track_names(skeleton, skeleton_name, weighted)
         for name, kind, length, reference in (('AmbientSit', 'sit', author.SIT_LENGTH, 0.28),
                                              ('AmbientLie', 'lie', author.LIE_LENGTH, 80.0)):
             assert name in skeleton.clips, (mesh_name, name)
             clip = skeleton.clips[name]
             assert abs(clip.length - length) < 1e-5
-            assert set(clip.tracks) == set(skeleton.names), (mesh_name, 'missing rest tracks')
+            assert set(clip.tracks) == required_tracks, (mesh_name, 'missing rest tracks')
             for track in clip.tracks.values():
                 assert np.all(np.diff(track.t) > 0.0)
                 assert abs(track.t[0]) < 1e-6 and abs(track.t[-1] - length) < 1e-5
