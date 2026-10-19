@@ -1,7 +1,8 @@
 """Integrator-only campaign load/goal-registration probes using an already built game.
 
 Run with --executable <game> --output <worktree output directory> while the game
-is closed. This exercises the existing timed win probe, not natural playability.
+is closed. This exercises the timed win probe (all main goals set as reached, then the win; the
+victory message and the campaign map with the next level must appear), not natural playability.
 """
 import argparse
 import csv
@@ -81,7 +82,8 @@ def main():
                                     stdin=subprocess.DEVNULL, capture_output=True,
                                     timeout=args.timeout, env=environment)
             log = (result.stdout + result.stderr).decode('utf-8', errors='replace')
-            passed = result.returncode == 0 and re.search(r'GOALS registered=[1-9][0-9]*', log)
+            passed = (result.returncode == 0 and re.search(r'GOALS registered=[1-9][0-9]*', log)
+                      and re.search(r'^PASS .*victory message shown, campaign map shows', log, re.MULTILINE))
             status = 'PASS' if passed else 'FAIL exit=' + str(result.returncode)
         except subprocess.TimeoutExpired as error:
             log = ((error.stdout or b'') + (error.stderr or b'')).decode('utf-8', errors='replace')
