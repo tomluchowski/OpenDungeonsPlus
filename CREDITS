@@ -585,3 +585,4 @@ tools/gen_scaled_weapons.py                              OD Team  GPLv3+  Own wo
 tools/blender-assets/armament_blend.py                   OD Team  GPLv3+  Own work: individual weapon Blender scene exporter
 tools/add_weapon_bones.py                                OD Team  GPLv3+  Own work: right-hand weapon mount insertion and skeleton round-trip verification
 source/tests/check_creature_armament.py                 OD Team  GPLv3+  Own work: static creature armament config, asset and source verification
+tools/blender-assets/armament_preview.py                  OD Team  GPLv3+  Own work: configured creature and weapon animation previews with the game attachment transform
