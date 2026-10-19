@@ -338,6 +338,14 @@ public:
     //! \brief Conform: AttackableObject - Adds experience to this creature.
     void receiveExp(double experience);
 
+    //! \brief Gets the number of cooldown turns that really applies after the given skill was used.
+    //! For the melee skill, a creature carrying weapons with a cooldown uses the larger weapon cooldown
+    //! (weapons without one, like shields, are ignored). Without such a weapon, and for every other skill,
+    //! it is the cooldown from the creature definition.
+    //! \param skill The skill that was used.
+    //! \return The cooldown in turns that is applied and shown on the recovery clock.
+    uint32_t getAppliedCooldownNbTurns(const CreatureSkill& skill) const;
+
     //! \brief performs the given attack on the given target
     void useAttack(CreatureSkillData& skillData, GameEntity& entityAttack,
         Tile& tileAttack, bool ko, bool notifyPlayerIfHit);

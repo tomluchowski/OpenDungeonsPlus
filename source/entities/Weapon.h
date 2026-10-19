@@ -18,6 +18,7 @@
 #ifndef WEAPON_H
 #define WEAPON_H
 
+#include <cstdint>
 #include <string>
 #include <iosfwd>
 
@@ -35,7 +36,8 @@ public:
        mElementDamage(0.0),
        mPhysicalDefense(0.0),
        mMagicalDefense(0.0),
-       mElementDefense(0.0)
+       mElementDefense(0.0),
+       mCooldownNbTurns(0)
     {}
 
     Weapon() :
@@ -44,7 +46,8 @@ public:
        mElementDamage(0.0),
        mPhysicalDefense(0.0),
        mMagicalDefense(0.0),
-       mElementDefense(0.0)
+       mElementDefense(0.0),
+       mCooldownNbTurns(0)
     {}
 
     virtual ~Weapon()
@@ -54,9 +57,12 @@ public:
     //! \brief Loads a definition from the equipment file sub [Equipment][/Equipment] part
     //! \returns A Weapon if valid, nullptr otherwise.
     static Weapon* load(std::stringstream& defFile);
+    //! \brief Reads the stats of one [Equipment] block into the given weapon, including the optional
+    //! CooldownNbTurns field (missing = no weapon cooldown).
+    //! \returns true if the block is valid, false otherwise.
     static bool update(Weapon* weapon, std::stringstream& defFile);
     //! \brief Writes the differences between def1 and def2 in the given file. Note that def1 can be null. In
-    //! this case, every parameters in def2 will be written. def2 cannot be null.
+    //! this case, every parameters in def2 will be written (CooldownNbTurns only if it is not 0). def2 cannot be null.
     static void writeWeaponDiff(const Weapon* def1, const Weapon* def2, std::ofstream& file);
 
     inline const std::string getOgreNamePrefix() const
@@ -86,6 +92,12 @@ public:
     inline double getElementDefense() const
     { return mElementDefense; }
 
+    //! \brief Number of turns the melee cooldown lasts when a creature carries this weapon.
+    //! 0 means the weapon defines no cooldown (shields and other non-weapons), so it is ignored when the
+    //! cooldown is chosen. When a creature carries two weapons, the larger value is used.
+    inline uint32_t getCooldownNbTurns() const
+    { return mCooldownNbTurns; }
+
     friend ODPacket& operator <<(ODPacket& os, const Weapon *weapon);
     friend ODPacket& operator >>(ODPacket& is, Weapon *weapon);
 
@@ -100,6 +112,8 @@ private:
     double          mPhysicalDefense;
     double          mMagicalDefense;
     double          mElementDefense;
+    //! \brief Melee cooldown in turns when carried (optional CooldownNbTurns field, 0 = none)
+    uint32_t        mCooldownNbTurns;
 };
 
 #endif // WEAPON_H

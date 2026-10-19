@@ -153,7 +153,7 @@ assert body.index('takeDamage(') < body.index('fireHitDefended(') < body.index('
 assert 'getObjectType() == GameEntityType::creature)\n        defence = static_cast<Creature*>(attackedObject)->rollMeleeDefence();' in body
 use_attack = function_body(creature, 'void Creature::useAttack(')
 assert 'skillData.mWarmup = skillData.mSkill->getWarmupNbTurns();' in use_attack
-assert 'skillData.mCooldown = skillData.mSkill->getCooldownNbTurns();' in use_attack
+assert 'skillData.mCooldown = getAppliedCooldownNbTurns(*skillData.mSkill);' in use_attack
 # The older kind still follows for old clients: no damage means "blocked" for them
 assert 'event.mValue = MELEE_RESULT_NO_DAMAGE;' in body
 # Missiles are untouched

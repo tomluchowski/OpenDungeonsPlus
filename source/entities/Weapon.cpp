@@ -147,6 +147,13 @@ bool Weapon::update(Weapon* weapon, std::stringstream& defFile)
                 weapon->mElementDefense = Helper::toDouble(nextParam);
                 continue;
             }
+
+            if (nextParam == "CooldownNbTurns")
+            {
+                defFile >> nextParam;
+                weapon->mCooldownNbTurns = Helper::toUInt32(nextParam);
+                continue;
+            }
         }
     }
 
@@ -197,6 +204,11 @@ void Weapon::writeWeaponDiff(const Weapon* def1, const Weapon* def2, std::ofstre
     if(def1 == nullptr || (def1->mElementDefense != def2->mElementDefense))
         file << "    ElementDefense\t" << def2->mElementDefense << std::endl;
 
+    // The field is optional: non-weapons (0) are never written without a differing base value
+    const uint32_t cooldownRef = (def1 == nullptr) ? 0 : def1->mCooldownNbTurns;
+    if(cooldownRef != def2->mCooldownNbTurns)
+        file << "    CooldownNbTurns\t" << def2->mCooldownNbTurns << std::endl;
+
     file << "    [/Stats]" << std::endl;
     file << "[/Equipment]" << std::endl;
 }
@@ -212,6 +224,7 @@ ODPacket& operator <<(ODPacket& os, const Weapon *weapon)
     os << weapon->mPhysicalDefense;
     os << weapon->mMagicalDefense;
     os << weapon->mElementDefense;
+    os << weapon->mCooldownNbTurns;
     return os;
 }
 
@@ -226,5 +239,6 @@ ODPacket& operator >>(ODPacket& is, Weapon *weapon)
     OD_ASSERT_TRUE(is >> weapon->mPhysicalDefense);
     OD_ASSERT_TRUE(is >> weapon->mMagicalDefense);
     OD_ASSERT_TRUE(is >> weapon->mElementDefense);
+    OD_ASSERT_TRUE(is >> weapon->mCooldownNbTurns);
     return is;
 }
