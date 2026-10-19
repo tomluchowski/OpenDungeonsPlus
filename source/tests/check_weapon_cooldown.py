@@ -161,6 +161,7 @@ EXPECTED_COOLDOWN = {
     ('Monk', 'Melee'): 2, ('Dwarf1', 'Melee'): 2, ('Dwarf2', 'Melee'): 2, ('Knight', 'Melee'): 2,
     ('RunelordDwarf', 'Melee'): 2, ('NatureMonster', 'Melee'): 2, ('Defender', 'Melee'): 4, ('Wyvern', 'Melee'): 2,
     ('Gnome', 'Melee'): 2, ('TentacleAlbine', 'Melee'): 2, ('TentacleGreen', 'Melee'): 2, ('Dragon', 'Melee'): 4,
+    ('Champion', 'Melee'): 6,
     ('LizardMan', 'MissileLaunch'): 3, ('Lich', 'MissileLaunch'): 2, ('Wizard', 'MissileLaunch'): 3,
     ('DarkElf', 'MissileLaunch'): 3, ('Elf', 'MissileLaunch'): 3, ('Kreatur', 'MissileLaunch'): 3,
 }
@@ -438,7 +439,7 @@ assert 'mAttackRecoveryTurns << mAttackRecoveryDuration' in export_body
 import_body = function_body(creature, 'void Creature::importProgressFromPacket(')
 assert 'double remaining = 0.0;' in import_body and 'double duration = 0.0;' in import_body
 # Support skills (not melee, no weapon cooldown) keep their definition cooldown
-assert creature.count('skillData.mCooldown = skillData.mSkill->getCooldownNbTurns();') == 1
+assert creature.count('skillData.mCooldown = skillData.mSkill->getCooldownNbTurns();') == 2
 # The clock reads the stored duration, nothing else, and does not run past a fractional remainder
 overlay = read('source/render/CreatureOverlayStatus.cpp')
 assert 'const double duration = mCreature->getAttackRecoveryDuration();' in overlay
