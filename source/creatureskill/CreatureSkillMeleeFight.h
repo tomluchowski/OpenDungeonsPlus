@@ -54,6 +54,7 @@ public:
     virtual bool tryUseSupport(GameMap& gameMap, Creature* creature) const override
     { return false; }
 
+    //! \brief Resolves a blow with creature hit and avoidance rolls while preserving building damage.
     virtual bool tryUseFight(GameMap& gameMap, Creature* creature, float range,
         GameEntity* attackedObject, Tile* attackedTile, bool ko, bool notifyPlayerIfHit) const override;
 

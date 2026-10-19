@@ -516,19 +516,22 @@ public:
     //! is what takeDamage returned and rawDamage the damage before the defense; missile tells a shot from a
     //! melee blow. Only reports what the damage calculation gave, it changes nothing.
     void fireHitResult(const std::string& attackerName, double damageDone, double rawDamage, bool missile);
-    //! \brief A shot of the attacker that was aimed at this creature ended without hurting it (cosmetic event hitResult)
-    void fireHitMissed(const std::string& attackerName);
+    //! \brief Reports a missed melee blow or missile without changing combat timing.
+    void fireHitMissed(const std::string& attackerName, bool missile = true);
     //! \brief Server: this creature is about to strike at the target in the given direction and turns to it first
     //! (cosmetic event attackTurn). Only reports, it changes nothing.
     void fireAttackTurn(const std::string& targetName, const Ogre::Vector3& direction);
-    //! \brief Tells the keepers who see this creature that it dodged or parried a melee blow (hitResult)
-    void fireHitDefended(const std::string& attackerName, DefenceChance::Outcome outcome);
-    //! \brief Server only: rolls whether this creature dodges or parries a melee blow before its damage is
+    //! \brief Tells the keepers who see this creature that it avoided a landed blow or shot.
+    void fireHitDefended(const std::string& attackerName, DefenceChance::Outcome outcome, bool missile = false);
+    //! \brief Server only: rolls the configured avoidance kind after a landed blow or shot, before its damage is
     //! calculated. Only a living, not knocked out creature on the map that nobody holds or drags, and that no
     //! keeper possesses, can defend itself. Gives DefenceChance::none if MeleeDodgeParry is off.
-    //! The parry chance comes from the carried weapon (larger chance with two weapons), or from the global
-    //! shield values when a shield is carried as well.
-    DefenceChance::Outcome rollMeleeDefence() const;
+    //! The parry chance comes from the carried weapon (larger chance with two weapons); parry is melee only.
+    //! Shield carriers use the shield block settings and require an actual shield.
+    DefenceChance::Outcome rollMeleeDefence(bool missile = false) const;
+    //! \brief Server only: rolls a shot or blow against this defender using saved attacker stats.
+    //! Possessed attackers always hit; the defender's avoidance is resolved separately.
+    bool rollAttackHit(double attackRating, uint32_t attackerLevel, bool possessed) const;
     //! \brief The creature arrived through a portal: tells the keeper what mood it would have (cosmetic only)
     void fireArrivalEvent();
 

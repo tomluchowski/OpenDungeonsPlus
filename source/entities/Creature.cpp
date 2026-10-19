@@ -3733,7 +3733,8 @@ void Creature::fireHitResult(const std::string& attackerName, double damageDone,
     fireCosmeticEvent(event, false);
 }
 
-void Creature::fireHitMissed(const std::string& attackerName)
+//! \brief Sends the missed result for the selected attack kind.
+void Creature::fireHitMissed(const std::string& attackerName, bool missile)
 {
     if(!ConfigManager::getSingleton().getHitEvents())
         return;
@@ -3741,14 +3742,15 @@ void Creature::fireHitMissed(const std::string& attackerName)
     CosmeticEvent event(CosmeticEventType::hitResult);
     event.mSubject = attackerName;
     event.mObject = getName();
-    event.mText = "missile";
+    event.mText = missile ? "missile" : "melee";
     event.mValue = static_cast<int32_t>(CosmeticHitResult::missed);
     event.mValue2 = 0;
     event.mPosition = getPosition();
     fireCosmeticEvent(event, false);
 }
 
-void Creature::fireHitDefended(const std::string& attackerName, DefenceChance::Outcome outcome)
+//! \brief Reports the single avoidance result for a landed blow or shot.
+void Creature::fireHitDefended(const std::string& attackerName, DefenceChance::Outcome outcome, bool missile)
 {
     if(!ConfigManager::getSingleton().getHitEvents())
         return;
@@ -3759,14 +3761,29 @@ void Creature::fireHitDefended(const std::string& attackerName, DefenceChance::O
     CosmeticEvent event(CosmeticEventType::hitResult);
     event.mSubject = attackerName;
     event.mObject = getName();
-    event.mText = "melee";
-    event.mValue = static_cast<int32_t>((outcome == DefenceChance::parried) ? CosmeticHitResult::parried : CosmeticHitResult::dodged);
+    event.mText = missile ? "missile" : "melee";
+    CosmeticHitResult result = CosmeticHitResult::dodged;
+    if(outcome == DefenceChance::parried)
+        result = CosmeticHitResult::parried;
+    else if(outcome == DefenceChance::shieldBlocked)
+        result = CosmeticHitResult::shieldBlocked;
+    event.mValue = static_cast<int32_t>(result);
     event.mValue2 = 0;
     event.mPosition = getPosition();
     fireCosmeticEvent(event, false);
 }
 
-DefenceChance::Outcome Creature::rollMeleeDefence() const
+//! \brief Resolves hit chance against this defender, bypassing the roll for a possessed attacker.
+bool Creature::rollAttackHit(double attackRating, uint32_t attackerLevel, bool possessed) const
+{
+    if(possessed)
+        return true;
+    return Random::Double(0.0, 100.0) < DefenceChance::hitChance(attackRating, getDefenseRating(),
+        attackerLevel, getLevel());
+}
+
+//! \brief Rolls one configured avoidance kind; parry cannot stop missiles and block requires a shield.
+DefenceChance::Outcome Creature::rollMeleeDefence(bool missile) const
 {
     ConfigManager& config = ConfigManager::getSingleton();
     if(!config.getMeleeDodgeParry())
@@ -3777,7 +3794,12 @@ DefenceChance::Outcome Creature::rollMeleeDefence() const
     if(!getIsOnServerMap() || !getIsOnMap() || !isAlive() || isKo())
         return DefenceChance::none;
 
-    // A weapon that strikes parries, a shield makes the parry better; a shield alone does not parry
+    const CreatureDefinition::Avoidance avoidance = getDefinition()->getAvoidance();
+    if(avoidance == CreatureDefinition::Avoidance::none ||
+        (missile && avoidance == CreatureDefinition::Avoidance::parry))
+        return DefenceChance::none;
+
+    // Inspect held equipment for the selected avoidance kind; other creature types do not gain parry or block.
     bool hasShield = false;
     const Weapon* parryWeapons[2] = {nullptr, nullptr};
     const Weapon* weapons[2] = {getWeaponL(), getWeaponR()};
@@ -3794,27 +3816,33 @@ DefenceChance::Outcome Creature::rollMeleeDefence() const
             parryWeapons[i] = weapons[i];
     }
 
-    double dodge = DefenceChance::dodgeChance(getLevel(), config.getDodgeBase(), config.getDodgePerLevel(),
-        config.getDodgeMax());
-
-    // The parry values belong to the weapon; with two weapons the larger resulting chance counts. The shield
-    // values stay global and replace the weapon values when a shield is carried as well.
-    double parry = 0.0;
-    for(uint32_t i = 0; i < 2; ++i)
+    double chance = 0.0;
+    DefenceChance::Outcome kind = DefenceChance::none;
+    if(avoidance == CreatureDefinition::Avoidance::dodge)
     {
-        if(parryWeapons[i] == nullptr)
-            continue;
-
-        double weaponParry = DefenceChance::parryChance(getLevel(), true, hasShield, parryWeapons[i]->getParryBase(),
-            parryWeapons[i]->getParryPerLevel(), parryWeapons[i]->getParryMax(), config.getParryShieldBase(),
-            config.getParryShieldPerLevel(), config.getParryShieldMax());
-        parry = std::max(parry, weaponParry);
+        kind = DefenceChance::dodged;
+        chance = DefenceChance::dodgeChance(getLevel(), config.getDodgeBase(), config.getDodgePerLevel(), config.getDodgeMax());
     }
-
-    // Dodging is rolled first, parrying only if the creature did not dodge. The server draws the dice.
-    double dodgeRoll = Random::Double(0.0, 100.0);
-    double parryRoll = Random::Double(0.0, 100.0);
-    return DefenceChance::decide(dodge, parry, dodgeRoll, parryRoll);
+    else if(avoidance == CreatureDefinition::Avoidance::block && hasShield)
+    {
+        kind = DefenceChance::shieldBlocked;
+        chance = DefenceChance::dodgeChance(getLevel(), config.getShieldBlockBase(), config.getShieldBlockPerLevel(),
+            config.getShieldBlockMax());
+    }
+    else if(avoidance == CreatureDefinition::Avoidance::parry)
+    {
+        kind = DefenceChance::parried;
+        // With two carried parry weapons, keep the larger resulting chance.
+        for(uint32_t i = 0; i < 2; ++i)
+        {
+            if(parryWeapons[i] == nullptr)
+                continue;
+            chance = std::max(chance, DefenceChance::parryChance(getLevel(), true, parryWeapons[i]->getParryBase(),
+                parryWeapons[i]->getParryPerLevel(), parryWeapons[i]->getParryMax()));
+        }
+    }
+    // The selected avoidance kind uses exactly one server roll.
+    return DefenceChance::decide(kind, chance, Random::Double(0.0, 100.0));
 }
 
 void Creature::fireArrivalEvent()

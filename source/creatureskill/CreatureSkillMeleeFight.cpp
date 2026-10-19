@@ -81,6 +81,7 @@ bool CreatureSkillMeleeFight::canBeUsedBy(const Creature* creature) const
     return true;
 }
 
+//! \brief Resolves creature hit chance and typed avoidance without changing attack timing or building damage.
 bool CreatureSkillMeleeFight::tryUseFight(GameMap& gameMap, Creature* creature, float range,
         GameEntity* attackedObject, Tile* attackedTile, bool ko, bool notifyPlayerIfHit) const
 {
@@ -108,13 +109,19 @@ bool CreatureSkillMeleeFight::tryUseFight(GameMap& gameMap, Creature* creature, 
         magAtk *= modifier;
         eleAtk *= modifier;
     }
-    // The defending creature may dodge or parry the blow (the server rolls it, before the damage is calculated).
+    // A hit roll comes first; only a landed blow allows the defender's configured avoidance kind.
     // The blow then does no damage; it is still made, so the animation, the warmup and the cooldown of the
     // attacker stay as they are, and takeDamage still runs with no damage for what it records besides the damage.
     DefenceChance::Outcome defence = DefenceChance::none;
+    bool missed = false;
     if(attackedObject->getObjectType() == GameEntityType::creature)
-        defence = static_cast<Creature*>(attackedObject)->rollMeleeDefence();
-    if(defence != DefenceChance::none)
+    {
+        Creature* target = static_cast<Creature*>(attackedObject);
+        missed = !target->rollAttackHit(creature->getAttackRating(), creature->getLevel(), creature->isPossessed());
+        if(!missed)
+            defence = target->rollMeleeDefence(false);
+    }
+    if(missed || defence != DefenceChance::none)
     {
         phyAtk = 0.0;
         magAtk = 0.0;
@@ -125,18 +132,20 @@ bool CreatureSkillMeleeFight::tryUseFight(GameMap& gameMap, Creature* creature, 
     if(attackedObject->getObjectType() == GameEntityType::creature)
     {
         Creature* target = static_cast<Creature*>(attackedObject);
-        target->fireCombatImpact(hasWeapon(creature) && hasWeapon(target),
-            damageDone > 0.0, creature->getPosition());
+        if(!missed)
+            target->fireCombatImpact(hasWeapon(creature) && hasWeapon(target),
+                damageDone > 0.0, creature->getPosition());
 
         // Tell the clients how much of the blow got through, so that they can show a hit, a glancing blow
-        // or a blow that did nothing. The game has no random miss: this only reads the damage that was
-        // already calculated, it changes neither the damage nor when it is dealt.
+        // or a blow that missed or was avoided. Reporting leaves the attack timing unchanged.
         const double rawDamage = phyAtk + magAtk + eleAtk;
         double share = (rawDamage > 0.0) ? damageDone / rawDamage : 0.0;
         share = std::max(0.0, std::min(1.0, share));
         // The newer kind first (hit, glancing, blocked and how hard in relation to the health); the clients that
         // got it ignore the older kind below
-        if(defence != DefenceChance::none)
+        if(missed)
+            target->fireHitMissed(creature->getName(), false);
+        else if(defence != DefenceChance::none)
             target->fireHitDefended(creature->getName(), defence);
         else
             target->fireHitResult(creature->getName(), damageDone, rawDamage, false);

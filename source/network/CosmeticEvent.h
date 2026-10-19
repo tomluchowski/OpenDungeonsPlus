@@ -54,7 +54,7 @@ enum class CosmeticEventType : int32_t
     //! damage, 1: only a small part of it got through (glancing), 2: no damage at all (blocked or
     //! absorbed), mValue2 share of the damage that got through in per mille (0 to 1000),
     //! mPosition position of the target. This only reports what the damage calculation gave; the
-    //! game has no random miss.
+    //! hitResult separately reports missed or avoided attacks.
     meleeResult = 5,
     //! A creature launched a missile. mSubject shooter, mObject name of the missile entity, mText mesh
     //! of the missile (empty: a magic missile without a mesh), mValue and mValue2 tile x and y of the
@@ -94,14 +94,15 @@ enum class CosmeticHitResult : int32_t
     glanced = 1,
     //! No damage at all got through (armor or resistance took all of it)
     blocked = 2,
-    //! A shot ended without hurting the creature it was aimed at (it hit a wall or flew on, the creature moved
-    //! away). Melee blows never give this result.
+    //! A blow or single-target shot failed its hit roll, or a shot stopped without reaching its target.
     missed = 3,
-    //! A melee blow was dodged: the defender got out of the way, no damage (decided by the server before the damage)
+    //! A blow or shot was dodged: the defender got out of the way, no damage (decided by the server before damage).
     dodged = 4,
     //! A melee blow was parried with a weapon: no damage (decided by the server before the damage). Clients that
     //! do not know the value 4 or 5 show nothing for it; the older kind meleeResult follows and tells them "no damage".
-    parried = 5
+    parried = 5,
+    //! A landed blow or shot was blocked by a carried shield, with no damage.
+    shieldBlocked = 6
 };
 
 //! \brief The data of one cosmetic event. Every kind uses the same layout on the wire, so a

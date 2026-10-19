@@ -86,6 +86,7 @@ public:
     //! \param userConfigPath The user profile config path or empty if not used.
     //! \note In server mode, the configuration doesn't load the user config and thus,
     //! doesn't set the userConfigPath.
+    //! \brief Loads configuration, including dodge and shield block defaults.
     ConfigManager(const std::string& configPath, const std::string& userConfigPath,
         const std::string& soundPath);
     ~ConfigManager();
@@ -179,11 +180,11 @@ public:
     inline double getAttackTurnMaxDelay() const
     { return std::max(AttackTurnMaxDelayMin, std::min(AttackTurnMaxDelayMax, mAttackTurnMaxDelay)); }
 
-    //! \brief True if melee blows can be dodged or parried (decided by the server, global.cfg MeleeDodgeParry)
+    //! \brief Master switch for creature dodge, parry and shield block, decided by the server.
     inline bool getMeleeDodgeParry() const
     { return mMeleeDodgeParry; }
 
-    //! \brief Dodge chance of every creature in percent, base value (0 - 100)
+    //! \brief Base dodge chance of creature types configured to dodge, in percent (0 - 100).
     inline double getDodgeBase() const
     { return std::max(ChanceMin, std::min(ChanceMax, mDodgeBase)); }
 
@@ -207,17 +208,17 @@ public:
     inline double getParryMax() const
     { return std::max(ChanceMin, std::min(ChanceMax, mParryMax)); }
 
-    //! \brief Parry chance with weapon and shield in percent, base value (0 - 100)
-    inline double getParryShieldBase() const
-    { return std::max(ChanceMin, std::min(ChanceMax, mParryShieldBase)); }
+    //! \brief Base chance of blocking with a shield, in percent (0 - 100).
+    inline double getShieldBlockBase() const
+    { return std::max(0.0, std::min(100.0, mShieldBlockBase)); }
 
-    //! \brief Parry chance with weapon and shield in percent that every level adds (0 - 10)
-    inline double getParryShieldPerLevel() const
-    { return std::max(ChanceMin, std::min(ChancePerLevelMax, mParryShieldPerLevel)); }
+    //! \brief Shield block chance added per level, in percent (0 - 10).
+    inline double getShieldBlockPerLevel() const
+    { return std::max(0.0, std::min(10.0, mShieldBlockPerLevel)); }
 
-    //! \brief Highest parry chance with weapon and shield in percent (0 - 100)
-    inline double getParryShieldMax() const
-    { return std::max(ChanceMin, std::min(ChanceMax, mParryShieldMax)); }
+    //! \brief Highest shield block chance, in percent (0 - 100).
+    inline double getShieldBlockMax() const
+    { return std::max(0.0, std::min(100.0, mShieldBlockMax)); }
 
     inline int64_t getTimePayDay() const
     { return mTimePayDay; }
@@ -369,6 +370,7 @@ private:
     bool loadGlobalConfig(const std::string& configPath);
     bool loadGlobalConfigSeatColors(std::stringstream& configFile);
     bool loadGlobalConfigDefinitionFiles(std::stringstream& configFile);
+    //! \brief Reads global game settings and the settings of each creature avoidance kind.
     bool loadGlobalGameConfig(std::stringstream& configFile);
     bool loadCreatureDefinitions(const std::string& fileName);
     bool loadEquipements(const std::string& fileName);
@@ -437,9 +439,10 @@ private:
     double mParryBase;
     double mParryPerLevel;
     double mParryMax;
-    double mParryShieldBase;
-    double mParryShieldPerLevel;
-    double mParryShieldMax;
+    //! \brief Global shield block base, per-level increase and maximum in percent.
+    double mShieldBlockBase;
+    double mShieldBlockPerLevel;
+    double mShieldBlockMax;
     int64_t mTimePayDay;
     int32_t mNbTurnsFuriousMax;
     double mMaxManaPerSeat;

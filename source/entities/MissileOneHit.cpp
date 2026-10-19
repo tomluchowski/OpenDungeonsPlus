@@ -27,6 +27,7 @@
 
 #include <iostream>
 
+//! \brief Creates a projectile and snapshots the shooter accuracy so later removal cannot change its hit chance.
 MissileOneHit::MissileOneHit(GameMap* gameMap, Seat* seat, const std::string& senderName, const std::string& meshName,
         const std::string& particleScript, const Ogre::Vector3& direction, double speed, double physicalDamage, double magicalDamage,
         double elementDamage, GameEntity* entityTarget, bool damageAllies, bool koEnemyCreature, bool notifyPlayerIfHit) :
@@ -35,8 +36,16 @@ MissileOneHit::MissileOneHit(GameMap* gameMap, Seat* seat, const std::string& se
     mPhysicalDamage(physicalDamage),
     mMagicalDamage(magicalDamage),
     mElementDamage(elementDamage),
-    mNotifyPlayerIfHit(notifyPlayerIfHit)
+    mNotifyPlayerIfHit(notifyPlayerIfHit),
+    mShotAttackRating(0.0),
+    mShotAttackerLevel(0)
 {
+    Creature* shooter = gameMap->getCreature(senderName);
+    if(shooter != nullptr)
+    {
+        mShotAttackRating = shooter->getAttackRating();
+        mShotAttackerLevel = shooter->getLevel();
+    }
     if(!particleScript.empty())
     {
         EntityParticleEffect* effect = new EntityParticleEffect(nextParticleSystemsName(), particleScript, -1);
@@ -44,13 +53,16 @@ MissileOneHit::MissileOneHit(GameMap* gameMap, Seat* seat, const std::string& se
     }
 }
 
+//! \brief Creates a projectile to load without inventing shooter stats for old saves.
 MissileOneHit::MissileOneHit(GameMap* gameMap) :
     MissileObject(gameMap),
     mHasHit(false),
     mPhysicalDamage(0.0),
     mMagicalDamage(0.0),
     mElementDamage(0.0),
-    mNotifyPlayerIfHit(false)
+    mNotifyPlayerIfHit(false),
+    mShotAttackRating(0.0),
+    mShotAttackerLevel(0)
 {
 }
 
@@ -70,8 +82,25 @@ void MissileOneHit::hitTargetEntity(Tile* tile, GameEntity* entityTarget)
         entityTarget->notifyFightPlayer(tile);
 }
 
+//! \brief Rolls creature-shot accuracy and avoidance before the existing damage path.
 void MissileOneHit::hurt(Tile* tile, GameEntity* entity)
 {
+    if(entity->getObjectType() == GameEntityType::creature && isCreatureShot() && usesCreatureHitRoll())
+    {
+        Creature* target = static_cast<Creature*>(entity);
+        mHasHit = true;
+        if(mShotAttackerLevel != 0 && !target->rollAttackHit(mShotAttackRating, mShotAttackerLevel, isPossessedShot()))
+        {
+            target->fireHitMissed(mShooterName, true);
+            return;
+        }
+        const DefenceChance::Outcome defence = target->rollMeleeDefence(true);
+        if(defence != DefenceChance::none)
+        {
+            target->fireHitDefended(mShooterName, defence, true);
+            return;
+        }
+    }
     double damageDone = entity->takeDamage(this, 0.0, mPhysicalDamage, mMagicalDamage, mElementDamage, tile,
         getKoEnemyCreature());
     mHasHit = true;
@@ -111,6 +140,7 @@ MissileOneHit* MissileOneHit::getMissileOneHitFromPacket(GameMap* gameMap, ODPac
     return obj;
 }
 
+//! \brief Saves launch accuracy and event names after the legacy damage and effect fields.
 void MissileOneHit::exportToStream(std::ostream& os) const
 {
     MissileObject::exportToStream(os);
@@ -124,8 +154,13 @@ void MissileOneHit::exportToStream(std::ostream& os) const
     {
         os << "\t" << effect->mScript;
     }
+    if(isCreatureShot() && mShotAttackerLevel != 0)
+        os << "\tShotAccuracy\t" << mShotAttackRating << "\t" << mShotAttackerLevel << "\t"
+            << (mShooterName.empty() ? "none" : mShooterName) << "\t"
+            << (mTargetName.empty() ? "none" : mTargetName);
 }
 
+//! \brief Reads optional launch accuracy while leaving old saves and derived missile suffixes readable.
 bool MissileOneHit::importFromStream(std::istream& is)
 {
     if(!MissileObject::importFromStream(is))
@@ -149,5 +184,27 @@ bool MissileOneHit::importFromStream(std::istream& is)
         mEntityParticleEffects.push_back(effect);
     }
 
+    const std::streampos accuracyPosition = is.tellg();
+    std::string marker;
+    if(is >> marker)
+    {
+        if(marker == "ShotAccuracy")
+        {
+            double attackRating = 0.0;
+            uint32_t attackerLevel = 0;
+            std::string shooterName;
+            std::string targetName;
+            if(!(is >> attackRating >> attackerLevel >> shooterName >> targetName) || attackerLevel == 0)
+                return false;
+            mShotAttackRating = attackRating;
+            mShotAttackerLevel = attackerLevel;
+            mShooterName = shooterName == "none" ? "" : shooterName;
+            mTargetName = targetName == "none" ? "" : targetName;
+        }
+        else
+            is.seekg(accuracyPosition);
+    }
+    else
+        is.clear();
     return true;
 }
