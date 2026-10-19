@@ -481,15 +481,21 @@ int Tile::nextTileFullness(int f)
     }
 }
 
+//! \brief Sets or clears the digging mark of a player on this tile; unexplored tiles can be marked whatever
+//! their type, so the mark never reveals it (server: never visited, client: not yet seen or still fogged).
 void Tile::setMarkedForDigging(bool ss, const Player *pp)
 {
     /* If we are trying to mark a tile that is not dirt or gold
      * or is already dug out, ignore the request.
      */
-    const bool unexplored = pp->getIsHuman() &&
-        (getGameMap()->isServerGameMap() ?
-            !getGameMap()->everVisitedFlagPool[getX()][getY()][pp->getSeat()->getId()] :
-            (!getEverVisible() || getHasFogOfWar()));
+    // The client never flags its players as human (only the server does), so the client decides by what the
+    // local player has seen; the human check applies on the server only.
+    bool unexplored = false;
+    if(getGameMap()->isServerGameMap())
+        unexplored = pp->getIsHuman() &&
+            !getGameMap()->everVisitedFlagPool[getX()][getY()][pp->getSeat()->getId()];
+    else
+        unexplored = !getEverVisible() || getHasFogOfWar();
     if (ss && !unexplored && !isDiggable(pp->getSeat()))
         return;
 

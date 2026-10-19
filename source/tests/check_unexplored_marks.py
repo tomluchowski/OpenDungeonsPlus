@@ -74,5 +74,27 @@ release = game_mode[game_mode.index('void GameMode::handlePlayerActionSelectTile
 release = release[:release.index('void GameMode::resetSkillTree()')]
 assert release.index('unselectAllTiles();') < release.index('ClientNotificationType::askMarkTiles')
 assert 'markPass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA)' in render
+<<<<<<< HEAD
 assert 'Ogre::ColourValue markColor(Tile::DIG_MARK_COLOUR)' in render
+=======
+assert 'Ogre::ColourValue markColor(0.65f, 0.45f, 1.0f, 0.5f)' in render
+# Every fog tile is markable everywhere, on the client as well as on the server, and the mark is shown.
+set_mark = tile[tile.index('void Tile::setMarkedForDigging('):]
+set_mark = set_mark[:set_mark.index('bool Tile::getMarkedForDigging')]
+# The client never flags its players as human, so the client branch must not depend on getIsHuman().
+assert 'setIsHuman' not in read('source/network/ODClient.cpp'), 'client sets human flags: re-check the client branch'
+server_branch = set_mark[set_mark.index('if(getGameMap()->isServerGameMap())'):set_mark.index('else')]
+client_branch = set_mark[set_mark.index('else'):set_mark.index('if (ss && !unexplored')]
+assert 'getIsHuman' in server_branch and 'everVisitedFlagPool' in server_branch
+assert 'getIsHuman' not in client_branch, 'client fog marks must not depend on the human flag the client never has'
+assert '!getEverVisible() || getHasFogOfWar()' in client_branch
+assert 'if (ss && !unexplored && !isDiggable(pp->getSeat()))' in set_mark
+# No adjacency, distance or neighbour restriction in the client selection or the server acceptance.
+for name, text in (('client selection', release[:release.index('unselectAllTiles();')]),
+                   ('server mark', player[player.index('void Player::markTilesForDigging('):player.index('void Player::upkeepPlayer(')])):
+    for forbidden in ('getNeighbor', 'isAdjacent', 'adjacent', 'Adjacent', 'getAllNeighbors'):
+        assert forbidden not in text, name + ' restricts marking by ' + forbidden
+# The mark of a fogged tile is drawn whenever it exists: the fog surface is switched on isMarked alone.
+assert 'if(tile.getHasFogOfWar() && tile.getFogOfWarMesh() != nullptr)' in render
+assert 'const bool wasMarked = tile.getFogOfWarMesh()->getCustomParam(0).w > 0.0f;' in render
 print('check_unexplored_marks ok: thick outer frame, seamless flat marked fog, neutral tooltip and transparent marking')
