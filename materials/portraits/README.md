@@ -24,6 +24,18 @@ original model colors and
 equipment when revising an illustration. Do not put count labels into the art:
 the population panel supplies the live count overlay.
 
+## Gender variants
+
+Seventeen humanoid portraits have a second image for the other gender:
+`portrait-<Mesh>.mesh-female.png` (or `-male.png` for the two elves), each with
+a prompt record `<Mesh>-female.md` / `<Mesh>-male.md`. The game shows such an image
+in the profile card and the Dungeonbook when the creature's profile gender matches
+it and the file exists; otherwise, and for creatures without a gender, it uses the
+base `portrait-<Mesh>.mesh.png`. The population panel and the hand icons always use
+the base image. The colour regions of `config/portrait-tints.cfg` are tuned per
+image, so every gender image has an own entry named like the file (for example
+`Orc.mesh-female`).
+
 ## Composed Dungeonbook pictures
 
 When the folder `materials/portraits/variants/<catalog id>/` holds a `manifest.cfg`, the Dungeonbook and the
@@ -39,17 +51,6 @@ neutral bases in `config/dungeonbook-base-tints.cfg`, the hair and beard colours
 `config/dungeonbook-part-tints.cfg` (the bases have no hair, eyes or beards, so the colour is applied to the chosen
 parts) and the profile remarks that match the parts in
 `config/dungeonbook-quirks.cfg` (one line per slot and option name, as written in the manifests).
-## Gender variants
-
-Seventeen humanoid portraits have a second image for the other gender:
-`portrait-<Mesh>.mesh-female.png` (or `-male.png` for the two elves), each with
-a prompt record `<Mesh>-female.md` / `<Mesh>-male.md`. The game shows such an image
-in the profile card and the Dungeonbook when the creature's profile gender matches
-it and the file exists; otherwise, and for creatures without a gender, it uses the
-base `portrait-<Mesh>.mesh.png`. The population panel and the hand icons always use
-the base image. The colour regions of `config/portrait-tints.cfg` are tuned per
-image, so every gender image has an own entry named like the file (for example
-`Orc.mesh-female`).
 
 ## Goblin.mesh
 
