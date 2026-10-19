@@ -47,7 +47,6 @@ material DirtInstanced //: RTSS/NormalMapping_MultiPass
             fragment_program_ref myDirtInstancedTileFragmentShader
             { 
                 param_named decalmap int 0
-                param_named normalmap int 1             
             }            
             
             
@@ -56,10 +55,6 @@ material DirtInstanced //: RTSS/NormalMapping_MultiPass
             {
                 texture Dirt.png
                 
-            }
-            texture_unit normalmap
-            {
-                texture DirtWallNormal.png               
             }
 
                

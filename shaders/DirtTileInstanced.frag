@@ -4,7 +4,6 @@
 
 
 uniform sampler2D decalmap;
-uniform sampler2D normalmap;
 uniform sampler2D shadowmap;
 
 uniform vec4 ambientLightColour;

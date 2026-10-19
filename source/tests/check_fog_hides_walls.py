@@ -38,8 +38,14 @@ check("!tile.getEverVisible() && !tile.getHasFogOfWar()" in render and "createIn
       "unexplored tiles are not replaced by the fog mesh")
 
 # The fog shader is unlit: no normal map, no lighting
-for forbidden in ["getLocalLighting", "normalmap", "TBN *", "lightPos", "shadowmap"]:
+for forbidden in ["getLocalLighting", "normalmap", "TBN *", "lightPos", "shadowmap", "diffuseSurface", "seatColor"]:
     check(forbidden not in re.sub(r"//.*", "", frag.split("void main")[1]), "fog shader still uses " + forbidden)
+# The fog references no normal map at all: not in the shader and not in its material.
+check("normalmap" not in re.sub(r"//.*", "", frag), "fog shader still declares a normal map")
+_fog_mat = (root / "materials/scripts/DirtInstanced.material").read_text(encoding="utf-8")
+_fog_mat = re.sub(r"//.*", "", _fog_mat[_fog_mat.index("material DirtInstanced"):])
+check("normalmap" not in _fog_mat.lower() and "normal.png" not in _fog_mat.lower(),
+      "fog material still references a normal map")
 
 # Unexplored earth looks like explored earth without torch light: the same texture and the same
 # brightness (ambient term, then the colour grade), never a darkening factor of its own.
