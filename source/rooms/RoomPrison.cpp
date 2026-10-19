@@ -16,6 +16,7 @@
  */
 
 #include "rooms/RoomPrison.h"
+#include "utils/Random.h"
 #include "game/SkillManager.h"
 #include "game/SkillType.h"
 
