@@ -4763,16 +4763,6 @@ void RenderManager::rrPlayDigAnimation()
     mHandAnimationState = setEntityAnimation(mSceneManager->getEntity("keeperHandEnt"), "DigSwing", false);
 }
 
-// The side frames of a selected wall are scaled outwards around the tile centre
-// so they do not flicker on the wall surface.
-static const float WALL_FRAME_OUTWARD_SCALE = 1.01f;
-// The side frame starts just above the floor.
-static const float WALL_FRAME_BOTTOM = 0.04f;
-// Inset of the inner edge of the side frame: along the wall edge, above the
-// bottom and below the top border.
-static const float WALL_FRAME_INSET_ALONG = 0.06f;
-static const float WALL_FRAME_INSET_BOTTOM = 0.10f;
-static const float WALL_FRAME_INSET_TOP = 0.06f;
 // Lift of the borders above the top of the rendered wall.
 static const float WALL_BORDER_LIFT = 0.02f;
 
@@ -4791,20 +4781,6 @@ static bool getWallPreviewHeight(Ogre::SceneManager* sceneManager, Tile* tile, f
         return false;
     height = wall->getWorldBoundingBox(true).getMaximum().z + WALL_BORDER_LIFT;
     return true;
-}
-
-//! \brief Gets a point on the side frame of a wall edge, moved outwards around the tile centre.
-//! \param centreX X coordinate of the tile centre.
-//! \param centreY Y coordinate of the tile centre.
-//! \param start Start corner of the edge on the wall top.
-//! \param end End corner of the edge on the wall top.
-//! \param along Position on the edge, 0 at start and 1 at end.
-//! \param height Height of the point.
-static Ogre::Vector3 getWallFramePoint(float centreX, float centreY, const Ogre::Vector3& start,
-        const Ogre::Vector3& end, float along, float height)
-{
-    return Ogre::Vector3(centreX + WALL_FRAME_OUTWARD_SCALE * (start.x - centreX + along * (end.x - start.x)),
-        centreY + WALL_FRAME_OUTWARD_SCALE * (start.y - centreY + along * (end.y - start.y)), height);
 }
 
 // Lowest height of the preview borders: just above the floor.
@@ -4893,6 +4869,7 @@ static void drawTileRectangle(Ogre::ManualObject* tilePreview, Ogre::SceneManage
 //! \param colour Colour of the borders.
 //! \param construction Also draws the filled border of building floors.
 //! \param digging Also draws the filled borders of selected walls (digging selection).
+//!        A dig selection is flat: only the top face of a tile is framed, never a 3D block.
 //! \param singleRectangle Draws one outline around all given tiles instead of one frame per tile
 //!        (the rectangle of a drag selection).
 void RenderManager::rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour, bool construction, bool digging, bool singleRectangle)
@@ -4932,7 +4909,8 @@ void RenderManager::rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogr
             mTilePreview->colour(colour);
             mTilePreview->position(corners[(i+1)%4]);
             mTilePreview->colour(colour);
-            if(tile->isFullTile())
+            // A dig selection marks only the top face of a full tile: no bottom edge and no vertical edges.
+            if(tile->isFullTile() && !digging)
             {
                 const Ogre::Vector3 bottom(corners[i].x, corners[i].y, 0.04f);
                 const Ogre::Vector3 nextBottom(corners[(i+1)%4].x, corners[(i+1)%4].y, 0.04f);
@@ -4968,28 +4946,6 @@ void RenderManager::rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogr
             {
                 const int next = (i + 1) % 4;
                 addPreviewBorderBand(mTilePreview, outer[i], outer[next], inner[next], inner[i], colour);
-                if(!tile->isFullTile())
-                    continue;
-                // Offset side frames just outside the wall to avoid surface flicker.
-                const Ogre::Vector3 face[] = {
-                    getWallFramePoint(x, y, outer[i], outer[next], 0.0f, WALL_FRAME_BOTTOM),
-                    getWallFramePoint(x, y, outer[i], outer[next], 1.0f, WALL_FRAME_BOTTOM),
-                    getWallFramePoint(x, y, outer[i], outer[next], 1.0f, z),
-                    getWallFramePoint(x, y, outer[i], outer[next], 0.0f, z)};
-                const Ogre::Vector3 inset[] = {
-                    getWallFramePoint(x, y, outer[i], outer[next], WALL_FRAME_INSET_ALONG, WALL_FRAME_INSET_BOTTOM),
-                    getWallFramePoint(x, y, outer[i], outer[next], 1.0f - WALL_FRAME_INSET_ALONG, WALL_FRAME_INSET_BOTTOM),
-                    getWallFramePoint(x, y, outer[i], outer[next], 1.0f - WALL_FRAME_INSET_ALONG, z - WALL_FRAME_INSET_TOP),
-                    getWallFramePoint(x, y, outer[i], outer[next], WALL_FRAME_INSET_ALONG, z - WALL_FRAME_INSET_TOP)};
-                for(int edge = 0; edge < 4; ++edge)
-                {
-                    const int end = (edge + 1) % 4;
-                    for(const Ogre::Vector3& vertex : {face[edge], face[end], inset[end], face[edge], inset[end], inset[edge]})
-                    {
-                        mTilePreview->position(vertex);
-                        mTilePreview->colour(colour);
-                    }
-                }
             }
         }
         mTilePreview->end();

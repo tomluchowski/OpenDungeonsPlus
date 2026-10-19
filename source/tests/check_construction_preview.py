@@ -62,17 +62,19 @@ int main(){int checks=0,failures=0;auto check=[&](bool pass,const char* label){+
  render.rrDrawTilePreview({&wall},{.35f,.3f,1},false,true);
  std::vector<Ogre::ManualObject::Section>& digging=scene.object.sections;
  check(digging.size()==2,"digging adds filled frame bands");
- check(digging[1].points.size()==120,"digging outlines top and all four wall faces");
+ check(digging[1].points.size()==24,"digging frames only the top face of the wall, no side faces");
+check(digging[0].points.size()==8,"digging outline is four top edges, no bottom or vertical edges");
+for(const Ogre::Vector3& p:digging[0].points)check(std::abs(p.z-2.02f)<.00001f,"digging outline lies flat on the top face");
  for(const Ogre::Vector3& p:digging[1].points){
   check(std::abs(p.x-5)<=.5051f&&std::abs(p.y-6)<=.5051f,"dig frame stays on the selected wall surface");
-  check(p.z>=.0399f&&p.z<=2.0201f,"dig frame follows actual wall height");
+  check(std::abs(p.z-2.02f)<.00001f,"dig frame lies flat on the wall top");
  }
  float topArea=0;
  for(size_t i=0;i<digging[1].points.size();i+=3){const Ogre::Vector3& a=digging[1].points[i];const Ogre::Vector3& b=digging[1].points[i+1];const Ogre::Vector3& c=digging[1].points[i+2];
   if(a.z==2.02f&&b.z==a.z&&c.z==a.z)topArea+=((b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x))*.5f;}
  check(std::abs(topArea-(1-.88f*.88f))<.0001f,"digging top has the accepted construction border width");
  render.rrDrawTilePreview({&wall,&wall},{.35f,.3f,1},false,true);
- check(scene.object.sections[1].points.size()==240,"drag selection frames every selected wall");
+ check(scene.object.sections[1].points.size()==48,"drag selection frames the top of every selected wall");
  render.rrDrawTilePreview({&floor,&wall,&other},{.35f,.3f,1},true,false,true);
  check(scene.object.sections.size()==1,"drag outline is one rectangle");
  check(scene.object.sections[0].points.size()==8,"drag outline has four edges");
