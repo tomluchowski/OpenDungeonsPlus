@@ -53,6 +53,7 @@
 #include "creaturemood/CreatureMoodManager.h"
 #include "creaturemood/CreatureMoodOutOfWork.h"
 #include "creatureskill/CreatureSkill.h"
+#include "creatureskill/CreatureSkillMeleeFight.h"
 
 
 #include "entities/ChickenEntity.h"
@@ -1303,9 +1304,9 @@ void Creature::doUpkeep()
     }
 
     bool isWarmUp = false;
-    if(mAttackRecoveryTurns > 0)
+    if(mAttackRecoveryTurns > 0.0)
     {
-        --mAttackRecoveryTurns;
+        mAttackRecoveryTurns = std::max(0.0, mAttackRecoveryTurns - 1.0);
         mNeedFireRefresh = true;
     }
     // We use creature skills if we can
@@ -1317,9 +1318,9 @@ void Creature::doUpkeep()
             isWarmUp = true;
         }
 
-        if(skillData.mCooldown > 0)
+        if(skillData.mCooldown > 0.0)
         {
-            --skillData.mCooldown;
+            skillData.mCooldown = std::max(0.0, skillData.mCooldown - 1.0);
             continue;
         }
 
@@ -1725,7 +1726,7 @@ bool Creature::searchBestTargetInList(const std::vector<GameEntity*>& listObject
         double skillRangeMax = 0.0;
         for(CreatureSkillData& skillDataTmp : mSkillData)
         {
-            if(skillDataTmp.mCooldown > 0)
+            if(skillDataTmp.mCooldown > 0.0)
                 continue;
 
             if(!skillDataTmp.mSkill->canBeUsedBy(this))
@@ -2111,10 +2112,17 @@ void Creature::importProgressFromPacket(ODPacket& is)
     mHasProgressInformation = false;
     if(!ODClient::getSingleton().supportsCreatureProgress())
         return;
-    double experience;
-    uint32_t remaining, duration, serial;
-    OD_ASSERT_TRUE(is >> experience >> remaining >> duration >> serial);
-    if(!std::isfinite(experience) || experience < 0.0 || experience > 1.0 || remaining > duration)
+    double experience = 0.0;
+    double remaining = 0.0;
+    double duration = 0.0;
+    uint32_t serial = 0;
+    if(!(is >> experience >> remaining >> duration >> serial))
+    {
+        OD_LOG_ERR("Incomplete creature progress for " + getName());
+        return;
+    }
+    if(!std::isfinite(experience) || experience < 0.0 || experience > 1.0 ||
+       !std::isfinite(remaining) || !std::isfinite(duration) || remaining < 0.0 || remaining > duration)
     {
         OD_LOG_ERR("Invalid creature progress for " + getName());
         return;
@@ -2665,6 +2673,47 @@ void Creature::receiveExp(double experience)
     mNeedFireRefresh = true;
 }
 
+namespace
+{
+//! \brief Tells whether the cooldown of the skill shrinks with the creature level: the melee attack and the
+//! ranged attacks (missile, guided bolt, grenade). Support skills and other spells keep their cooldown.
+bool isLevelScaledAttack(const CreatureSkill& skill)
+{
+    if(dynamic_cast<const CreatureSkillMeleeFight*>(&skill) != nullptr)
+        return true;
+
+    const std::string& name = skill.getSkillName();
+    return (name == "MissileLaunch") || (name == "GuidedBolt") || (name == "Grenade");
+}
+}
+
+//! \brief Gets the cooldown in turns applied after the skill was used (weapon value for melee, level scaled for attacks).
+double Creature::getAppliedCooldownNbTurns(const CreatureSkill& skill) const
+{
+    uint32_t baseCooldown = skill.getCooldownNbTurns();
+    if(dynamic_cast<const CreatureSkillMeleeFight*>(&skill) != nullptr)
+    {
+        // The melee cooldown comes only from the weapons (shields have none); the larger value counts
+        const Weapon* weapons[2] = {mWeaponL, mWeaponR};
+        uint32_t weaponCooldown = 0;
+        for(const Weapon* weapon : weapons)
+        {
+            if(weapon == nullptr)
+                continue;
+
+            weaponCooldown = std::max(weaponCooldown, weapon->getCooldownNbTurns());
+        }
+
+        if(weaponCooldown != 0)
+            baseCooldown = weaponCooldown;
+    }
+
+    if(!isLevelScaledAttack(skill))
+        return baseCooldown;
+
+    return CreatureProgression::cooldownAtLevel(baseCooldown, getLevel());
+}
+
 void Creature::useAttack(CreatureSkillData& skillData, GameEntity& entityAttack,
         Tile& tileAttack, bool ko, bool notifyPlayerIfHit)
 {
@@ -2689,10 +2738,10 @@ void Creature::useAttack(CreatureSkillData& skillData, GameEntity& entityAttack,
     skillData.mSkill->tryUseFight(*getGameMap(), this, range,
         &entityAttack, &tileAttack, ko, notifyPlayerIfHit);
     skillData.mWarmup = skillData.mSkill->getWarmupNbTurns();
-    skillData.mCooldown = skillData.mSkill->getCooldownNbTurns();
+    skillData.mCooldown = getAppliedCooldownNbTurns(*skillData.mSkill);
 
     // Both timers count down together; either can postpone the next attack.
-    mAttackRecoveryDuration = std::max(skillData.mWarmup, skillData.mCooldown);
+    mAttackRecoveryDuration = std::max(static_cast<double>(skillData.mWarmup), skillData.mCooldown);
     mAttackRecoveryTurns = mAttackRecoveryDuration;
     ++mAttackRecoverySerial;
     mNeedFireRefresh = true;
@@ -3493,7 +3542,7 @@ void Creature::setupDefinition(GameMap& dtc, const CreatureDefinition& defaultWo
     {
         for(const CreatureSkill* skill : mDefinition->getCreatureSkills())
         {
-            CreatureSkillData skillData(skill, skill->getCooldownNbTurns(), 0);
+            CreatureSkillData skillData(skill, getAppliedCooldownNbTurns(*skill), 0);
             mSkillData.push_back(skillData);
         }
     }
@@ -3700,8 +3749,8 @@ DefenceChance::Outcome Creature::rollMeleeDefence() const
         return DefenceChance::none;
 
     // A weapon that strikes parries, a shield makes the parry better; a shield alone does not parry
-    bool hasWeapon = false;
     bool hasShield = false;
+    const Weapon* parryWeapons[2] = {nullptr, nullptr};
     const Weapon* weapons[2] = {getWeaponL(), getWeaponR()};
     for(uint32_t i = 0; i < 2; ++i)
     {
@@ -3713,14 +3762,25 @@ DefenceChance::Outcome Creature::rollMeleeDefence() const
         if(DefenceChance::isShieldMesh(mesh))
             hasShield = true;
         else if(DefenceChance::isParryWeaponMesh(mesh))
-            hasWeapon = true;
+            parryWeapons[i] = weapons[i];
     }
 
     double dodge = DefenceChance::dodgeChance(getLevel(), config.getDodgeBase(), config.getDodgePerLevel(),
         config.getDodgeMax());
-    double parry = DefenceChance::parryChance(getLevel(), hasWeapon, hasShield, config.getParryBase(),
-        config.getParryPerLevel(), config.getParryMax(), config.getParryShieldBase(),
-        config.getParryShieldPerLevel(), config.getParryShieldMax());
+
+    // The parry values belong to the weapon; with two weapons the larger resulting chance counts. The shield
+    // values stay global and replace the weapon values when a shield is carried as well.
+    double parry = 0.0;
+    for(uint32_t i = 0; i < 2; ++i)
+    {
+        if(parryWeapons[i] == nullptr)
+            continue;
+
+        double weaponParry = DefenceChance::parryChance(getLevel(), true, hasShield, parryWeapons[i]->getParryBase(),
+            parryWeapons[i]->getParryPerLevel(), parryWeapons[i]->getParryMax(), config.getParryShieldBase(),
+            config.getParryShieldPerLevel(), config.getParryShieldMax());
+        parry = std::max(parry, weaponParry);
+    }
 
     // Dodging is rolled first, parrying only if the creature did not dodge. The server draws the dice.
     double dodgeRoll = Random::Double(0.0, 100.0);

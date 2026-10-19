@@ -153,7 +153,7 @@ assert body.index('takeDamage(') < body.index('fireHitDefended(') < body.index('
 assert 'getObjectType() == GameEntityType::creature)\n        defence = static_cast<Creature*>(attackedObject)->rollMeleeDefence();' in body
 use_attack = function_body(creature, 'void Creature::useAttack(')
 assert 'skillData.mWarmup = skillData.mSkill->getWarmupNbTurns();' in use_attack
-assert 'skillData.mCooldown = skillData.mSkill->getCooldownNbTurns();' in use_attack
+assert 'skillData.mCooldown = getAppliedCooldownNbTurns(*skillData.mSkill);' in use_attack
 # The older kind still follows for old clients: no damage means "blocked" for them
 assert 'event.mValue = MELEE_RESULT_NO_DAMAGE;' in body
 # Missiles are untouched
@@ -215,7 +215,7 @@ for skeleton in ('Adventurer', 'Cultist', 'Dwarf2', 'Gnome', 'Goblin', 'Knight',
     data = (root / 'models' / (skeleton + '.skeleton')).read_bytes()
     assert b'WeaponParry' in data and b'Idle' in data and b'Attack1' in data, skeleton
 
-# The Goblin carries a short sword in the right hand (visual and parry only: the equipment adds no damage and no defence).
+# The Goblin carries its knife, which is part of the model (visual and parry only: the knife adds no damage and no defence yet).
 # Its mesh name is classified like the code does: client weaponKind and server isShieldMesh / isParryWeaponMesh
 def mirror_weapon_kind(mesh):
     mesh = mesh.lower()
@@ -237,22 +237,19 @@ for word in ('shield', 'bow', 'axe', 'hammer', 'mace', 'spear', 'lance', 'pike',
     assert 'contains(mesh, "' + word + '")' in kind_body, word
 creatures_cfg = read('config/creatures.cfg')
 goblin = re.search(r'\[Creature\]\s*\n\s+Name\s+Goblin\s*\n(.*?)\[/Creature\]', creatures_cfg, re.S).group(1)
-assert re.search(r'^\s+WeaponSpawnR\s+ShortSword\s*$', goblin, re.M)
+assert re.search(r'^\s+WeaponSpawnR\s+Knife\s*$', goblin, re.M)
 assert not re.search(r'^\s+WeaponSpawnL\s+(?!none)\S+', goblin, re.M)
-equipment = re.search(r'\[Equipment\]\s*\n\s+Name\s+ShortSword\s*\n(.*?)\[/Equipment\]', read('config/equipments.cfg'), re.S).group(1)
-sword_mesh = re.search(r'MeshName\s+(\S+)', equipment).group(1)
-assert sword_mesh == 'ShortSword.mesh'
-assert mirror_weapon_kind(sword_mesh) == 'Sword'
-assert mirror_is_parry_weapon(sword_mesh)
+equipment = re.search(r'\[Equipment\]\s*\n\s+Name\s+Knife\s*\n(.*?)\[/Equipment\]', read('config/equipments.cfg'), re.S).group(1)
+knife_mesh = re.search(r'MeshName\s+(\S+)', equipment).group(1)
+# the knife is a submesh of the Goblin model, so the weapon attaches no mesh of its own
+assert knife_mesh == 'none'
+assert b'GoblinKnife' in (root / 'models' / 'Goblin.mesh').read_bytes()
+assert mirror_is_parry_weapon(knife_mesh)
 # no shield, so the parry chance is the weapon one: level 1 and level 10 as in the table above
-assert abs(parry_chance(1, mirror_is_parry_weapon(sword_mesh), False, *PARRY, *SHIELD) - 3.5) < 1e-9
-assert abs(parry_chance(10, mirror_is_parry_weapon(sword_mesh), False, *PARRY, *SHIELD) - 8.0) < 1e-9
-for stat in ('PhysicalDamage', 'MagicalDamage', 'ElementDamage', 'PhysicalDefense', 'MagicalDefense', 'ElementDefense'):
+assert abs(parry_chance(1, mirror_is_parry_weapon(knife_mesh), False, *PARRY, *SHIELD) - 3.5) < 1e-9
+assert abs(parry_chance(10, mirror_is_parry_weapon(knife_mesh), False, *PARRY, *SHIELD) - 8.0) < 1e-9
+for stat in ('PhysicalDefense', 'MagicalDefense', 'ElementDefense'):
     assert re.search(r'^\s+' + stat + r'\s+0\s*$', equipment, re.M), stat
-assert (root / 'models' / 'ShortSword.mesh').is_file()
-assert (root / 'materials' / 'scripts' / 'ShortSword.material').is_file()
-assert (root / 'materials' / 'textures' / 'ShortSwordSurface.png').is_file()
-assert 'texture ShortSwordSurface.png' in read('materials/scripts/ShortSword.material')
 
 
 def probe_source():

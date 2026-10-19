@@ -76,10 +76,15 @@ enum class CreatureSound
     Dig
 };
 
+//! \brief A skill of a creature together with its running cooldown and warmup counters.
 class CreatureSkillData
 {
 public:
-    CreatureSkillData(const CreatureSkill* skill, uint32_t cooldown, uint32_t warmup) :
+    //! \brief Creates the counters for the given skill.
+    //! \param skill The skill (not owned).
+    //! \param cooldown Turns left until the skill can be used again (may be a fraction of a turn).
+    //! \param warmup Turns left of the warmup before the skill takes effect.
+    CreatureSkillData(const CreatureSkill* skill, double cooldown, uint32_t warmup) :
         mSkill(skill),
         mCooldown(cooldown),
         mWarmup(warmup)
@@ -87,7 +92,8 @@ public:
     }
 
     const CreatureSkill* mSkill;
-    uint32_t mCooldown;
+    //! \brief Turns left until the skill can be used again; fractions of a turn are possible (level scaled cooldown)
+    double mCooldown;
     uint32_t mWarmup;
 };
 
@@ -201,12 +207,11 @@ public:
 
     //! \brief Experience gathered towards the next level, between 0 and 1 (1 at the maximum level)
     double getExperienceProgress() const;
-    //! \brief Turns left until the creature can attack again
-    uint32_t getAttackRecoveryTurns() const { return mAttackRecoveryTurns; }
-    //! \brief Turns the recovery after the last attack lasts in total
-    uint32_t getAttackRecoveryDuration() const { return mAttackRecoveryDuration; }
-    //! \brief Counter increased at every attack, so that a client can tell two attacks with the same
-    //! remaining turns apart
+    //! \brief Turns left until the creature can attack again (may be a fraction of a turn)
+    double getAttackRecoveryTurns() const { return mAttackRecoveryTurns; }
+    //! \brief Turns the recovery after the last attack lasts in total (may be a fraction of a turn)
+    double getAttackRecoveryDuration() const { return mAttackRecoveryDuration; }
+    //! rief Counter increased for each attack or job-pause restart, distinguishing equal remaining values
     uint32_t getAttackRecoverySerial() const { return mAttackRecoverySerial; }
     //! \brief Whether experience and attack recovery were received from the server. Only a client sets it,
     //! and only if the server sent them.
@@ -381,6 +386,15 @@ public:
     //! \brief Conform: AttackableObject - Adds experience to this creature.
     void receiveExp(double experience);
 
+    //! \brief Gets the number of cooldown turns that really applies after the given skill was used.
+    //! For the melee skill, a creature carrying weapons with a cooldown uses the larger weapon cooldown
+    //! (weapons without one, like shields, are ignored). Without such a weapon, and for every other skill,
+    //! it is the cooldown from the creature definition. The melee and ranged attacks then get shorter with the
+    //! creature level (0.75 percent per level above 1, not rounded, never below 1 turn).
+    //! \param skill The skill that was used.
+    //! \return The cooldown in turns (may be a fraction) that is applied and shown on the recovery clock.
+    double getAppliedCooldownNbTurns(const CreatureSkill& skill) const;
+
     //! \brief performs the given attack on the given target
     void useAttack(CreatureSkillData& skillData, GameEntity& entityAttack,
         Tile& tileAttack, bool ko, bool notifyPlayerIfHit);
@@ -506,6 +520,8 @@ public:
     //! \brief Server only: rolls whether this creature dodges or parries a melee blow before its damage is
     //! calculated. Only a living, not knocked out creature on the map that nobody holds or drags, and that no
     //! keeper possesses, can defend itself. Gives DefenceChance::none if MeleeDodgeParry is off.
+    //! The parry chance comes from the carried weapon (larger chance with two weapons), or from the global
+    //! shield values when a shield is carried as well.
     DefenceChance::Outcome rollMeleeDefence() const;
     //! \brief The creature arrived through a portal: tells the keeper what mood it would have (cosmetic only)
     void fireArrivalEvent();
@@ -1036,8 +1052,10 @@ private:
     //! \brief Skills the creature can use
     std::vector<CreatureSkillData> mSkillData;
 
-    uint32_t mAttackRecoveryTurns = 0;
-    uint32_t mAttackRecoveryDuration = 0;
+    //! \brief Turns left until the creature can attack again (may be a fraction of a turn)
+    double mAttackRecoveryTurns = 0.0;
+    //! \brief Turns the recovery after the last attack lasts in total (longest of warmup and cooldown, may be a fraction)
+    double mAttackRecoveryDuration = 0.0;
     uint32_t mAttackRecoverySerial = 0;
     double mExperienceProgress = 0.0;
     bool mHasProgressInformation = false;
@@ -1095,7 +1113,8 @@ private:
     void importActivityFromPacket(ODPacket& is);
     //! \brief Writes the experience progress and the attack recovery of the creature to the packet
     void exportProgressToPacket(ODPacket& os, const Seat* seat) const;
-    //! \brief Reads the experience progress and the attack recovery written by exportProgressToPacket
+    //! \brief Client only: reads the experience progress and the attack recovery (remaining and total turns,
+    //! both may be fractions of a turn) sent by the server. Invalid values are logged and ignored.
     void importProgressFromPacket(ODPacket& is);
 
     void computeCreatureOverlayMoodValue();

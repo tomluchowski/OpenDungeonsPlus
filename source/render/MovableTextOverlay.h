@@ -52,6 +52,8 @@ private:
     void centerCaption();
     //! \brief Sets the factor applied to the character height and to the size of the child overlay
     void setScale(Ogre::Real scale);
+    //! \brief Applies mCharHeight and mScale to the caption and its outline
+    void applyCharHeight();
 
     void displayOverlay(Ogre::Real time);
 
@@ -70,6 +72,8 @@ private:
 
     Ogre::OverlayContainer* mOverlayContainer;
     Ogre::OverlayElement* mOverlayText;
+    //! \brief Copies of the caption drawn behind it, offset by a fraction of a pixel in four directions.
+    //! Empty until setCaptionOutline() is called.
     std::vector<Ogre::OverlayElement*> mCaptionOutline;
 
     //! the Material used in the overlay
@@ -92,6 +96,7 @@ private:
 
     //! Height a char has for the wanted font
     Ogre::Real mCharHeight;
+    //! \brief Factor applied to the character height and the size, depending on the camera distance
     Ogre::Real mScale = 1.0f;
 
     Ogre::Real mTimeToDisplay;
@@ -137,7 +142,7 @@ public:
     void setCaptionOutline(uint32_t childOverlayId, const Ogre::ColourValue& colour);
 
     void setMaterialName(uint32_t childOverlayId, const Ogre::String& materialName);
-    //! \brief Shows one cell of a texture atlas laid out in a grid with the given number of columns.
+    //! \brief Shows one cell of the material texture, which is a square grid of columns x columns cells.
     //! The frame number enumerates the cells row by row from the top left to the bottom right square.
     //! The cell is shown by mapping the overlay to its u,v texture coordinates in [0..1]x[0..1].
     //! Ignored if the frame is outside the grid.

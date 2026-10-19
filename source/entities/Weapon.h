@@ -18,6 +18,7 @@
 #ifndef WEAPON_H
 #define WEAPON_H
 
+#include <cstdint>
 #include <string>
 #include <iosfwd>
 
@@ -28,6 +29,8 @@ class WeaponDefinition;
 class Weapon
 {
 public:
+    //! \brief Creates an empty weapon with the given name: no damage, no defense, no cooldown and no own
+    //! parry values (the global ones apply).
     Weapon(const std::string& name) :
        mName(name),
        mPhysicalDamage(0.0),
@@ -35,16 +38,26 @@ public:
        mElementDamage(0.0),
        mPhysicalDefense(0.0),
        mMagicalDefense(0.0),
-       mElementDefense(0.0)
+       mElementDefense(0.0),
+       mCooldownNbTurns(0),
+       mParryBase(-1.0),
+       mParryPerLevel(-1.0),
+       mParryMax(-1.0)
     {}
 
+    //! \brief Creates an empty unnamed weapon (filled from a packet): no damage, no defense, no cooldown and
+    //! no own parry values.
     Weapon() :
        mPhysicalDamage(0.0),
        mMagicalDamage(0.0),
        mElementDamage(0.0),
        mPhysicalDefense(0.0),
        mMagicalDefense(0.0),
-       mElementDefense(0.0)
+       mElementDefense(0.0),
+       mCooldownNbTurns(0),
+       mParryBase(-1.0),
+       mParryPerLevel(-1.0),
+       mParryMax(-1.0)
     {}
 
     virtual ~Weapon()
@@ -54,9 +67,13 @@ public:
     //! \brief Loads a definition from the equipment file sub [Equipment][/Equipment] part
     //! \returns A Weapon if valid, nullptr otherwise.
     static Weapon* load(std::stringstream& defFile);
+    //! \brief Reads the stats of one [Equipment] block into the given weapon, including the optional
+    //! CooldownNbTurns field (missing = no weapon cooldown) and the optional ParryBase, ParryPerLevel and ParryMax fields.
+    //! \returns true if the block is valid, false otherwise.
     static bool update(Weapon* weapon, std::stringstream& defFile);
     //! \brief Writes the differences between def1 and def2 in the given file. Note that def1 can be null. In
-    //! this case, every parameters in def2 will be written. def2 cannot be null.
+    //! this case, every parameters in def2 will be written (CooldownNbTurns only if it is not 0, the parry values only if they are set).
+    //! Otherwise CooldownNbTurns and the parry values are written only when they differ from def1. def2 cannot be null.
     static void writeWeaponDiff(const Weapon* def1, const Weapon* def2, std::ofstream& file);
 
     inline const std::string getOgreNamePrefix() const
@@ -86,7 +103,28 @@ public:
     inline double getElementDefense() const
     { return mElementDefense; }
 
+    //! \brief Number of turns the melee cooldown lasts at level 1 when a creature carries this weapon; the
+    //! creature level then shortens it (see Creature::getAppliedCooldownNbTurns).
+    //! 0 means the weapon defines no cooldown (shields and other non-weapons), so it is ignored when the
+    //! cooldown is chosen. When a creature carries two weapons, the larger value is used.
+    inline uint32_t getCooldownNbTurns() const
+    { return mCooldownNbTurns; }
+
+    //! \brief Parry chance in percent of a creature that carries this weapon (without shield), base value.
+    //! A weapon without its own ParryBase in the equipment file uses the global ParryBase.
+    double getParryBase() const;
+
+    //! \brief Parry chance in percent that every creature level adds for this weapon.
+    //! A weapon without its own ParryPerLevel uses the global ParryPerLevel.
+    double getParryPerLevel() const;
+
+    //! \brief Highest parry chance in percent for this weapon.
+    //! A weapon without its own ParryMax uses the global ParryMax.
+    double getParryMax() const;
+
+    //! \brief Writes the weapon to a packet, including the cooldown and the parry values.
     friend ODPacket& operator <<(ODPacket& os, const Weapon *weapon);
+    //! \brief Reads the weapon from a packet in the order written by operator <<.
     friend ODPacket& operator >>(ODPacket& is, Weapon *weapon);
 
 private:
@@ -100,6 +138,13 @@ private:
     double          mPhysicalDefense;
     double          mMagicalDefense;
     double          mElementDefense;
+    //! \brief Melee cooldown in turns when carried (optional CooldownNbTurns field, 0 = none)
+    uint32_t        mCooldownNbTurns;
+    //! \brief Parry values in percent of the optional ParryBase / ParryPerLevel / ParryMax fields (negative = not set,
+    //! the global values apply)
+    double          mParryBase;
+    double          mParryPerLevel;
+    double          mParryMax;
 };
 
 #endif // WEAPON_H

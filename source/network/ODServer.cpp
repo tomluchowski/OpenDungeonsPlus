@@ -1038,6 +1038,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             if(!packetReceived.endOfPacket())
                 OD_ASSERT_TRUE(packetReceived >> creatureProgress);
             clientSocket->setSupportsCreatureProgress(creatureProgress);
+
             bool cosmeticEvents = false;
             if(!packetReceived.endOfPacket())
                 OD_ASSERT_TRUE(packetReceived >> cosmeticEvents);

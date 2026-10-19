@@ -33,10 +33,11 @@ struct Skill {
     bool tryUseFight(GameMap&,Creature*,float d,GameEntity*,Tile*,bool k,bool n){++calls;distance=d;ko=k;notify=n;return true;}
     int getWarmupNbTurns()const{return 2;}int getCooldownNbTurns()const{return 3;}
 };
-struct CreatureSkillData {Skill* mSkill;int mWarmup=0,mCooldown=0;};
+struct CreatureSkillData {Skill* mSkill;int mWarmup=0;double mCooldown=0;};
 struct Creature {
     Ogre::Vector3 position=Ogre::Vector3::ZERO,direction;Tile tile{0,0};GameMap map;
     std::string animation;int sounds=0,turns=-1;double tired=0,xp=0;
+    double getAppliedCooldownNbTurns(const Skill& s)const{return s.getCooldownNbTurns();}
     const Ogre::Vector3& getPosition()const{return position;}
     Tile* getPositionTile(){return &tile;}GameMap* getGameMap(){return &map;}
     void setAnimationState(const std::string& a,bool,const Ogre::Vector3& d,bool){animation=a;direction=d;}

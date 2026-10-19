@@ -183,6 +183,8 @@ public:
     //! one of a bow in the left hand) is mounted on the left hand bone with the offset and roll of the bow grip.
     static bool getWeaponMount(const Ogre::Skeleton* skeleton, const std::string& hand,
         const std::string& meshName, WeaponMount& mount);
+    //! \brief Attaches the weapon model to the weapon bone of the creature for the given hand ("L" or "R").
+    //! A weapon with the mesh name "none" is already drawn by the creature model and attaches nothing.
     void rrCreateWeapon(Creature* curCreature, const Weapon* curWeapon, const std::string& hand);
     void rrDestroyWeapon(Creature* curCreature, const Weapon* curWeapon, const std::string& hand);
     //! \brief A worker whose model has no pick of its own and no weapon in the right hand carries a pickaxe model
