@@ -26,6 +26,7 @@
 #include "entities/Weapon.h"
 #include "game/Player.h"
 #include "game/CreaturePanelData.h"
+#include "game/TrapProductionData.h"
 #include "game/Skill.h"
 #include "game/SkillManager.h"
 #include "game/SkillType.h"
@@ -41,6 +42,7 @@
 #include "rooms/Room.h"
 #include "rooms/RoomManager.h"
 #include "rooms/RoomPortalWave.h"
+#include "rooms/RoomWorkshop.h"
 #include "rooms/RoomType.h"
 #include "spells/SpellManager.h"
 #include "spells/SpellType.h"
@@ -952,6 +954,11 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 OD_ASSERT_TRUE(packetReceived >> creaturePanel);
             clientSocket->setSupportsCreaturePanel(creaturePanel);
 
+            bool creatureProgress = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureProgress);
+            clientSocket->setSupportsCreatureProgress(creatureProgress);
+
             bool cosmeticEvents = false;
             if(!packetReceived.endOfPacket())
                 OD_ASSERT_TRUE(packetReceived >> cosmeticEvents);
@@ -1010,6 +1017,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             packetSend << clientSocket->supportsCreatureMood();
             packetSend << clientSocket->supportsCreatureActivity();
             packetSend << clientSocket->supportsCreaturePanel();
+            packetSend << clientSocket->supportsCreatureProgress();
             packetSend << clientSocket->supportsCosmeticEvents();
             clientSocket->send(packetSend);
             mSeatsConfigured = true;
@@ -1309,6 +1317,7 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
                 packetSend << client->supportsCreatureMood();
                 packetSend << client->supportsCreatureActivity();
                 packetSend << client->supportsCreaturePanel();
+                packetSend << client->supportsCreatureProgress();
                 packetSend << client->supportsCosmeticEvents();
                 client->send(packetSend);
             }
@@ -2653,16 +2662,60 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             Player* player = clientSocket->getPlayer();
             uint32_t nbItems;
             OD_ASSERT_TRUE(packetReceived >> nbItems);
+            if(nbItems >= static_cast<uint32_t>(SkillType::countSkill))
+                return false;
             std::vector<SkillType> skills;
+            bool stale = false;
             while(nbItems > 0)
             {
                 nbItems--;
                 SkillType skill;
-                OD_ASSERT_TRUE(packetReceived >> skill);
+                uint32_t level;
+                if(!(packetReceived >> skill >> level) || skill <= SkillType::nullSkillType ||
+                   skill >= SkillType::countSkill || level < 1 || level > 3)
+                    return false;
+                stale = stale || level != player->getSeat()->getSkillLevel(skill) + 1;
                 skills.push_back(skill);
             }
 
-            player->getSeat()->setSkillTree(skills);
+            player->getSeat()->setSkillTree(stale ? player->getSeat()->getSkillPending() : skills);
+            break;
+        }
+
+        case ClientNotificationType::askTrapProductionQueue:
+        case ClientNotificationType::askMoveTrapProductionOrder:
+        {
+            Player* player = clientSocket->getPlayer();
+            if(player == nullptr || player->getSeat() == nullptr || gameMap->isInEditorMode())
+                break;
+            Seat* seat = player->getSeat();
+            if(clientCommand == ClientNotificationType::askMoveTrapProductionOrder)
+            {
+                std::string name;
+                bool earlier;
+                if(!(packetReceived >> name >> earlier))
+                    return false;
+                gameMap->moveTrapProductionOrder(seat, name, earlier);
+            }
+            TrapProductionData data;
+            for(Trap* trap : gameMap->getTraps())
+            {
+                if(trap->getSeat() != seat || trap->getNbNeededCraftedTrap() <= 0)
+                    continue;
+                data.orders.push_back({trap->getName(), trap->getType(), trap->getNbNeededCraftedTrap()});
+            }
+            for(Room* room : gameMap->getRoomsByTypeAndSeat(RoomType::workshop, seat))
+            {
+                RoomWorkshop* workshop = static_cast<RoomWorkshop*>(room);
+                const TrapType trapType = workshop->getCurrentProductionType();
+                const int32_t required = trapType == TrapType::nullTrapType ? 0 :
+                    TrapManager::getNeededWorkshopPointsPerTrap(trapType);
+                data.workshops.push_back({workshop->getName(), trapType,
+                    workshop->getProductionPoints(), required});
+            }
+            ServerNotification* reply = new ServerNotification(ServerNotificationType::trapProductionQueue, player);
+            exportTrapProductionData(reply->mPacket, data);
+            queueServerNotification(reply);
             break;
         }
 
@@ -2834,6 +2887,12 @@ bool ODServer::supportsCreatureActivity(Player* player)
 {
     ODSocketClient* client = getClientFromPlayer(player);
     return client != nullptr && client->supportsCreatureActivity();
+}
+
+bool ODServer::supportsCreatureProgress(Player* player)
+{
+    ODSocketClient* client = getClientFromPlayer(player);
+    return client != nullptr && client->supportsCreatureProgress();
 }
 
 bool ODServer::supportsCosmeticEvents(Player* player)

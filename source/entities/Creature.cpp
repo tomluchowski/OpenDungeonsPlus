@@ -16,6 +16,7 @@
  */
 
 #include "entities/Creature.h"
+#include "entities/CreatureProgression.h"
 
 #include "creatureaction/CreatureAction.h"
 #include "creatureaction/CreatureActionClaimGroundTile.h"
@@ -66,6 +67,7 @@
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "gamemap/Pathfinding.h"
+#include "gamemap/RoomObjectNavigation.h"
 #include "giftboxes/GiftBoxSkill.h"
 
 #include "modes/GameEditorModeConsole.h"
@@ -546,16 +548,16 @@ void Creature::buildStats()
     if (multiplier <= 0.0)
         return;
 
-    mMaxHP += mDefinition->getHpPerLevel() * multiplier;
+    mMaxHP = CreatureProgression::stat(mMaxHP, mDefinition->getHpPerLevel(), mLevel);
     mDigRate += mDefinition->getDigRatePerLevel() * multiplier;
     mClaimRate += mDefinition->getClaimRatePerLevel() * multiplier;
     mGroundSpeed += mDefinition->getGroundSpeedPerLevel() * multiplier;
     mWaterSpeed += mDefinition->getWaterSpeedPerLevel() * multiplier;
     mLavaSpeed += mDefinition->getLavaSpeedPerLevel() * multiplier;
 
-    mPhysicalDefense += mDefinition->getPhysicalDefPerLevel() * multiplier;
-    mMagicalDefense += mDefinition->getMagicalDefPerLevel() * multiplier;
-    mElementDefense += mDefinition->getElementDefPerLevel() * multiplier;
+    mPhysicalDefense = CreatureProgression::stat(mPhysicalDefense, mDefinition->getPhysicalDefPerLevel(), mLevel);
+    mMagicalDefense = CreatureProgression::stat(mMagicalDefense, mDefinition->getMagicalDefPerLevel(), mLevel);
+    mElementDefense = CreatureProgression::stat(mElementDefense, mDefinition->getElementDefPerLevel(), mLevel);
 }
 
 Creature* Creature::getCreatureFromStream(GameMap* gameMap, std::istream& is)
@@ -628,6 +630,7 @@ void Creature::exportToPacket(ODPacket& os, const Seat* seat) const
 
     exportMoodToPacket(os, seat);
     exportActivityToPacket(os, seat);
+    exportProgressToPacket(os, seat);
 }
 
 void Creature::importFromPacket(ODPacket& is)
@@ -682,6 +685,7 @@ void Creature::importFromPacket(ODPacket& is)
 
     importMoodFromPacket(is);
     importActivityFromPacket(is);
+    importProgressFromPacket(is);
     setupDefinition(*getGameMap(), *ConfigManager::getSingleton().getCreatureDefinitionDefaultWorker());
 }
 
@@ -801,10 +805,13 @@ void Creature::computeVisibleTiles()
 void Creature::setLevel(unsigned int level)
 {
     // Reset XP once the level has been acquired.
-    mLevel = std::min(MAX_LEVEL, level);
+    mLevel = std::max(1u, std::min(MAX_LEVEL, level));
     mExp = 0.0;
 
+    const double previousMaxHP = mMaxHP;
     buildStats();
+    if(mHp > 0.0 && previousMaxHP > 0.0)
+        mHp = std::min(mMaxHP, mHp * mMaxHP / previousMaxHP);
 
     mNeedFireRefresh = true;
 }
@@ -1114,6 +1121,11 @@ void Creature::doUpkeep()
     ++mNbTurnsWithoutBattle;
 
     bool isWarmUp = false;
+    if(mAttackRecoveryTurns > 0)
+    {
+        --mAttackRecoveryTurns;
+        mNeedFireRefresh = true;
+    }
     // We use creature skills if we can
     for(CreatureSkillData& skillData : mSkillData)
     {
@@ -1419,7 +1431,8 @@ bool Creature::handleIdleAction()
     if(setDestination(tileDest))
         return false;
 
-    return true;
+    // Retry failed wandering next turn, not repeatedly in this upkeep.
+    return false;
 }
 
 bool Creature::searchBestTargetInList(const std::vector<GameEntity*>& listObjects, const std::vector<Tile*>& tilesFilter, GameEntity*& attackedEntity,
@@ -1715,23 +1728,22 @@ double Creature::getElementDefense() const
 
 void Creature::checkLevelUp()
 {
-    if (getLevel() >= MAX_LEVEL)
-        return;
-
-    // Check the returned value.
-    double newXP = mDefinition->getXPNeededWhenLevel(getLevel());
-
-    // An error occurred
-    if (newXP <= 0.0)
+    while(getLevel() < MAX_LEVEL)
     {
-        OD_LOG_ERR("creature=" + getName() + ", newXP=" + Helper::toString(newXP));
-        return;
+        const double newXP = mDefinition->getXPNeededWhenLevel(getLevel());
+        if(!std::isfinite(newXP) || newXP <= 0.0)
+        {
+            OD_LOG_ERR("creature=" + getName() + ", newXP=" + Helper::toString(newXP));
+            return;
+        }
+        if(mExp < newXP)
+            return;
+
+        const double remainingXP = mExp - newXP;
+        setLevel(mLevel + 1);
+        mExp = remainingXP;
     }
-
-    if (mExp < newXP)
-        return;
-
-    setLevel(mLevel + 1);
+    mExp = 0.0;
 }
 
 void Creature::exportToPacketForUpdate(ODPacket& os, Seat* seat) 
@@ -1768,6 +1780,7 @@ void Creature::exportToPacketForUpdate(ODPacket& os, Seat* seat)
     os << seatPrisonId;
     exportMoodToPacket(os, seat);
     exportActivityToPacket(os, seat);
+    exportProgressToPacket(os, seat);
 }
 
 void Creature::updateFromPacket(ODPacket& is)
@@ -1821,9 +1834,54 @@ void Creature::updateFromPacket(ODPacket& is)
 
     importMoodFromPacket(is);
     importActivityFromPacket(is);
+    importProgressFromPacket(is);
     // Level up and payday are shown as cosmetic reactions of the creature
     if(CreatureReactions::getSingletonPtr() != nullptr)
         CreatureReactions::getSingleton().noteCreatureUpdate(this, oldLevel, oldMoodValue, oldHealthValue, oldSeat, oldSeatPrison);
+}
+
+double Creature::getExperienceProgress() const
+{
+    if(!getIsOnServerMap())
+        return mExperienceProgress;
+    if(mLevel >= MAX_LEVEL)
+        return 1.0;
+    const double needed = mDefinition->getXPNeededWhenLevel(mLevel);
+    return needed > 0.0 ? std::max(0.0, std::min(1.0, mExp / needed)) : 0.0;
+}
+
+void Creature::exportProgressToPacket(ODPacket& os, const Seat* seat) const
+{
+    if(!ODServer::getSingleton().supportsCreatureProgress(seat->getPlayer()))
+        return;
+    os << getExperienceProgress() << mAttackRecoveryTurns << mAttackRecoveryDuration
+       << mAttackRecoverySerial;
+}
+
+void Creature::importProgressFromPacket(ODPacket& is)
+{
+    mHasProgressInformation = false;
+    if(!ODClient::getSingleton().supportsCreatureProgress())
+        return;
+    double experience = 0.0;
+    uint32_t remaining = 0;
+    uint32_t duration = 0;
+    uint32_t serial = 0;
+    if(!(is >> experience >> remaining >> duration >> serial))
+    {
+        OD_LOG_ERR("Incomplete creature progress for " + getName());
+        return;
+    }
+    if(!std::isfinite(experience) || experience < 0.0 || experience > 1.0 || remaining > duration)
+    {
+        OD_LOG_ERR("Invalid creature progress for " + getName());
+        return;
+    }
+    mExperienceProgress = experience;
+    mAttackRecoveryTurns = remaining;
+    mAttackRecoveryDuration = duration;
+    mAttackRecoverySerial = serial;
+    mHasProgressInformation = true;
 }
 
 void Creature::exportMoodToPacket(ODPacket& os, const Seat* seat) const
@@ -2320,10 +2378,11 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
 
 void Creature::receiveExp(double experience)
 {
-    if (experience < 0)
+    if (!std::isfinite(experience) || experience < 0 || mLevel >= MAX_LEVEL)
         return;
 
     mExp += experience;
+    mNeedFireRefresh = true;
 }
 
 void Creature::useAttack(CreatureSkillData& skillData, GameEntity& entityAttack,
@@ -2351,6 +2410,12 @@ void Creature::useAttack(CreatureSkillData& skillData, GameEntity& entityAttack,
         &entityAttack, &tileAttack, ko, notifyPlayerIfHit);
     skillData.mWarmup = skillData.mSkill->getWarmupNbTurns();
     skillData.mCooldown = skillData.mSkill->getCooldownNbTurns();
+
+    // Both timers count down together; either can postpone the next attack.
+    mAttackRecoveryDuration = std::max(skillData.mWarmup, skillData.mCooldown);
+    mAttackRecoveryTurns = mAttackRecoveryDuration;
+    ++mAttackRecoverySerial;
+    mNeedFireRefresh = true;
 
     // Fighting is tiring
     decreaseWakefulness(0.5);
@@ -2707,6 +2772,8 @@ bool Creature::setDestination(Tile* tile)
     std::vector<Ogre::Vector2> path;
     tileToVector2(result, path, true, 0.0);
     setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, path,true);
+    if(!isMoving() && posTile != tile)
+        return false;
     pushAction(Utils::make_unique<CreatureActionWalkToTile>(*this));
     return true;
 }
@@ -3208,6 +3275,21 @@ void Creature::fireCombatImpact(bool weaponClash, bool bodyDamage,
     }
 }
 
+void Creature::fireChickenFeeding(const std::string& chickenName,
+    const Ogre::Vector3& chickenPosition)
+{
+    for(Seat* seat : mSeatsWithVisionNotified)
+    {
+        if(seat->getPlayer() == nullptr || !seat->getPlayer()->getIsHuman())
+            continue;
+
+        ServerNotification* notification = new ServerNotification(
+            ServerNotificationType::creatureChickenFeeding, seat->getPlayer());
+        notification->mPacket << getName() << chickenName << chickenPosition;
+        ODServer::getSingleton().queueServerNotification(notification);
+    }
+}
+
 void Creature::fireCosmeticEvent(const CosmeticEvent& event, bool alliedOnly)
 {
     for(Seat* seat : mSeatsWithVisionNotified)
@@ -3588,7 +3670,7 @@ void Creature::correctEntityMovePosition(Ogre::Vector2& position)
     //     position.z += Random::Double(-offset, offset);
 }
 
-void Creature::checkWalkPathValid()
+void Creature::checkWalkPathValid(bool includeWalkDistortion)
 {
     bool stop = false;
     for(const Ogre::Vector2& dest : mWalkQueue)
@@ -3606,6 +3688,10 @@ void Creature::checkWalkPathValid()
             break;
         }
     }
+
+    if(!stop && getIsOnServerMap())
+        stop = RoomObjectNavigation::blocked(*this,
+            std::vector<Ogre::Vector2>(mWalkQueue.begin(), mWalkQueue.end()), includeWalkDistortion);
 
     if(!stop)
         return;
@@ -3852,4 +3938,3 @@ void Creature::normalizeAmbient()
     RenderManager::getSingleton().rrNormalizeAmbient(this);
 
 }
-

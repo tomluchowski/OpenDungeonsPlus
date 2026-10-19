@@ -16,6 +16,8 @@
  */
 
 #include "traps/TrapDoor.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "creatureaction/CreatureAction.h"
 #include "entities/Creature.h"
@@ -273,6 +275,20 @@ static TrapRegister reg(new TrapDoorFactory);
 
 const std::string TrapDoor::ANIMATION_OPEN = "Open";
 const std::string TrapDoor::ANIMATION_CLOSE = "Close";
+
+double TrapDoor::getHP(Tile* tile) const
+{
+    return SkillManager::getResearchValue(getSeat(), SkillType::trapDoorWooden, Building::getHP(tile));
+}
+
+double TrapDoor::takeDamage(GameEntity* attacker, double absoluteDamage, double physicalDamage, double magicalDamage,
+    double elementDamage, Tile* tileTakingDamage, bool ko)
+{
+    // Store health in base units, preserving its fraction across research and ownership changes.
+    const double factor = SkillManager::getResearchValue(getSeat(), SkillType::trapDoorWooden, 1.0);
+    return Building::takeDamage(attacker, absoluteDamage / factor, physicalDamage / factor,
+        magicalDamage / factor, elementDamage / factor, tileTakingDamage, ko) * factor;
+}
 
 TrapDoor::TrapDoor(GameMap* gameMap) :
     Trap(gameMap),

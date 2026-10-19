@@ -83,7 +83,10 @@ enum class ClientNotificationType
 
     // Append new messages to preserve existing network and replay identifiers.
     changeNick,
-    askHandDropAll
+    askHandDropAll,
+
+    askTrapProductionQueue,
+    askMoveTrapProductionOrder
 };
 
 ODPacket& operator<<(ODPacket& os, const ClientNotificationType& nt);

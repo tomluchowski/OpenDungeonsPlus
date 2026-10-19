@@ -31,6 +31,8 @@
 #include "spells/SpellType.h"
 #include "spells/SpellManager.h"
 #include "utils/ConfigManager.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -173,7 +175,8 @@ bool SpellCreatureSlow::castSpell(GameMap* gameMap, Player* player, ODPacket& pa
         return false;
 
     uint32_t duration = ConfigManager::getSingleton().getSpellConfigUInt32("CreatureSlowDuration");
-    double value = ConfigManager::getSingleton().getSpellConfigDouble("CreatureSlowValue");
+    double value = SkillManager::getResearchValue(player->getSeat(), SkillType::spellCreatureSlow,
+        ConfigManager::getSingleton().getSpellConfigDouble("CreatureSlowValue"));
     CreatureEffectSpeedChange* effect = new CreatureEffectSpeedChange(duration, value, "SpellCreatureSlow");
     creature->addCreatureEffect(effect);
 

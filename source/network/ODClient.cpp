@@ -249,6 +249,11 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 OD_ASSERT_TRUE(packetReceived >> creaturePanel);
             setSupportsCreaturePanel(false);
 
+            bool creatureProgress = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureProgress);
+            setSupportsCreatureProgress(false);
+
             bool cosmeticEvents = false;
             if(!packetReceived.endOfPacket())
                 OD_ASSERT_TRUE(packetReceived >> cosmeticEvents);
@@ -258,14 +263,16 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             ODPacket packSend;
             const std::string& nick = gameMap->getLocalPlayerNick();
             packSend << ClientNotificationType::setNick << nick;
-            if(liveNickname || creatureMood || creatureActivity || creaturePanel || cosmeticEvents)
+            if(liveNickname || creatureMood || creatureActivity || creaturePanel || creatureProgress || cosmeticEvents)
                 packSend << liveNickname;
-            if(creatureMood || creatureActivity || creaturePanel || cosmeticEvents)
+            if(creatureMood || creatureActivity || creaturePanel || creatureProgress || cosmeticEvents)
                 packSend << creatureMood;
-            if(creatureActivity || creaturePanel || cosmeticEvents)
+            if(creatureActivity || creaturePanel || creatureProgress || cosmeticEvents)
                 packSend << creatureActivity;
-            if(creaturePanel || cosmeticEvents)
+            if(creaturePanel || creatureProgress || cosmeticEvents)
                 packSend << creaturePanel;
+            if(creatureProgress || cosmeticEvents)
+                packSend << creatureProgress;
             if(cosmeticEvents)
                 packSend << true;
             send(packSend);
@@ -479,6 +486,11 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             if(!packetReceived.endOfPacket())
                 OD_ASSERT_TRUE(packetReceived >> creaturePanel);
             setSupportsCreaturePanel(creaturePanel);
+
+            bool creatureProgress = false;
+            if(!packetReceived.endOfPacket())
+                OD_ASSERT_TRUE(packetReceived >> creatureProgress);
+            setSupportsCreatureProgress(creatureProgress);
 
             // Older servers end the packet here; without the agreement no cosmetic event ever arrives
             bool cosmeticEvents = false;
@@ -804,6 +816,19 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             }
             if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::GAME)
                 static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode())->refreshCreaturePanel(data);
+            break;
+        }
+
+        case ServerNotificationType::trapProductionQueue:
+        {
+            TrapProductionData data;
+            if(!importTrapProductionData(packetReceived, data))
+            {
+                OD_LOG_ERR("Invalid trap production snapshot");
+                return false;
+            }
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::GAME)
+                static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode())->refreshTrapProductionQueue(data);
             break;
         }
 
@@ -1153,6 +1178,22 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             break;
         }
 
+        case ServerNotificationType::creatureChickenFeeding:
+        {
+            std::string creatureName;
+            std::string chickenName;
+            Ogre::Vector3 chickenPosition;
+            OD_ASSERT_TRUE(packetReceived >> creatureName >> chickenName >> chickenPosition);
+            Creature* creature = gameMap->getCreature(creatureName);
+            if(creature != nullptr &&
+               frameListener->getModeManager()->getCurrentModeType() == ModeManager::ModeType::GAME)
+            {
+                RenderManager::getSingleton().rrSetFeedingChicken(creature,
+                    gameMap->getAnimatedObject(chickenName), chickenPosition);
+            }
+            break;
+        }
+
         case ServerNotificationType::creatureCombatImpact:
         {
             std::string creatureName;
@@ -1483,15 +1524,23 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             uint32_t nbItems;
             OD_ASSERT_TRUE(packetReceived >> nbItems);
             std::vector<SkillType> skills;
+            std::map<SkillType, uint32_t> levels;
+            if(nbItems >= static_cast<uint32_t>(SkillType::countSkill))
+                return false;
             while(nbItems > 0)
             {
                 nbItems--;
                 SkillType skill;
-                OD_ASSERT_TRUE(packetReceived >> skill);
+                uint32_t level;
+                if(!(packetReceived >> skill >> level) || skill <= SkillType::nullSkillType ||
+                   skill >= SkillType::countSkill || level < 1 || level > 3 || levels.count(skill) != 0)
+                    return false;
                 skills.push_back(skill);
+                levels[skill] = level;
             }
 
             getPlayer()->getSeat()->setSkillsDone(skills);
+            getPlayer()->getSeat()->setResearchLevels(levels);
             break;
         }
 

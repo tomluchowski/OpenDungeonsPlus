@@ -55,6 +55,7 @@ class ODSocketClient
             mSupportsCreatureMood(false),
             mSupportsCreatureActivity(false),
             mSupportsCreaturePanel(false),
+            mSupportsCreatureProgress(false),
             mSupportsCosmeticEvents(false)
         {}
 
@@ -81,6 +82,8 @@ class ODSocketClient
         void setSupportsCreatureActivity(bool supported) { mSupportsCreatureActivity = supported; }
         bool supportsCreaturePanel() const { return mSupportsCreaturePanel; }
         void setSupportsCreaturePanel(bool supported) { mSupportsCreaturePanel = supported; }
+        bool supportsCreatureProgress() const { return mSupportsCreatureProgress; }
+        void setSupportsCreatureProgress(bool supported) { mSupportsCreatureProgress = supported; }
         //! Whether the client negotiated cosmetic events (see CosmeticEvent.h)
         bool supportsCosmeticEvents() const { return mSupportsCosmeticEvents; }
         //! \brief Records whether the client negotiated cosmetic events (see CosmeticEvent.h)
@@ -152,6 +155,7 @@ class ODSocketClient
         bool mSupportsCreatureMood;
         bool mSupportsCreatureActivity;
         bool mSupportsCreaturePanel;
+        bool mSupportsCreatureProgress;
         //! The client agreed to receive cosmetic events
         bool mSupportsCosmeticEvents;
 

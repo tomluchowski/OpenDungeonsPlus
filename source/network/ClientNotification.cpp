@@ -131,6 +131,10 @@ std::string ClientNotification::typeString(ClientNotificationType type)
             return "changeNick";
         case ClientNotificationType::askHandDropAll:
             return "askHandDropAll";
+        case ClientNotificationType::askTrapProductionQueue:
+            return "askTrapProductionQueue";
+        case ClientNotificationType::askMoveTrapProductionOrder:
+            return "askMoveTrapProductionOrder";
         default:
             OD_LOG_ERR("Unknown enum for ClientNotificationType="
                 + Helper::toString(static_cast<int>(type)));

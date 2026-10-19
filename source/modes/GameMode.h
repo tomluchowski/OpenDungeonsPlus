@@ -24,11 +24,13 @@
 #include "modes/InputBridge.h"
 #include "modes/SettingsWindow.h"
 #include "game/CreaturePanelData.h"
+#include "game/TrapProductionData.h"
 
 #include "utils/ConfigManager.h"
 #include <CEGUI/EventArgs.h>
 #include <cstdint>
 #include <memory>
+#include <set>
 
 namespace CEGUI
 {
@@ -130,6 +132,7 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     //! \brief Called when the game mode is activated
     //! Used to call the corresponding Gui Sheet.
     void activate() override;
+    void deactivate() override;
 
     //! \brief Called when exit button is pressed
     void popupExit(bool pause);
@@ -162,6 +165,7 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     bool unselectAllSkillWindow(const CEGUI::EventArgs& = {});
     bool autoFillSkillWindow(const CEGUI::EventArgs& = {});
     void closeSkillWindow(bool saveSkill);
+    void refreshTrapProductionQueue(const TrapProductionData& data);
 
     //! \brief Shows/hides/toggles the options window
     bool showOptionsWindow(const CEGUI::EventArgs& = {});
@@ -280,6 +284,7 @@ private:
     //! \brief Skills pending (Client side). This is copied from the seat for temporary changes while the
     //! player clicks on the skill tree window
     std::vector<SkillType> mSkillPending;
+    std::map<SkillType, uint32_t> mSkillEditLevels;
 
     SkillCurrentCompletion mSkillCurrentCompletion;
 
@@ -316,6 +321,20 @@ private:
     bool selectUserCamera(const CEGUI::EventArgs&);
     bool storeUserCamera(const CEGUI::EventArgs&);
     unsigned int mUserCameraSlot = 0;
+
+    void resetIdleHand();
+    void updateIdleHand(float elapsed, bool eligible);
+    float mIdleHandElapsed = 0.0f;
+    std::set<OIS::KeyCode> mIdleHandKeys;
+
+    bool showTrapProductionQueue(const CEGUI::EventArgs& = {});
+    bool closeTrapProductionQueue(const CEGUI::EventArgs& = {});
+    bool updateTrapProductionButtons(const CEGUI::EventArgs& = {});
+    bool moveTrapProductionOrder(bool earlier);
+    void requestTrapProductionQueue();
+    TrapProductionData mTrapProductionData;
+    float mProductionRefreshElapsed = 0.0f;
+    bool mProductionRequestPending = false;
 
     bool toggleMap(const CEGUI::EventArgs& = {});
     bool closeMap(const CEGUI::EventArgs& = {});
@@ -355,6 +374,12 @@ private:
 
     //! \brief Builds the player settings window
     void buildPlayerSettingsWindow();
+
+    void updateCreatureIndicatorAlt(OIS::KeyCode key, bool pressed);
+    bool mCreatureIndicatorsVisible = true;
+    bool mIndicatorLeftAltDown = false;
+    bool mIndicatorRightAltDown = false;
+
 
 };
 

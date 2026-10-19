@@ -194,6 +194,12 @@ public:
 
     CreatureActivity getActivity() const;
 
+    double getExperienceProgress() const;
+    uint32_t getAttackRecoveryTurns() const { return mAttackRecoveryTurns; }
+    uint32_t getAttackRecoveryDuration() const { return mAttackRecoveryDuration; }
+    uint32_t getAttackRecoverySerial() const { return mAttackRecoverySerial; }
+    bool hasProgressInformation() const { return mHasProgressInformation; }
+
     inline int32_t getNbTurnFurious() const
     { return mNbTurnFurious; }
 
@@ -435,6 +441,8 @@ public:
     //! weaponClash is true when both fighters carry weapons, bodyDamage when the hit did damage.
     void fireCombatImpact(bool weaponClash, bool bodyDamage,
         const Ogre::Vector3& attackerPosition);
+    void fireChickenFeeding(const std::string& chickenName,
+        const Ogre::Vector3& chickenPosition);
 
     //! \brief Sends a cosmetic event to the human players that see the creature (and negotiated cosmetic events).
     //! With alliedOnly, only to the keeper of the creature and its allies. It only reports, it changes nothing.
@@ -587,7 +595,7 @@ public:
 
     //! Checks if the creature current walk path is still valid. This will be called if tiles passability changes (for
     //! example if a door is closed)
-    void checkWalkPathValid();
+    void checkWalkPathValid(bool includeWalkDistortion = false);
 
     bool isTired() const;
 
@@ -858,6 +866,12 @@ private:
     //! \brief Skills the creature can use
     std::vector<CreatureSkillData> mSkillData;
 
+    uint32_t mAttackRecoveryTurns = 0;
+    uint32_t mAttackRecoveryDuration = 0;
+    uint32_t mAttackRecoverySerial = 0;
+    double mExperienceProgress = 0.0;
+    bool mHasProgressInformation = false;
+
     //! \brief A sub-function called by doTurn()
     //! This one checks if there is something prioritary to do (like fighting). If it is the case,
     //! it should empty the action list before adding what to do.
@@ -879,6 +893,8 @@ private:
     void importMoodFromPacket(ODPacket& is);
     void exportActivityToPacket(ODPacket& os, const Seat* seat) const;
     void importActivityFromPacket(ODPacket& is);
+    void exportProgressToPacket(ODPacket& os, const Seat* seat) const;
+    void importProgressFromPacket(ODPacket& is);
 
     void computeCreatureOverlayMoodValue();
 };

@@ -116,6 +116,12 @@ enum class ServerNotificationType
     // Presentation-only creature melee impact.
     creatureCombatImpact,
 
+    // Presentation-only consumption of an authoritative chicken.
+    creatureChickenFeeding,
+
+    // Owner-only reply to a production query or reorder request.
+    trapProductionQueue,
+
     //! A short cosmetic note that something happened (a mood change, a full treasury, a blow, a missile
     //! launch): + a CosmeticEvent (see network/CosmeticEvent.h): int32_t kind, string subject, string object,
     //! string text, int32_t value, int32_t value2, Vector3 position. Only sent to clients that negotiated
