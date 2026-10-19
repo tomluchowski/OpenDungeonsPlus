@@ -6,6 +6,10 @@ OpenDungeons since version 0.4.7, in reverse chronological order.
 The numbers preceded by a hash (e.g. #9) reference GitHub issue numbers on
 our repository at https://github.com/OpenDungeons/OpenDungeons
 
+### Unreleased
+
+* Equip twelve creature types with fitted weapons, classify held equipment by type and occupied hands, and preserve melee damage when weapon recovery is longer.
+
 ### Version 0.7.1 - 24 Aug 2016
 
 **Highlights:**
