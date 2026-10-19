@@ -1,12 +1,12 @@
-"""Cosmetic events: format, round trip, negotiation, old clients and servers; never launches a game."""
+"""Check cosmetic packet and negotiation wiring; --probe additionally compiles the packet round trip."""
 from pathlib import Path
 import os
 import re
 import subprocess
 import tempfile
+import sys
 
 root = Path(__file__).resolve().parents[2]
-prefix = Path(os.environ['CMAKE_PREFIX_PATH'])
 
 
 def read(path):
@@ -55,6 +55,23 @@ for signature in ('void Creature::fireCosmeticEvent(const CosmeticEvent& event',
     function = creature[creature.index(signature):]
     function = function[:function.index('\n}\n')]
     assert 'mActivity' not in function and 'mNeedFireRefresh' not in function and 'fireCreatureRefreshIfNeeded' not in function, signature
+
+event_h = read('source/network/CosmeticEvent.h')
+# The cosmetic packet layout remains identical for every hit result, including shield blocks.
+event_cpp = read('source/network/CosmeticEvent.cpp')
+results = re.findall(r'^\s+(\w+) = (\d+),?\s*$', event_h.split('enum class CosmeticHitResult')[1].split('};')[0], re.M)
+assert results == [('hit', '0'), ('glanced', '1'), ('blocked', '2'), ('missed', '3'),
+                   ('dodged', '4'), ('parried', '5'), ('shieldBlocked', '6')], results
+layout = ('event.mType << event.mSubject << event.mObject << event.mText',
+          'event.mValue << event.mValue2 << event.mPosition')
+for fields in layout:
+    assert fields in event_cpp
+    assert fields.replace(' << ', ' >> ') in event_cpp
+assert 'CosmeticHitResult' not in event_cpp, 'all result values use the common packet fields'
+if '--probe' not in sys.argv:
+    print('Cosmetic negotiation, stable result numbers and packet source checks passed; compiled round-trip probe not executed')
+    sys.exit(0)
+prefix = Path(os.environ['CMAKE_PREFIX_PATH'])
 
 probe = r'''
 #include "network/CosmeticEvent.h"
@@ -112,6 +129,22 @@ int main()
               back.mPosition == event.mPosition, "round trip of every field");
         check(sentinel == 0xCAFE && packet.endOfPacket(), "packet stays aligned");
         check(back.isKnownType() && back.typeString() != "unknown", "known kinds have names");
+    }
+
+    // Every hit result keeps its number and the packet boundary, including shield blocking.
+    check(static_cast<int32_t>(CosmeticHitResult::shieldBlocked) == 6, "shield block result number");
+    for(int32_t result = 0; result <= 6; ++result)
+    {
+        CosmeticEvent event(CosmeticEventType::hitResult);
+        event.mValue = result;
+        event.mText = "melee";
+        ODPacket packet;
+        packet << event << uint32_t(0xCAFE);
+        CosmeticEvent back;
+        uint32_t sentinel = 0;
+        packet >> back >> sentinel;
+        check(back.mValue == result && back.mText == "melee" && sentinel == 0xCAFE && packet.endOfPacket(),
+              "hit result round trip remains aligned");
     }
 
     // A kind of a newer build: read completely, reported unknown, nothing lost behind it

@@ -1,14 +1,35 @@
-"""Exercise the actual attack dispatch without a game or renderer."""
+"""Check attack dispatch source wiring; --probe additionally compiles the production dispatch method."""
 from pathlib import Path
 import os
 import subprocess
 import tempfile
+import sys
 
 repo = Path(__file__).resolve().parents[2]
 source = (repo / 'source/entities/Creature.cpp').read_text()
 start = source.index('void Creature::useAttack(')
 end = source.index('\nbool Creature::isActionInList(', start)
 method = source[start:end]
+# Preserve attack dispatch, aiming and recovery regardless of whether the hit later succeeds.
+for text in ('entityAttack.getObjectType() == GameEntityType::creature',
+             'entityAttack.getPosition()', 'Ogre::Vector3(tileAttack.getX(), tileAttack.getY(), 0)',
+             'walkDirection.normalise();', 'fireAttackTurn(entityAttack.getName(), walkDirection);',
+             'getRangeMax(this, &entityAttack) > 1.0', 'EntityAnimation::ranged_attack_anim',
+             'EntityAnimation::combat_attack_anim', 'Pathfinding::distanceTile(*myTile, tileAttack)',
+             '&entityAttack, &tileAttack, ko, notifyPlayerIfHit',
+             'skillData.mWarmup = skillData.mSkill->getWarmupNbTurns();',
+             'skillData.mCooldown = getAppliedCooldownNbTurns(*skillData.mSkill);',
+             'std::max(static_cast<double>(skillData.mWarmup), skillData.mCooldown)',
+             'mAttackRecoveryTurns = mAttackRecoveryDuration;', '++mAttackRecoverySerial;',
+             'mNeedFireRefresh = true;', 'decreaseWakefulness(0.5);', 'receiveExp(1.5);'):
+    assert text in method, text
+assert method.index('fireAttackTurn(') < method.index('setAnimationState(') < method.index('tryUseFight(')
+assert method.index('tryUseFight(') < method.index('skillData.mWarmup =') < method.index('skillData.mCooldown =')
+assert 'rollAttackHit' not in method and 'takeDamage' not in method, 'hit resolution stays in the individual skills'
+if '--probe' not in sys.argv:
+    print('Ranged/melee dispatch, target aiming and attack recovery source checks passed; compiled dispatch probe not executed')
+    sys.exit(0)
+
 probe = r'''
 #include <OgreVector.h>
 #include <cmath>

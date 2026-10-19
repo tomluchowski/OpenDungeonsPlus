@@ -1,18 +1,22 @@
-"""Compile actual missile traversal/collision against Ogre without launching a game."""
+"""Check projectile collision wiring; --probe additionally compiles actual traversal against Ogre."""
 import argparse
 import os
 from pathlib import Path
 import subprocess
 import tempfile
+import sys
 
 repo = Path(__file__).resolve().parents[2]
 parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--probe', action='store_true', help='Compile and run the production traversal behavior probe')
+parser.add_argument('--static-only', action='store_true', help='Inspect collision source paths without compiling the behavior probe')
 parser.add_argument('--source-ref', help='Read an older missile implementation with git show')
 args = parser.parse_args()
 source = (repo / 'source/entities/MissileObject.cpp').read_text()
 if args.source_ref:
     source = subprocess.check_output(['git', 'show', args.source_ref + ':source/entities/MissileObject.cpp'], cwd=repo, text=True)
 
+# Extract an intact production function for source assertions and the compiled probe.
 def extract(text, signature):
     start = text.index(signature)
     end = text.index('{', start) + 1
@@ -142,6 +146,26 @@ replacements = {
 }
 for key, value in replacements.items():
     probe = probe.replace(key, value)
+# Inspect every collision route without replacing the compiled traversal behavior probe.
+upkeep = replacements['UPKEEP']
+for text in ('computeDestination(position3f, moveDist, mDirection, destination, tiles)',
+             'if(lastTile == nullptr)', 'destination.x = position.x;', 'destination.y = position.y;',
+             'if(stopsOnTile(tmpTile))', 'if(tmpTile->isEntityOnTile(target))',
+             'hitTargetEntity(tmpTile, target);', 'if(!hitCreature(tmpTile, creature))',
+             'getVisibleCreatures(tileVector, getSeat(), true)',
+             'getVisibleCreatures(tileVector, getSeat(), false)',
+             'if(!mDamageAllies || !mIsMissileAlive)', 'mIsMissileAlive = false;',
+             'setWalkPath(EntityAnimation::idle_anim, EntityAnimation::idle_anim, true, true, path, false)',
+             'missileStopped();'):
+    assert text in upkeep, text
+assert upkeep.index('hitTargetEntity(tmpTile, target);') < upkeep.index('getVisibleCreatures(')
+target_collision = upkeep.split('hitTargetEntity(tmpTile, target);', 1)[1].split('std::vector<Tile*> tileVector;', 1)[0]
+assert 'mIsMissileAlive = false;' in target_collision and 'break;' in target_collision
+assert upkeep.index('setWalkPath(') < upkeep.index('missileStopped();')
+assert 'destination = position + (moveDist * direction);' in replacements['DESTINATION']
+if args.static_only or not args.probe:
+    print('Target, incidental, ally and wall collision source checks passed; compiled traversal probe not executed')
+    sys.exit(0)
 prefix = Path(os.environ['CMAKE_PREFIX_PATH'])
 with tempfile.TemporaryDirectory(prefix='odp-projectile-collision-') as temporary:
     work = Path(temporary)

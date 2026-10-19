@@ -51,9 +51,9 @@ assert dict(kinds)['meleeResult'] == '5'
 assert 'return "hitResult";' in event_cpp
 known = function_body(event_cpp, 'bool CosmeticEvent::isKnownType() const')
 assert 'CosmeticEventType::portalArrival' in known and 'CosmeticEventType::hitResult' in known
-# The results: hit, glancing, blocked, shot missed, then the real dodge and parry of a melee blow
+# The old result numbers remain stable; shield blocking follows the existing avoidance results.
 results = re.findall(r'^\s+(\w+) = (\d+),?\s*$', event_h.split('enum class CosmeticHitResult')[1].split('};')[0], re.M)
-assert results == [('hit', '0'), ('glanced', '1'), ('blocked', '2'), ('missed', '3'), ('dodged', '4'), ('parried', '5')], results
+assert results == [('hit', '0'), ('glanced', '1'), ('blocked', '2'), ('missed', '3'), ('dodged', '4'), ('parried', '5'), ('shieldBlocked', '6')], results
 assert '9 to 16 are kept free' in event_h
 
 # Server: emitters in the damage places, serverauthoritative, no change of damage or timing
@@ -66,6 +66,7 @@ for forbidden in ('takeDamage', 'mHp', 'mActivity', 'setAnimation'):
     assert forbidden not in fire, forbidden
 miss = function_body(creature, 'void Creature::fireHitMissed(')
 assert 'CosmeticHitResult::missed' in miss and 'getHitEvents()' in miss and 'takeDamage' not in miss
+assert 'event.mText = missile ? "missile" : "melee";' in miss
 assert 'void fireHitResult(' in creature_h and 'void fireHitMissed(' in creature_h
 melee_body = function_body(melee, 'bool CreatureSkillMeleeFight::tryUseFight(')
 assert 'target->fireHitResult(creature->getName(), damageDone, rawDamage, false);' in melee_body
@@ -74,7 +75,9 @@ assert 'target->fireHitDefended(creature->getName(), defence);' in melee_body
 assert melee_body.index('takeDamage(') < melee_body.index('fireHitResult(') < melee_body.index('CosmeticEventType::meleeResult')
 hurt = function_body(one_hit, 'void MissileOneHit::hurt(')
 assert hurt.index('takeDamage(') < hurt.index('fireHitResult(') and 'mHasHit = true;' in hurt
-assert 'mPhysicalDamage + mMagicalDamage + mElementDamage, true' in hurt
+assert 'fireHitResult(mShooterName, damageDone, rawDamage, true)' in hurt
+assert hurt.index('rollAttackHit(') < hurt.index('rollMeleeDefence(true)') < hurt.index('CombatDamage::roll(')
+assert 'fireHitMissed(mShooterName, true)' in hurt and 'fireHitDefended(mShooterName, defence, true)' in hurt
 assert 'hurt(tile, entity);' in function_body(one_hit, 'bool MissileOneHit::hitCreature(')
 assert 'hurt(tile, entityTarget);' in function_body(one_hit, 'void MissileOneHit::hitTargetEntity(')
 stopped = function_body(one_hit, 'void MissileOneHit::missileStopped()')
@@ -82,10 +85,15 @@ assert 'mHasHit' in stopped and 'fireHitMissed(mShooterName)' in stopped and 'is
 assert 'virtual void missileStopped()' in missile_h and 'missileStopped();' in missile
 assert missile.index('setWalkPath(EntityAnimation::idle_anim') < missile.index('missileStopped();')
 assert 'setShooter(creature->getName(), targetName)' in launch
-# Not saved: the stream functions of the missile do not know the new members
-for stream_function in ('void MissileOneHit::exportToStream', 'bool MissileOneHit::importFromStream'):
-    body = function_body(one_hit, stream_function)
-    assert 'mShooterName' not in body and 'mTargetName' not in body and 'mHasHit' not in body, stream_function
+# Saved creature shots retain their launch accuracy and cosmetic names; old rows keep loading.
+export = function_body(one_hit, 'void MissileOneHit::exportToStream')
+load = function_body(one_hit, 'bool MissileOneHit::importFromStream')
+assert 'if(isCreatureShot() && mShotAttackerLevel != 0)' in export
+assert 'ShotAccuracy' in export and 'ShotAccuracy' in load
+for member in ('mShotAttackRating', 'mShotAttackerLevel', 'mShooterName', 'mTargetName'):
+    assert member in export and member in load, member
+assert 'is.seekg(accuracyPosition)' in load and 'is.clear();' in load
+assert 'mHasHit' not in export and 'mHasHit' not in load
 # Only through the common send path: human clients that negotiated cosmetic events and see the target
 send = function_body(server, 'void ODServer::sendCosmeticEvent(')
 assert 'supportsCosmeticEvents(player)' in send and 'getIsHuman()' in send
@@ -127,6 +135,11 @@ for field in ('mResult', 'mHealthPermille', 'mStrong', 'mMissile', 'mTarget', 'm
 assert 'sHitEvents = false;' in function_body(visuals, 'void CreatureWeaponVisuals::stopAll(')
 # No trail is built here: the readable state is only offered
 assert 'startTrail' not in result
+missed_result = result.split('case static_cast<int32_t>(CosmeticHitResult::missed):', 1)[1].split('break;', 1)[0]
+assert 'attacker->getName(), "BlowMissed"' in missed_result and 'target->' not in missed_result
+shield_result = result.split('case static_cast<int32_t>(CosmeticHitResult::shieldBlocked):', 1)[1].split('break;', 1)[0]
+assert 'target->getName(), "BlowParried"' in shield_result
+assert 'attacker->getName(), "BlowDeflected"' in shield_result
 # The guess is gone with the event: no scheduled flinch from the attack animation, no random flinch chance
 attacks = function_body(combat, 'void CreatureCombatReactions::processAttacks(')
 assert 'if(!CreatureWeaponVisuals::hasHitEvents())\n            scheduleHit(' in attacks
