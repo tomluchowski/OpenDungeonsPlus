@@ -150,7 +150,7 @@ int main(int argc,char** argv){try {
         if(row>>key>>points && key[0]!='#')ConfigManager::getSingleton().points[key]=points;}
     std::vector<SkillType> all;
     for(uint32_t i=1;i<static_cast<uint32_t>(SkillType::countSkill);++i)all.push_back(static_cast<SkillType>(i));
-    check(all.size()==27,"all 27 current research entries");
+    check(all.size()==50,"all 50 current research entries");
     for(SkillType type:all){
         const Skill* skill=SkillManager::getSkill(type);check(skill!=nullptr,"catalog completeness");
         const int base=skill->getNeededSkillPoints();
