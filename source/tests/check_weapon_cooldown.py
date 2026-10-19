@@ -326,11 +326,12 @@ for name, creature in creatures.items():
             checked += 1
 assert checked > 1000, checked
 
-# Weapons with damage 0 are listed: the damage values per weapon kind wait for a decision (the creature base damage
-# cannot drop by the weapon damage at every level while the base follows the shared power curve)
+# Weapons with damage 0 are listed: as decided on 2026-10-19 their damage stays 0 and the creature base damage
+# stays unchanged; balancing the weapon damage follows later in a separate change
 zero_damage = sorted(n for n in weapon_names if sum(equipments[n]['damage']) == 0)
 if zero_damage:
-    print('open: weapons without damage (decision pending): ' + ', '.join(zero_damage))
+    print('note: weapon damage stays 0 as decided on 2026-10-19, balancing follows later in a separate change: '
+          + ', '.join(zero_damage))
 
 # ---------------------------------------------------------------- level formula
 
