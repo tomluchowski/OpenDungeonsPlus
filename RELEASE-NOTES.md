@@ -8,7 +8,7 @@ our repository at https://github.com/OpenDungeons/OpenDungeons
 
 ### Unreleased
 
-* Equip twelve creature types with fitted weapons without additional weapon damage or defence, classify held equipment by type and occupied hands, and preserve raw melee damage per second before armour when weapon recovery is longer.
+* Equip twelve creature types with fitted weapons without additional weapon damage or defence, classify held equipment by type and occupied hands, and preserve raw melee damage per second before armour when weapon recovery is longer. Preserve original animation precision when adding weapon mounts.
 
 ### Version 0.7.1 - 24 Aug 2016
 

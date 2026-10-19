@@ -5,6 +5,7 @@ import math
 import re
 import shutil
 import subprocess
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -23,6 +24,27 @@ def convert(source, target, label, binary=False):
     with (PRIVATE / "logs" / (label + ".log")).open("w", encoding="utf-8") as log:
         subprocess.run(command, cwd=PRIVATE / "logs", stdin=subprocess.DEVNULL,
                        stdout=log, stderr=subprocess.STDOUT, timeout=600, check=True)
+
+
+# Restore original native animation chunks so XML serialization cannot reduce key precision.
+def preserve_animation_bytes(original, target):
+    sys.path.insert(0, str(ROOT / "tools/blender-assets"))
+    import splice_animation_chunks as binary
+    source = original.read_bytes()
+    authored = target.read_bytes()
+    source_header, source_chunks = binary.chunks(source)
+    target_header, target_chunks = binary.chunks(authored)
+    source_clips = {name: data for kind, name, data in source_chunks if kind == binary.ANIMATION}
+    target_clips = {name: data for kind, name, data in target_chunks if kind == binary.ANIMATION}
+    if source_header != target_header or source_clips.keys() != target_clips.keys():
+        raise ValueError("Animation names or serialization version changed")
+    result = binary.splice(authored, source, set(source_clips))
+    header, chunks = binary.chunks(result)
+    if {name: data for kind, name, data in chunks if kind == binary.ANIMATION} != source_clips:
+        raise ValueError("Native animation data changed")
+    if [data for kind, name, data in chunks if kind != binary.ANIMATION] != [data for kind, name, data in target_chunks if kind != binary.ANIMATION]:
+        raise ValueError("Weapon rest or hierarchy changed during animation preservation")
+    target.write_bytes(result)
 
 
 # Compare complete XML trees, allowing only converter float rounding up to 1e-5.
@@ -109,7 +131,7 @@ def verify(original, result, expected, parent):
     compare(original, result)
 
 
-# Back up original binaries, append mounts and verify each binary round trip.
+# Back up original binaries, append mounts, retain native animation bytes and verify each round trip.
 def main():
     for folder in ("orig", "xml", "logs"):
         (PRIVATE / folder).mkdir(parents=True, exist_ok=True)
@@ -141,6 +163,7 @@ def main():
         output_xml = PRIVATE / "xml" / (name + ".skeleton.xml")
         output_xml.write_text(modified, encoding="utf-8", newline="\n")
         convert(output_xml, target, "bone-" + name + "-convert", binary=True)
+        preserve_animation_bytes(backup, target)
         roundtrip = PRIVATE / "xml" / (name + ".roundtrip.skeleton.xml")
         convert(target, roundtrip, "bone-" + name + "-roundtrip")
         verify(original, ET.parse(roundtrip).getroot(), bone, parent)

@@ -402,7 +402,8 @@ std::string Weapon::getWeaponType() const
     if(!mWeaponType.empty())
         return mWeaponType;
     std::string mesh = mMeshName;
-    std::transform(mesh.begin(), mesh.end(), mesh.begin(), [](unsigned char c) { return std::tolower(c); });
+    for(std::string::iterator it = mesh.begin(); it != mesh.end(); ++it)
+        *it = static_cast<char>(std::tolower(static_cast<unsigned char>(*it)));
     if(mesh.find("shield") != std::string::npos) return "shield";
     if(mesh.find("bow") != std::string::npos) return "bow";
     if(mesh.find("axe") != std::string::npos) return "axe";
