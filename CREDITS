@@ -589,7 +589,7 @@ models/lich.skeleton                                     OD Team  GPLv3+  Own wo
 models/PitDemon.skeleton                                 OD Team  GPLv3+  Own work: right-hand weapon mount added by tools/add_weapon_bones.py, converted with OgreXMLConverter; existing data keeps its existing licence
 source/tests/check_creature_armament.py                 OD Team  GPLv3+  Own work: static creature armament config, asset and source verification
 tools/blender-assets/armament_preview.py                  OD Team  GPLv3+  Own work: configured creature and weapon animation previews with the game attachment transform
-models/Troll.skeleton                                    OD Team  GPLv3+  Own work: fitted right-hand weapon rest position, converted with OgreXMLConverter; existing data keeps its existing licence
+models/Troll.skeleton                                    OD Team  GPLv3+  Own work: fitted right-hand weapon rest position and rotation, converted with OgreXMLConverter; existing data keeps its existing licence
 tools/gen_walk_hurt.py                   OD Team                 GPLv3+
 tools/fix_walk_feet.py                  OD Team                 GPLv3+
 tools/fix_walk_feet_rigs.py             OD Team                 GPLv3+
