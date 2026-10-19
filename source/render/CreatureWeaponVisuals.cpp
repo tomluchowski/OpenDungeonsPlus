@@ -779,6 +779,10 @@ void noteBlow(CreatureReactions& reactions, const CosmeticEvent& event)
         return;
     }
 
+    // A server that sends hitResult gets its trail from WeaponTrail (strong hit), so this one is not doubled
+    if(sHitEvents)
+        return;
+
     if((attacker != nullptr) && (event.mValue2 >= STRONG_BLOW))
         startTrail(reactions, attacker);
 }
