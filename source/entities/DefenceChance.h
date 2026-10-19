@@ -78,7 +78,6 @@ inline bool contains(const std::string& text, const char* part)
 }
 
 //! \brief Identifies a held shield from its mesh name.
-//! Returns true if the mesh name (lower case) is that of a shield
 inline bool isShieldMesh(const std::string& meshLower)
 {
     return contains(meshLower, "shield");
