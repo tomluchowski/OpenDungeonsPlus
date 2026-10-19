@@ -160,30 +160,17 @@ bool contains(const std::string& text, const std::string& part)
 }
 
 //! What the weapon is used for: Shield, Bow, Axe, Hammer, Spear, Dagger, Staff or Sword
+//! \brief Maps equipment types to the client's existing reaction kinds.
 std::string weaponKind(const Weapon* weapon)
 {
-    std::string mesh = toLower(weapon->getMeshName());
-    if(contains(mesh, "shield"))
-        return "Shield";
-
-    if(contains(mesh, "bow"))
-        return "Bow";
-
-    if(contains(mesh, "axe"))
-        return "Axe";
-
-    if(contains(mesh, "hammer") || contains(mesh, "mace"))
-        return "Hammer";
-
-    if(contains(mesh, "spear") || contains(mesh, "lance") || contains(mesh, "pike"))
-        return "Spear";
-
-    if(contains(mesh, "dagger") || contains(mesh, "knife"))
-        return "Dagger";
-
-    if(contains(mesh, "staff") || contains(mesh, "wand"))
-        return "Staff";
-
+    const std::string type = weapon->getWeaponType();
+    if(type == "shield") return "Shield";
+    if(type == "bow" || type == "crossbow") return "Bow";
+    if(type == "axe") return "Axe";
+    if(type == "club" || type == "mace" || type == "hammer" || type == "scepter") return "Hammer";
+    if(type == "spear" || type == "polearm" || type == "javelin") return "Spear";
+    if(type == "dagger" || type == "throwing" || type == "claw") return "Dagger";
+    if(type == "staff" || type == "wand" || type == "orb") return "Staff";
     return "Sword";
 }
 

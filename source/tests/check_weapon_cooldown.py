@@ -30,6 +30,7 @@ def function_body(source, signature):
 
 # ---------------------------------------------------------------- config parsing
 
+# Read equipment values and explicit classification fields.
 def parse_equipments(text):
     """Returns name -> dict(mesh, damage=(phys, mag, ele), cooldown or None, parry=(base, per level, max) or None)."""
     # the header comment mentions the tags too, so only the part after the opening tag is parsed
@@ -41,6 +42,7 @@ def parse_equipments(text):
         cooldown = stats.get('CooldownNbTurns')
         result[name] = {
             'mesh': stats['MeshName'],
+            'type': stats.get('WeaponType', stats['MeshName'].lower()),
             'damage': (float(stats['PhysicalDamage']), float(stats['MagicalDamage']), float(stats['ElementDamage'])),
             'cooldown': None if cooldown is None else int(cooldown),
             'parry': None if 'ParryBase' not in stats else
@@ -118,13 +120,14 @@ def per_damage_type(creature, equipments, skill, level):
     return result
 
 
+# Keep the larger skill and held-weapon cooldown for melee.
 def cooldown_of(creature, equipments, skill):
     """Cooldown in turns at level 1 that the game uses for the skill (weapon value for melee)."""
     base = int(creature['skills'][skill][0])
     if skill == 'Melee':
         values = [equipments[w]['cooldown'] for w in creature['weapons'] if equipments[w]['cooldown']]
         if values:
-            return max(values)
+            return max(base, *values)
     return base
 
 
@@ -149,6 +152,8 @@ EXPECTED_WEAPON_COOLDOWN = {
     'T2HammerGood': 4, 'T3HammerGood': 5, 'T4HammerGood': 6,
     # weapons that belong to the model: knife and pick count as tools (1 turn), the Defender weapon follows its damage
     'Knife': 1, 'KoboldPick': 1, 'Pickaxe': 1, 'DefenderWeapon': 4,
+    'HandAxe': 2, 'Club': 2, 'Trident': 4, 'RitualDagger': 1, 'Wand': 2,
+    'BasicAxeOrc': 3, 'BasicHammerDwarf2': 1, 'StaffLich': 3,
 }
 # Weapons that are part of the creature model and attach no mesh of their own
 EXPECTED_MODEL_WEAPONS = {'Knife': 'Goblin', 'KoboldPick': 'Kobold', 'DefenderWeapon': 'Defender'}
@@ -175,14 +180,15 @@ SHIELD_BLOCK = (6.0, 1.0, 25.0)
 WEAK_PARRY_WEAPONS = {'KoboldPick': 'Kobold', 'Pickaxe': 'DwarfWorker', 'DefenderWeapon': 'Defender'}
 
 
+# Apply configured avoidance only to the explicit parry-capable types.
 def parry_of(creature, equipments, level=1):
     """Only a parry creature uses the largest eligible held-weapon parry chance."""
     if creature.get('avoidance') != 'parry':
         return 0.0
     chances = []
     for w in creature['weapons']:
-        mesh = equipments[w]['mesh'].lower()
-        if 'shield' in mesh or 'bow' in mesh or 'staff' in mesh or 'wand' in mesh:
+        weapon_type = equipments[w]['type']
+        if weapon_type not in ('sword', 'axe', 'dagger', 'club', 'mace', 'hammer', 'scepter', 'spear', 'polearm'):
             continue
         base, per_level, maximum = equipments[w].get('parry') or GLOBAL_PARRY
         chances.append(max(0.0, min(maximum, base + per_level * level)))
@@ -330,7 +336,7 @@ for name, creature in creatures.items():
         else:
             assert fields == previous, (name, skill)
 
-# ---------------------------------------------------------------- total damage unchanged against the base state
+# ---------------------------------------------------------------- retained building skill damage unchanged against the base state
 
 assert set(creatures) == set(base_creatures)
 checked = 0
@@ -341,8 +347,11 @@ for name, creature in creatures.items():
         for level in range(1, 31):
             before = per_damage_type(base_creatures[name], base_equipments, skill, level)
             after = per_damage_type(creature, equipments, skill, level)
-            for b, a in zip(before, after):
-                assert abs(a - b) < 1e-9, (name, skill, level, before, after)
+            assert damage_values(creature, skill) == damage_values(base_creatures[name], skill), (name, skill)
+            old_items = [sum(base_equipments[w]['damage'][i] for w in base_creatures[name]['weapons']) for i in range(3)]
+            new_items = [sum(equipments[w]['damage'][i] for w in creature['weapons']) for i in range(3)]
+            for i, (b, a) in enumerate(zip(before, after)):
+                assert abs((a - b) - (new_items[i] - old_items[i])) < 1e-9, (name, skill, level, before, after)
             checked += 1
 assert checked > 1000, checked
 
@@ -413,7 +422,7 @@ assert 'dynamic_cast<const CreatureSkillMeleeFight*>(&skill) != nullptr' in appl
 assert 'const Weapon* weapons[2] = {mWeaponL, mWeaponR};' in applied
 assert 'std::max(weaponCooldown, weapon->getCooldownNbTurns())' in applied, 'larger of two weapons'
 assert 'if(weapon == nullptr)' in applied
-assert 'if(weaponCooldown != 0)' in applied and 'baseCooldown = weaponCooldown;' in applied, \
+assert 'if(weaponCooldown != 0)' in applied and 'baseCooldown = std::max(baseCooldown, weaponCooldown);' in applied, \
     'no weapon cooldown means the definition cooldown applies'
 assert 'CreatureProgression::cooldownAtLevel(baseCooldown, getLevel())' in applied
 scaled = function_body(creature, 'bool isLevelScaledAttack(const CreatureSkill& skill)')
@@ -448,3 +457,42 @@ assert 'remaining * 0.999' in overlay
 render = read('source/render/RenderManager.cpp')
 assert 'if(curWeapon->getMeshName() == "none")' in function_body(render, 'void RenderManager::rrCreateWeapon(')
 print('check_weapon_cooldown: ok')
+
+# Weapon-delayed melee scales every creature damage endpoint after weapon contributions,
+# before target defense; ranged attacks and retained building damage do not use this factor.
+melee = read('source/creatureskill/CreatureSkillMeleeFight.cpp')
+body = function_body(melee, 'bool CreatureSkillMeleeFight::tryUseFight(')
+assert 'static_cast<double>(weaponCooldown) / getCooldownNbTurns()' in body
+assert 'weaponCooldown > getCooldownNbTurns() && getCooldownNbTurns() > 0' in body
+for field in ('phyMin', 'phyMax', 'magMin', 'magMax', 'eleMin', 'eleMax'):
+    assert field + ' *= timingFactor;' in body, field
+assert body.index('CombatDamage::scale(') < body.index('phyMin *= timingFactor;') < body.index('CombatDamage::roll(')
+for skill, weapon, expected in ((4, 2, 1.0), (2, 2, 1.0), (2, 4, 2.0), (3, 5, 5/3)):
+    factor = max(1.0, weapon / skill)
+    assert factor == expected
+    assert abs((10 * factor) / max(skill, weapon) - 10 / skill) < 1e-9
+
+# Exercise the production simulator with deliberately misleading mesh names and future slow weapons.
+sys.path.insert(0, str(root / 'tools/balance'))
+from combat_sim import Roster
+roster = Roster(root)
+name = 'Goblin'
+fields = roster.creatures[name][0]
+fields['WeaponSpawnR'] = ['Knife']
+fields['WeaponSpawnL'] = ['none']
+item = roster.equipment['Knife'][0]
+item['WeaponType'] = ['dagger']
+item['MeshName'] = ['misleading_staff.mesh']
+item['CooldownNbTurns'] = ['1']
+normal = roster.unit(name)
+assert normal.parry > 0
+skill_turns = float(roster.attack(name)[0][1])
+item['CooldownNbTurns'] = [str(skill_turns * 3)]
+slow = roster.unit(name)
+assert slow.cooldown == skill_turns * 3
+for before, after in zip(normal.minimum + normal.maximum, slow.minimum + slow.maximum):
+    assert abs(after - before * 3) < 1e-9
+item['WeaponType'] = ['tool']
+assert roster.unit(name).parry == 0
+item['WeaponType'] = ['shield']
+assert roster.unit(name).shield and roster.unit(name).parry == 0

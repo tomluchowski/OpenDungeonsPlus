@@ -392,7 +392,7 @@ public:
     void receiveExp(double experience);
 
     //! \brief Gets the number of cooldown turns that really applies after the given skill was used.
-    //! For the melee skill, a creature carrying weapons with a cooldown uses the larger weapon cooldown
+    //! For the melee skill, the larger skill or held-weapon cooldown applies
     //! (weapons without one, like shields, are ignored). Without such a weapon, and for every other skill,
     //! it is the cooldown from the creature definition. The melee and ranged attacks then get shorter with the
     //! creature level (0.75 percent per level above 1, not rounded, never below 1 turn).

@@ -24,9 +24,11 @@
 #include "utils/LogManager.h"
 
 #include <algorithm>
+#include <cctype>
 #include <sstream>
 #include <fstream>
 
+//! \brief Loads one equipment definition and rejects invalid fields.
 Weapon* Weapon::load(std::stringstream& defFile)
 {
     if (!defFile.good())
@@ -40,6 +42,7 @@ Weapon* Weapon::load(std::stringstream& defFile)
     }
     return weapon;
 }
+//! \brief Updates an equipment definition, including optional type and occupied hands.
 bool Weapon::update(Weapon* weapon, std::stringstream& defFile)
 {
     std::string nextParam;
@@ -127,6 +130,20 @@ bool Weapon::update(Weapon* weapon, std::stringstream& defFile)
             if (nextParam == "DefenseRating")
             {
                 defFile >> weapon->mDefenseRating;
+                continue;
+            }
+
+            if (nextParam == "WeaponType")
+            {
+                defFile >> weapon->mWeaponType;
+                continue;
+            }
+
+            if (nextParam == "Hands")
+            {
+                defFile >> weapon->mHands;
+                if(weapon->mHands != 1 && weapon->mHands != 2)
+                    return false;
                 continue;
             }
 
@@ -221,6 +238,7 @@ bool Weapon::update(Weapon* weapon, std::stringstream& defFile)
     return true;
 }
 
+//! \brief Writes equipment differences, preserving type and occupied hands.
 void Weapon::writeWeaponDiff(const Weapon* def1, const Weapon* def2, std::ofstream& file)
 {
     file << "[Equipment]" << std::endl;
@@ -237,6 +255,11 @@ void Weapon::writeWeaponDiff(const Weapon* def1, const Weapon* def2, std::ofstre
 
     if(def1 == nullptr || (def1->mMeshName.compare(def2->mMeshName) != 0))
         file << "    MeshName\t" << def2->mMeshName << std::endl;
+
+    if(def1 == nullptr || def1->getWeaponType() != def2->getWeaponType())
+        file << "    WeaponType\t" << def2->getWeaponType() << std::endl;
+    if(def1 == nullptr || def1->mHands != def2->mHands)
+        file << "    Hands\t" << def2->mHands << std::endl;
 
     if(def1 == nullptr || (def1->mPhysicalDamage != def2->mPhysicalDamage))
         file << "    PhysicalDamage\t" << def2->mPhysicalDamage << std::endl;
@@ -320,6 +343,7 @@ double Weapon::getParryMax() const
     return std::max(0.0, std::min(100.0, mParryMax));
 }
 
+//! \brief Streams equipment values, type and occupied hands to the client.
 ODPacket& operator <<(ODPacket& os, const Weapon *weapon)
 {
     os << weapon->mName;
@@ -340,9 +364,12 @@ ODPacket& operator <<(ODPacket& os, const Weapon *weapon)
     os << weapon->mElementDamageMin;
     os << weapon->mAttackRating;
     os << weapon->mDefenseRating;
+    os << weapon->mWeaponType;
+    os << weapon->mHands;
     return os;
 }
 
+//! \brief Reads equipment values in the matching wire order.
 ODPacket& operator >>(ODPacket& is, Weapon *weapon)
 {
     OD_ASSERT_TRUE(is >> weapon->mName);
@@ -363,5 +390,24 @@ ODPacket& operator >>(ODPacket& is, Weapon *weapon)
     OD_ASSERT_TRUE(is >> weapon->mElementDamageMin);
     OD_ASSERT_TRUE(is >> weapon->mAttackRating);
     OD_ASSERT_TRUE(is >> weapon->mDefenseRating);
+    OD_ASSERT_TRUE(is >> weapon->mWeaponType);
+    OD_ASSERT_TRUE(is >> weapon->mHands);
     return is;
+}
+
+//! \brief Uses the configured type or the former client mesh-keyword classification for old files.
+std::string Weapon::getWeaponType() const
+{
+    if(!mWeaponType.empty())
+        return mWeaponType;
+    std::string mesh = mMeshName;
+    std::transform(mesh.begin(), mesh.end(), mesh.begin(), [](unsigned char c) { return std::tolower(c); });
+    if(mesh.find("shield") != std::string::npos) return "shield";
+    if(mesh.find("bow") != std::string::npos) return "bow";
+    if(mesh.find("axe") != std::string::npos) return "axe";
+    if(mesh.find("hammer") != std::string::npos || mesh.find("mace") != std::string::npos) return "hammer";
+    if(mesh.find("spear") != std::string::npos || mesh.find("lance") != std::string::npos || mesh.find("pike") != std::string::npos) return "spear";
+    if(mesh.find("dagger") != std::string::npos || mesh.find("knife") != std::string::npos) return "dagger";
+    if(mesh.find("staff") != std::string::npos || mesh.find("wand") != std::string::npos) return "staff";
+    return "sword";
 }

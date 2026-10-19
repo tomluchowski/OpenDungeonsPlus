@@ -47,13 +47,14 @@ def field(block, key):
     return None
 
 
-def weapon_kind(mesh):
-    """The same order as weaponKind in CreatureCombatReactions.cpp."""
-    mesh = mesh.lower()
-    for kind, parts in (('Shield', ('shield',)), ('Bow', ('bow',)), ('Axe', ('axe',)), ('Hammer', ('hammer', 'mace')),
-                        ('Spear', ('spear', 'lance', 'pike')), ('Dagger', ('dagger', 'knife')),
-                        ('Staff', ('staff', 'wand'))):
-        if any(part in mesh for part in parts):
+# Map configured equipment types to client strike kinds.
+def weapon_kind(weapon_type):
+    """Use the equipment type rather than guessing from a mesh."""
+    mesh = weapon_type.lower()
+    for kind, parts in (('Shield', ('shield',)), ('Bow', ('bow',)), ('Axe', ('axe',)), ('Hammer', ('club', 'hammer', 'mace', 'scepter')),
+                        ('Spear', ('spear', 'polearm', 'javelin')), ('Dagger', ('dagger', 'throwing', 'claw')),
+                        ('Staff', ('staff', 'wand', 'orb'))):
+        if mesh in parts:
             return kind
     return 'Sword'
 
@@ -62,9 +63,20 @@ STRIKE_KINDS = ('Sword', 'Axe', 'Hammer', 'Spear', 'Dagger')
 
 equipment_mesh = {}
 for block in parse_blocks(read('config/equipments.cfg'), 'Equipment'):
-    equipment_mesh[field(block, 'Name')] = [w[1] for w in block if w[0] == 'MeshName'][0]
+    weapon_type = field(block, 'WeaponType')
+    if weapon_type is None:
+        mesh = field(block, 'MeshName').lower()
+        weapon_type = 'sword'
+        for kind, words in (('shield', ('shield',)), ('bow', ('bow',)), ('axe', ('axe',)),
+                            ('hammer', ('hammer', 'mace')), ('spear', ('spear', 'lance', 'pike')),
+                            ('dagger', ('dagger', 'knife')), ('staff', ('staff', 'wand'))):
+            if any(word in mesh for word in words):
+                weapon_type = kind
+                break
+    equipment_mesh[field(block, 'Name')] = weapon_type
 
 
+# Check that both carried types can strike.
 def two_attack_weapons(left, right):
     if left in (None, 'none') or right in (None, 'none'):
         return False
@@ -94,7 +106,7 @@ fixture = parse_blocks(read(fixture_path), 'Creature')
 creatures = {}
 for block in fixture:
     creatures[field(block, 'Name')] = (field(block, 'WeaponSpawnL'), field(block, 'WeaponSpawnR'))
-assert creatures['TestTwoSwords'] == ('Longsword', 'Longsword')
+assert creatures['TestTwoSwords'] == ('BasicSword', 'BasicSword')
 assert two_attack_weapons(*creatures['TestTwoSwords'])
 assert not two_attack_weapons(*creatures['TestSwordShield']), 'sword and shield is no two weapon creature'
 assert not two_attack_weapons(*creatures['TestBowOnly']), 'a bow is no strike weapon'

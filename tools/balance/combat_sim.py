@@ -119,7 +119,7 @@ class Roster:
                 result.append(name)
         return result
 
-    # Apply level curves, item bonuses, recovery and the configured avoidance type.
+    # Apply level curves, typed item bonuses and melee recovery damage compensation.
     def unit(self, name, level=1):
         level = max(1, min(MAX_LEVEL, level))
         fields = self.creatures[name][0]
@@ -139,15 +139,29 @@ class Roster:
             defense.append(combat_stat(self.number(fields, channel + "Defense"), self.number(fields, channel + "Def/Level"), level, "damage") + sum(self.number(item, channel + "Defense") for item in items))
         melee = attack[0] == "Melee"
         weapon_cooldowns = [self.number(item, "CooldownNbTurns") for item in items if self.number(item, "CooldownNbTurns") > 0]
-        cooldown = max(weapon_cooldowns) if melee and weapon_cooldowns else float(attack[1])
+        skill_cooldown = float(attack[1])
+        weapon_cooldown = max(weapon_cooldowns, default=0) if melee else 0
+        cooldown = max(skill_cooldown, weapon_cooldown)
+        timing_factor = weapon_cooldown / skill_cooldown if weapon_cooldown > skill_cooldown > 0 else 1
+        minimum = [value * timing_factor for value in minimum]
+        maximum = [value * timing_factor for value in maximum]
         cooldown = max(1, cooldown * (1 - 0.0075 * (level - 1))) if cooldown else 0
         parry = 0
         shield = False
         for item in items:
-            mesh = item.get("MeshName", [""])[0].lower()
-            if "shield" in mesh:
+            weapon_type = item.get("WeaponType", [""])[0]
+            if not weapon_type:
+                mesh = item.get("MeshName", [""])[0].lower()
+                weapon_type = "sword"
+                for legacy_type, words in (("shield", ("shield",)), ("bow", ("bow",)), ("axe", ("axe",)),
+                                           ("hammer", ("hammer", "mace")), ("spear", ("spear", "lance", "pike")),
+                                           ("dagger", ("dagger", "knife")), ("staff", ("staff", "wand"))):
+                    if any(word in mesh for word in words):
+                        weapon_type = legacy_type
+                        break
+            if weapon_type == "shield":
                 shield = True
-            elif not any(word in mesh for word in ("bow", "staff", "wand")):
+            elif weapon_type in ("sword", "axe", "dagger", "club", "mace", "hammer", "scepter", "spear", "polearm"):
                 base = self.number(item, "ParryBase", float(self.global_values["ParryBase"]))
                 step = self.number(item, "ParryPerLevel", float(self.global_values["ParryPerLevel"]))
                 cap = self.number(item, "ParryMax", float(self.global_values["ParryMax"]))

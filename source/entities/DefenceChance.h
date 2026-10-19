@@ -71,30 +71,17 @@ inline double hitChance(double attackRating, double defenseRating, uint32_t atta
     return std::max(MIN_HIT_PERCENT, std::min(MAX_HIT_PERCENT, chance));
 }
 
-//! Weapon kinds by the name of the mesh (lower case), same keywords as the client uses to show the weapon
-inline bool contains(const std::string& text, const char* part)
+//! \brief Identifies held shields from the equipment type rather than its mesh.
+inline bool isShieldType(const std::string& type)
 {
-    return text.find(part) != std::string::npos;
+    return type == "shield";
 }
 
-//! \brief Identifies a held shield from its mesh name.
-//! Returns true if the mesh name (lower case) is that of a shield
-inline bool isShieldMesh(const std::string& meshLower)
+//! \brief Identifies the equipment types eligible for configured weapon parry.
+inline bool isParryWeaponType(const std::string& type)
 {
-    return contains(meshLower, "shield");
-}
-
-//! \brief Identifies held striking weapons for creature types explicitly configured to parry.
-//! A shield, a bow or crossbow and a staff or wand cannot parry.
-inline bool isParryWeaponMesh(const std::string& meshLower)
-{
-    if(isShieldMesh(meshLower) || contains(meshLower, "bow"))
-        return false;
-
-    if(contains(meshLower, "staff") || contains(meshLower, "wand"))
-        return false;
-
-    return true;
+    return type == "sword" || type == "axe" || type == "dagger" || type == "club" || type == "mace" ||
+        type == "hammer" || type == "scepter" || type == "spear" || type == "polearm";
 }
 } // namespace DefenceChance
 

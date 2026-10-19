@@ -94,12 +94,13 @@ assert 'std::max(MIN_HIT_PERCENT, std::min(MAX_HIT_PERCENT, chance))' in hit
 for constant in ('HIT_SCALE = 200.0', 'MIN_HIT_PERCENT = 5.0', 'MAX_HIT_PERCENT = 95.0'):
     assert constant in header, constant
 
-# The weapon keywords are the ones the client uses to show the weapon (CreatureCombatReactions.cpp weaponKind)
-client_kinds = read('source/render/CreatureCombatReactions.cpp')
-client_kinds = client_kinds[client_kinds.index('std::string weaponKind('):]
-client_kinds = client_kinds[:client_kinds.index('\n}\n')]
-for keyword in ('shield', 'bow', 'staff', 'wand'):
-    assert '"' + keyword + '"' in client_kinds and '"' + keyword + '"' in header, keyword
+# Client reactions and server avoidance both use the configured equipment type.
+client_kinds = function_body(read('source/render/CreatureCombatReactions.cpp'), 'std::string weaponKind(')
+assert 'getWeaponType()' in client_kinds and 'getMeshName()' not in client_kinds
+for keyword in ('shield', 'sword', 'axe', 'dagger', 'club', 'mace', 'hammer', 'scepter', 'spear', 'polearm'):
+    assert '"' + keyword + '"' in header, keyword
+for excluded in ('bow', 'crossbow', 'staff', 'wand', 'orb', 'tool', 'throwing', 'javelin', 'claw'):
+    assert '"' + excluded + '"' not in function_body(header, 'inline bool isParryWeaponType('), excluded
 
 # ---------------------------------------------------------------------------------------------------------------
 # Configuration: global.cfg with the values of the order, ConfigManager reads them with limits
@@ -139,7 +140,7 @@ launch = read('source/creatureskill/CreatureSkillMissileLaunch.cpp')
 one_hit = read('source/entities/MissileOneHit.cpp')
 roll = function_body(creature, 'DefenceChance::Outcome Creature::rollMeleeDefence(bool missile) const')
 for needle in ('getMeleeDodgeParry()', 'getIsOnServerMap()', 'isAlive()', 'isKo()',
-               'DefenceChance::isShieldMesh(mesh)', 'DefenceChance::isParryWeaponMesh(mesh)',
+               'DefenceChance::isShieldType(type)', 'DefenceChance::isParryWeaponType(type)',
                'DefenceChance::dodgeChance(', 'DefenceChance::parryChance(', 'DefenceChance::decide(',
                'Random::Double(0.0, 100.0)', 'getDodgeBase()', 'getDodgePerLevel()', 'getDodgeMax()', 'getParryBase()',
                'getParryPerLevel()', 'getParryMax()', 'getShieldBlockBase()', 'getShieldBlockPerLevel()',
@@ -240,28 +241,12 @@ for skeleton in ('Adventurer', 'Cultist', 'Dwarf2', 'Gnome', 'Goblin', 'Knight',
     data = (root / 'models' / (skeleton + '.skeleton')).read_bytes()
     assert b'WeaponParry' in data and b'Idle' in data and b'Attack1' in data, skeleton
 
-# The Goblin carries its knife, which is part of the model (visual and parry only: the knife adds no damage and no defence yet).
-# Its mesh name is classified like the code does: client weaponKind and server isShieldMesh / isParryWeaponMesh
-# Mirror the existing client mesh classification for compatibility checks.
-def mirror_weapon_kind(mesh):
-    mesh = mesh.lower()
-    for kind, words in (('Shield', ('shield',)), ('Bow', ('bow',)), ('Axe', ('axe',)), ('Hammer', ('hammer', 'mace')),
-                        ('Spear', ('spear', 'lance', 'pike')), ('Dagger', ('dagger', 'knife')), ('Staff', ('staff', 'wand'))):
-        if any(word in mesh for word in words):
-            return kind
-    return 'Sword'
+# The Goblin's built-in knife is explicitly a dagger even though it attaches no mesh.
+# Mirror the explicit server type set to verify its configured parry chance.
+def mirror_is_parry_weapon(weapon_type):
+    return weapon_type in ('sword', 'axe', 'dagger', 'club', 'mace', 'hammer', 'scepter', 'spear', 'polearm')
 
 
-# Mirror the server's carried weapon filter for parry-configured creature types.
-def mirror_is_parry_weapon(mesh):
-    mesh = mesh.lower()
-    return not ('shield' in mesh or 'bow' in mesh or 'staff' in mesh or 'wand' in mesh)
-
-
-combat = read('source/render/CreatureCombatReactions.cpp')
-kind_body = function_body(combat, 'std::string weaponKind(const Weapon* weapon)')
-for word in ('shield', 'bow', 'axe', 'hammer', 'mace', 'spear', 'lance', 'pike', 'dagger', 'knife', 'staff', 'wand'):
-    assert 'contains(mesh, "' + word + '")' in kind_body, word
 creatures_cfg = read('config/creatures.cfg')
 goblin = re.search(r'\[Creature\]\s*\n\s+Name\s+Goblin\s*\n(.*?)\[/Creature\]', creatures_cfg, re.S).group(1)
 assert re.search(r'^\s+WeaponSpawnR\s+Knife\s*$', goblin, re.M)
@@ -271,10 +256,10 @@ knife_mesh = re.search(r'MeshName\s+(\S+)', equipment).group(1)
 # the knife is a submesh of the Goblin model, so the weapon attaches no mesh of its own
 assert knife_mesh == 'none'
 assert b'GoblinKnife' in (root / 'models' / 'Goblin.mesh').read_bytes()
-assert mirror_is_parry_weapon(knife_mesh)
+assert mirror_is_parry_weapon('dagger')
 # no shield, so the parry chance is the weapon one: level 1 and level 10 as in the table above
-assert abs(parry_chance(1, mirror_is_parry_weapon(knife_mesh), *PARRY) - 3.5) < 1e-9
-assert abs(parry_chance(10, mirror_is_parry_weapon(knife_mesh), *PARRY) - 8.0) < 1e-9
+assert abs(parry_chance(1, mirror_is_parry_weapon('dagger'), *PARRY) - 3.5) < 1e-9
+assert abs(parry_chance(10, mirror_is_parry_weapon('dagger'), *PARRY) - 8.0) < 1e-9
 for stat in ('PhysicalDefense', 'MagicalDefense', 'ElementDefense'):
     assert re.search(r'^\s+' + stat + r'\s+0\s*$', equipment, re.M), stat
 
@@ -325,9 +310,9 @@ int main()
     check(near(DefenceChance::hitChance(300.0, 100.0, 1, 1), 75.0), "same-level hit chance");
     check(near(DefenceChance::hitChance(1.0, 100000.0, 1, 30), 5.0), "minimum hit chance");
     check(near(DefenceChance::hitChance(100000.0, 1.0, 30, 1), 95.0), "maximum hit chance");
-    check(DefenceChance::isShieldMesh("woodenshield.mesh") && !DefenceChance::isParryWeaponMesh("woodenshield.mesh"), "shield");
-    check(!DefenceChance::isParryWeaponMesh("longbow.mesh") && !DefenceChance::isParryWeaponMesh("staff.mesh"), "bow and staff");
-    check(DefenceChance::isParryWeaponMesh("sword.mesh") && DefenceChance::isParryWeaponMesh("axe.mesh"), "sword and axe");
+    check(DefenceChance::isShieldType("shield") && !DefenceChance::isParryWeaponType("shield"), "shield");
+    check(!DefenceChance::isParryWeaponType("bow") && !DefenceChance::isParryWeaponType("staff"), "bow and staff");
+    check(DefenceChance::isParryWeaponType("sword") && DefenceChance::isParryWeaponType("axe"), "sword and axe");
     std::cout << "CHECKS=" << checks << " FAILURES=" << failures << '\\n';
     return failures ? 1 : 0;
 }

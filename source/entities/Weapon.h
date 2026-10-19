@@ -43,6 +43,7 @@ public:
        mMagicalDefense(0.0),
        mElementDefense(0.0),
        mCooldownNbTurns(0),
+       mHands(1),
        mParryBase(-1.0),
        mParryPerLevel(-1.0),
        mParryMax(-1.0)
@@ -60,6 +61,7 @@ public:
        mMagicalDefense(0.0),
        mElementDefense(0.0),
        mCooldownNbTurns(0),
+       mHands(1),
        mParryBase(-1.0),
        mParryPerLevel(-1.0),
        mParryMax(-1.0)
@@ -90,6 +92,12 @@ public:
 
     inline const std::string& getMeshName() const
     { return mMeshName; }
+
+    //! \brief Returns the explicit equipment type, deriving the legacy kind from the mesh when absent.
+    std::string getWeaponType() const;
+
+    //! \brief Returns the number of occupied hands; legacy equipment occupies one hand.
+    uint32_t getHands() const { return mHands; }
 
     inline double getPhysicalDamage() const
     { return mPhysicalDamage; }
@@ -161,6 +169,8 @@ private:
     double          mElementDefense;
     //! \brief Melee cooldown in turns when carried (optional CooldownNbTurns field, 0 = none)
     uint32_t        mCooldownNbTurns;
+    std::string     mWeaponType;
+    uint32_t        mHands;
     //! \brief Parry values in percent of the optional ParryBase / ParryPerLevel / ParryMax fields (negative = not set,
     //! the global values apply)
     double          mParryBase;

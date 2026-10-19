@@ -2716,13 +2716,13 @@ bool isLevelScaledAttack(const CreatureSkill& skill)
 }
 }
 
-//! \brief Gets the cooldown in turns applied after the skill was used (weapon value for melee, level scaled for attacks).
+//! \brief Gets the larger skill or weapon cooldown for melee, with level scaling for attacks.
 double Creature::getAppliedCooldownNbTurns(const CreatureSkill& skill) const
 {
     uint32_t baseCooldown = skill.getCooldownNbTurns();
     if(dynamic_cast<const CreatureSkillMeleeFight*>(&skill) != nullptr)
     {
-        // The melee cooldown comes only from the weapons (shields have none); the larger value counts
+        // Melee recovery keeps the larger skill or held-weapon cooldown.
         const Weapon* weapons[2] = {mWeaponL, mWeaponR};
         uint32_t weaponCooldown = 0;
         for(const Weapon* weapon : weapons)
@@ -2734,7 +2734,7 @@ double Creature::getAppliedCooldownNbTurns(const CreatureSkill& skill) const
         }
 
         if(weaponCooldown != 0)
-            baseCooldown = weaponCooldown;
+            baseCooldown = std::max(baseCooldown, weaponCooldown);
     }
 
     if(!isLevelScaledAttack(skill))
@@ -3808,11 +3808,10 @@ DefenceChance::Outcome Creature::rollMeleeDefence(bool missile) const
         if(weapons[i] == nullptr)
             continue;
 
-        std::string mesh = weapons[i]->getMeshName();
-        std::transform(mesh.begin(), mesh.end(), mesh.begin(), ::tolower);
-        if(DefenceChance::isShieldMesh(mesh))
+        const std::string type = weapons[i]->getWeaponType();
+        if(DefenceChance::isShieldType(type))
             hasShield = true;
-        else if(DefenceChance::isParryWeaponMesh(mesh))
+        else if(DefenceChance::isParryWeaponType(type))
             parryWeapons[i] = weapons[i];
     }
 

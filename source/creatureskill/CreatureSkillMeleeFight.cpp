@@ -82,7 +82,7 @@ bool CreatureSkillMeleeFight::canBeUsedBy(const Creature* creature) const
     return true;
 }
 
-//! \brief Resolves creature hit chance and typed avoidance without changing attack timing or building damage.
+//! \brief Resolves creature hits with weapon recovery compensation, preserving building damage.
 bool CreatureSkillMeleeFight::tryUseFight(GameMap& gameMap, Creature* creature, float range,
         GameEntity* attackedObject, Tile* attackedTile, bool ko, bool notifyPlayerIfHit) const
 {
@@ -129,6 +129,21 @@ bool CreatureSkillMeleeFight::tryUseFight(GameMap& gameMap, Creature* creature, 
             double magMin = mMagMin, magMax = mMagMax;
             double eleMin = mEleMin, eleMax = mEleMax;
             CombatDamage::scale(*creature, phyMin, phyMax, magMin, magMax, eleMin, eleMax);
+            uint32_t weaponCooldown = 0;
+            const Weapon* weapons[] = {creature->getWeaponL(), creature->getWeaponR()};
+            for(const Weapon* weapon : weapons)
+            {
+                if(weapon != nullptr)
+                    weaponCooldown = std::max(weaponCooldown, weapon->getCooldownNbTurns());
+            }
+            const double timingFactor = weaponCooldown > getCooldownNbTurns() && getCooldownNbTurns() > 0
+                ? static_cast<double>(weaponCooldown) / getCooldownNbTurns() : 1.0;
+            phyMin *= timingFactor;
+            phyMax *= timingFactor;
+            magMin *= timingFactor;
+            magMax *= timingFactor;
+            eleMin *= timingFactor;
+            eleMax *= timingFactor;
             creatureDamage = CombatDamage::roll(*target,
                 phyMin, phyMax, magMin, magMax, eleMin, eleMax, &creatureRawDamage) * modifier;
             creatureRawDamage *= modifier;
