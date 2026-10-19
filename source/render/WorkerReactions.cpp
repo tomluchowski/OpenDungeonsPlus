@@ -114,7 +114,6 @@ const double TREASURY_SMOOTH_DELAY = 3.5;
 const double PRISONER_SHOVE_DELAY = 0.1;
 const double CORPSE_LOOK_BACK_DELAY = 0.6;
 const double TRAP_KNOCK_DELAY = 0.4;
-const double DOOR_PLACE_DELAY = 0.4;
 const double HASTY_DELAY = 1.0;
 
 const std::string GOLD_BODY_PREFIX = "WorkerGoldBody_";
@@ -538,7 +537,7 @@ void WorkerReactions::noteRelease(CreatureReactions& reactions, Creature* carrie
     }
     else if((type == GameEntityType::craftedTrap) && isDoorType(static_cast<CraftedTrap*>(carried)->getTrapType()))
     {
-        later(reactions, carrier, "DoorPlace", DOOR_PLACE_DELAY);
+        later(reactions, carrier, "DoorPlace", 0.4);
     }
     else if((type == GameEntityType::craftedTrap) || (type == GameEntityType::giftBoxEntity))
     {
