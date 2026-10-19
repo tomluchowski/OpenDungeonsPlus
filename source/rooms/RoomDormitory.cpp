@@ -536,8 +536,12 @@ bool RoomDormitory::hasCarryEntitySpot(GameEntity* carriedEntity)
         return false;
 
     Creature* creature = static_cast<Creature*>(carriedEntity);
-    // Only ko to death creatures owning a bed in this dormitory should be carried here
-    if(creature->getKoTurnCounter() >= 0)
+    // Only ko to death creatures and hurt creatures (all pulled over the ground, see
+    // Creature::isKoToDeathForBedPull and Creature::isWoundedForBedCarry) owning a bed in this
+    // dormitory should be brought here
+    bool pullable = (creature->getKoTurnCounter() < 0) ? creature->isKoToDeathForBedPull() :
+        creature->isWoundedForBedCarry();
+    if(!pullable)
         return false;
 
     Tile* homeTile = creature->getHomeTile();
@@ -545,6 +549,10 @@ bool RoomDormitory::hasCarryEntitySpot(GameEntity* carriedEntity)
         return false;
 
     if(homeTile->getCoveringRoom() != this)
+        return false;
+
+    // Only the own bed counts, a creature without a bed of its own in here is not brought anywhere
+    if(askSpotForCarriedEntity(carriedEntity) == nullptr)
         return false;
 
     return true;
@@ -571,6 +579,10 @@ Tile* RoomDormitory::askSpotForCarriedEntity(GameEntity* carriedEntity)
 
 void RoomDormitory::notifyCarryingStateChanged(Creature* carrier, GameEntity* carriedEntity)
 {
+    // The creature died or was removed on the way
+    if(carriedEntity == nullptr)
+        return;
+
     if(carriedEntity->getObjectType() != GameEntityType::creature)
     {
         OD_LOG_ERR("room=" + getName() + ", entity=" + carriedEntity->getName());
@@ -585,10 +597,29 @@ void RoomDormitory::notifyCarryingStateChanged(Creature* carrier, GameEntity* ca
         return;
     }
 
-    if(posTile != creature->getHomeTile())
+    // The carrier stops on the tile owning the bed, the creature sleeps on its home tile of the bed. A hurt
+    // creature that a worker pulls lies on the ground behind the worker: it counts as brought when the worker
+    // stands on the tile owning its bed (it slides the last steps into the bed by itself)
+    Tile* carrierTile = (carrier != nullptr) ? carrier->getPositionTile() : nullptr;
+    bool isAtBed = (posTile == creature->getHomeTile());
+    if(!isAtBed)
+    {
+        for(const BedRoomObjectInfo& bed : mBedRoomObjectsInfo)
+        {
+            if((bed.getCreature() != creature) || (bed.getOwningTile() == nullptr))
+                continue;
+
+            if((bed.getOwningTile() == posTile) || (bed.getOwningTile() == carrierTile))
+                isAtBed = true;
+        }
+    }
+    if(!isAtBed)
         return;
 
-    creature->resetKoTurns();
+    // A hurt creature that was only knocked out for a while keeps its knock out counter and wakes
+    // up in its bed; a KO to death one is revived
+    if(creature->getKoTurnCounter() < 0)
+        creature->resetKoTurns();
     creature->sleep();
 }
 

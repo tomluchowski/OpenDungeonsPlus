@@ -296,7 +296,11 @@ set(OD_SOURCEFILES
     ${SRC}/creaturemood/CreatureMoodCreature.cpp
     ${SRC}/creaturemood/CreatureMoodFee.cpp
     ${SRC}/creaturemood/CreatureMoodHunger.cpp
+    ${SRC}/creaturemood/CreatureMoodHeldInHand.cpp
     ${SRC}/creaturemood/CreatureMoodHpLoss.cpp
+    ${SRC}/creaturemood/CreatureMoodNoLair.cpp
+    ${SRC}/creaturemood/CreatureMoodOutOfWork.cpp
+    ${SRC}/creaturemood/CreatureMoodSlapped.cpp
     ${SRC}/creaturemood/CreatureMoodManager.cpp
     ${SRC}/creaturemood/CreatureMoodTurnsWithoutFight.cpp
 
@@ -406,6 +410,7 @@ set(OD_SOURCEFILES
 
     ${SRC}/network/ChatEventMessage.cpp
     ${SRC}/network/ClientNotification.cpp
+    ${SRC}/network/CosmeticEvent.cpp
     ${SRC}/network/ODClient.cpp
     ${SRC}/network/ODPacket.cpp
     ${SRC}/network/ODServer.cpp
@@ -415,6 +420,10 @@ set(OD_SOURCEFILES
     ${SRC}/network/ServerNotification.cpp
 
     ${SRC}/render/CreatureOverlayStatus.cpp
+    ${SRC}/render/CreatureReactionConfig.cpp
+    ${SRC}/render/CreatureReactions.cpp
+    ${SRC}/render/WorkerReactions.cpp
+    ${SRC}/render/WorkerExtras.cpp
     ${SRC}/render/DebugDrawer.cpp    
     ${SRC}/render/Gui.cpp
     ${SRC}/render/CreaturePortrait.cpp

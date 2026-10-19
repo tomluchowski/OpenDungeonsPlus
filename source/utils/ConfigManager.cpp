@@ -61,6 +61,8 @@ ConfigManager::ConfigManager(const std::string& configPath, const std::string& u
     mCreatureMoodFurious(-2000),
     mSlapDamagePercent(15),
     mSlapEffectDuration(15),
+    mLowHealthWalkSpeedFactor(0.7),
+    mLowHealthWalkThresholdPercent(50.0),
     mTimePayDay(300),
     mNbTurnsFuriousMax(120),
     mMaxManaPerSeat(200000.0),
@@ -507,6 +509,20 @@ bool ConfigManager::loadGlobalGameConfig(std::stringstream& configFile)
         {
             configFile >> nextParam;
             mSlapEffectDuration = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "LowHealthWalkSpeedFactor")
+        {
+            configFile >> nextParam;
+            mLowHealthWalkSpeedFactor = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "LowHealthWalkThresholdPercent")
+        {
+            configFile >> nextParam;
+            mLowHealthWalkThresholdPercent = Helper::toDouble(nextParam);
             // Not mandatory
         }
 
@@ -1628,6 +1644,15 @@ double ConfigManager::getRoomConfigDoubleOrDefault(const std::string& param, dou
         return defaultValue;
 
     return Helper::toDouble(it->second);
+}
+
+std::string ConfigManager::getRoomConfigStringOrDefault(const std::string& param, const std::string& defaultValue) const
+{
+    std::map<const std::string, std::string>::const_iterator it = mRoomsConfig.find(param);
+    if((it == mRoomsConfig.end()) || it->second.empty())
+        return defaultValue;
+
+    return it->second;
 }
 
 const std::string& ConfigManager::getTrapConfigString(const std::string& param) const

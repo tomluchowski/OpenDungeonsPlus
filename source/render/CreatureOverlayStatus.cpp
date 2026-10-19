@@ -21,6 +21,7 @@
 #include "entities/Creature.h"
 #include "entities/CreatureMoodValues.h"
 #include "game/Seat.h"
+#include "gamemap/GameMap.h"
 #include "render/MovableTextOverlay.h"
 #include "render/RenderManager.h"
 #include "utils/Helper.h"
@@ -29,6 +30,11 @@
 #include <OgreEntity.h>
 
 const std::string CREATURE_OVERLAY_STATUS_PREFIX = "CreatureOverlayStatus_";
+
+//! Character height of the overlay that shows the emote of a reaction
+static const Ogre::Real EMOTE_CHAR_HEIGHT = 16;
+//! Width and height in pixels of the area of the emote picture
+static const Ogre::Real EMOTE_SIZE = 32;
 
 enum class CreatureOverlays
 {
@@ -46,7 +52,9 @@ CreatureOverlayStatus::CreatureOverlayStatus(Creature* creature, Ogre::Entity* e
     mLevel(0),
     mTimeDisplayStatus(0),
     mStatus(0),
-    mOverlayIds(std::vector<uint32_t>(static_cast<uint32_t>(CreatureOverlays::nbCreatureOverlays), 0))
+    mOverlayIds(std::vector<uint32_t>(static_cast<uint32_t>(CreatureOverlays::nbCreatureOverlays), 0)),
+    mEmoteCreated(false),
+    mEmoteId(0)
 {
     mMovableTextOverlay = new MovableTextOverlay(creature->getName(),
         ent, cam);
@@ -81,6 +89,35 @@ void CreatureOverlayStatus::displayHealthOverlay(Ogre::Real timeToDisplay)
 {
     uint32_t healthId = mOverlayIds[static_cast<uint32_t>(CreatureOverlays::health)];
     mMovableTextOverlay->displayOverlay(healthId, timeToDisplay);
+}
+
+//! \brief Shows a reaction icon whose lifetime follows the reaction's game-time clock.
+void CreatureOverlayStatus::showEmote(const std::string& materialName, Ogre::Real timeToDisplay)
+{
+    if(!mEmoteCreated)
+    {
+        // The material is given at once: it has to be a valid one when the overlay is created
+        mEmoteId = mMovableTextOverlay->createChildOverlay("MedievalSharp", EMOTE_CHAR_HEIGHT, Ogre::ColourValue::White, materialName);
+        mMovableTextOverlay->forceTextArea(mEmoteId, EMOTE_SIZE, EMOTE_SIZE);
+        mEmoteCreated = true;
+    }
+    else
+    {
+        mMovableTextOverlay->setMaterialName(mEmoteId, materialName);
+    }
+
+    mEmoteRemaining = timeToDisplay;
+    mMovableTextOverlay->displayOverlay(mEmoteId, timeToDisplay > 0.0f ? -1.0f : timeToDisplay);
+}
+
+//! \brief Hides the reaction icon and clears its remaining game-time lifetime.
+void CreatureOverlayStatus::hideEmote()
+{
+    if(!mEmoteCreated)
+        return;
+
+    mEmoteRemaining = 0.0f;
+    mMovableTextOverlay->displayOverlay(mEmoteId, 0);
 }
 
 void CreatureOverlayStatus::updateHealth()
@@ -154,6 +191,7 @@ void CreatureOverlayStatus::updateStatus(Ogre::Real timeSincelastFrame)
     mMovableTextOverlay->setCaption(healthId, "");
 }
 
+//! \brief Keeps interface overlay clocks independent while expiring reaction icons in game time.
 void CreatureOverlayStatus::update(Ogre::Real timeSincelastFrame)
 {
     updateHealth();
@@ -165,6 +203,12 @@ void CreatureOverlayStatus::update(Ogre::Real timeSincelastFrame)
     if(timeSincelastFrame > 0.0)
         updateStatus(timeSincelastFrame);
 
+    if(mEmoteCreated && (mEmoteRemaining > 0.0f))
+    {
+        mEmoteRemaining -= timeSincelastFrame * static_cast<Ogre::Real>(mCreature->getGameMap()->getGameSpeedFactor());
+        if(mEmoteRemaining <= 0.0f)
+            hideEmote();
+    }
     mMovableTextOverlay->update(timeSincelastFrame);
     // Health, level and need symbols share the same request lifetime, including
     // temporary editor hover; hidden or dead creatures never show the overlay.

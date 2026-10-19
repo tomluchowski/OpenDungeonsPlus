@@ -30,6 +30,7 @@
 #include "network/ODPacket.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
+#include "render/CreatureReactions.h"
 #include "render/RenderManager.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
@@ -693,6 +694,9 @@ void GameEntity::updateFromPacket(ODPacket& is)
                                                                                               effect->mName, effect->mScript);
             mEntityParticleEffects.push_back(effect);
 
+            // A creature that gets a spell effect shows how it takes it
+            if(CreatureReactions::getSingletonPtr() != nullptr)
+                CreatureReactions::getSingleton().noteParticleEffect(this, effect->mScript);
 
         }
         else
