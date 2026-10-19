@@ -8,7 +8,7 @@ def main():
     width, height = 420, 840
     sheet = Image.new('RGB', (width * len(meshes), height))
     for index, mesh in enumerate(meshes):
-        image = Image.open('materials/textures/portrait-%s.mesh.png' % mesh).convert('RGB').resize((width, height))
+        image = Image.open('materials/textures/portrait-%s.png' % (mesh if '.mesh' in mesh else mesh + '.mesh')).convert('RGB').resize((width, height))
         draw = ImageDraw.Draw(image)
         for step in range(1, 10):
             x = step * width // 10

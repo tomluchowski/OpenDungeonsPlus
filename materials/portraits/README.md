@@ -39,6 +39,17 @@ neutral bases in `config/dungeonbook-base-tints.cfg`, the hair and beard colours
 `config/dungeonbook-part-tints.cfg` (the bases have no hair, eyes or beards, so the colour is applied to the chosen
 parts) and the profile remarks that match the parts in
 `config/dungeonbook-quirks.cfg` (one line per slot and option name, as written in the manifests).
+## Gender variants
+
+Seventeen humanoid portraits have a second image for the other gender:
+`portrait-<Mesh>.mesh-female.png` (or `-male.png` for the two elves), each with
+a prompt record `<Mesh>-female.md` / `<Mesh>-male.md`. The game shows such an image
+in the profile card and the Dungeonbook when the creature's profile gender matches
+it and the file exists; otherwise, and for creatures without a gender, it uses the
+base `portrait-<Mesh>.mesh.png`. The population panel and the hand icons always use
+the base image. The colour regions of `config/portrait-tints.cfg` are tuned per
+image, so every gender image has an own entry named like the file (for example
+`Orc.mesh-female`).
 
 ## Goblin.mesh
 
@@ -46,3 +57,10 @@ Identity reference: `build/portrait-export/portrait-Goblin.mesh.png`.
 Output: `materials/textures/portrait-Goblin.mesh.png`.
 
 Create a finished 2D painted game portrait from this original project's goblin model reference, preserving its identity rather than rendering the model. One narrow vertical portrait, exactly 1:2 width-to-height composition. Subject: bald gray-olive green goblin, huge pointed ears, bright pale green eyes, wide nose, small pointed teeth, lean bare upper torso; all these identity features must match the supplied reference. Reinterpret as an expressive, mischievous hand-painted late-1990s dark-fantasy strategy-game character card: prominent face with a sly crooked grin and slightly raised eyebrow, bold painterly contours, deliberately illustrated shadows, readable shapes at 50x100 pixels, humorous sinister personality. Head fully visible including ears, upper body down to mid-chest, slight three-quarter pose, head occupies upper half, shoulders lower half. Flat very dark desaturated blue backdrop, opaque image. No 3D-rendered surfaces, no photorealism, no UI frame, no text, numbers or symbols, no added equipment, no characters from other games. Output a single portrait image ready to use as game art.
+
+
+## Existing feature placement candidates
+
+The [feature delivery](variants/README.md) contains 632 derived patches and 34 manifests made from the existing isolated assets.
+All source features and base portraits are unchanged. Technical checks passed, but 422 option composites have documented fit problems and visual acceptance remains open.
+No new artwork was generated for this preparation; game composition is a separate task.

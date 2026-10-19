@@ -38,6 +38,8 @@
 #include <CEGUI/widgets/PushButton.h>
 #include <CEGUI/widgets/TabControl.h>
 #include <CEGUI/Event.h>
+#include <CEGUI/LeftAlignedRenderedString.h>
+#include <CEGUI/RenderedStringWordWrapper.h>
 
 #include <algorithm>
 #include <sstream>
@@ -316,38 +318,15 @@ const float PROFILE_ROW_GAP = 4.0f;
 const float PROFILE_LINE_PADDING = 4.0f;
 //! Scroll step of the profile page (design pixels), about two lines
 const float PROFILE_SCROLL_STEP = 28.0f;
+//! Width the rows of the profile page leave free next to the text: 16 design pixels on each side
+const float PROFILE_ROW_INSET_TOTAL = 32.0f;
 
-//! \brief Number of lines the text needs when it is wrapped at the given pixel width
-std::size_t countWrappedLines(const CEGUI::Font* font, const std::string& text, float width)
+//! \brief Number of lines the window text occupies when CEGUI wraps it at the given pixel width
+std::size_t countWrappedLines(const CEGUI::Window* window, float width)
 {
-    std::size_t lines = 1;
-    float lineWidth = 0.0f;
-    const float spaceWidth = font->getTextExtent(" ");
-    std::string::size_type pos = 0;
-    while(pos <= text.size())
-    {
-        std::string::size_type end = text.find_first_of(" \n", pos);
-        if(end == std::string::npos)
-            end = text.size();
-
-        const float wordWidth = font->getTextExtent(text.substr(pos, end - pos));
-        if((lineWidth > 0.0f) && (lineWidth + spaceWidth + wordWidth > width))
-        {
-            ++lines;
-            lineWidth = wordWidth;
-        }
-        else
-        {
-            lineWidth += ((lineWidth > 0.0f) ? spaceWidth : 0.0f) + wordWidth;
-        }
-        if((end < text.size()) && (text[end] == '\n'))
-        {
-            ++lines;
-            lineWidth = 0.0f;
-        }
-        pos = end + 1;
-    }
-    return lines;
+    CEGUI::RenderedStringWordWrapper<CEGUI::LeftAlignedRenderedString> wrapper(window->getRenderedString());
+    wrapper.format(window, CEGUI::Sizef(width, 0.0f));
+    return std::max<std::size_t>(1, wrapper.getNumOfFormattedTextLines());
 }
 
 //! \brief Height in design pixels of the given number of text lines of the window
@@ -366,10 +345,12 @@ float Gui::layoutProfileTextRow(CEGUI::Window* window, float y, float scale)
     if(!window->isVisible())
         return y;
 
-    const CEGUI::Font* font = window->getFont();
-    const float width = window->getPixelSize().d_width * 0.96f;
-    const std::size_t lines = (font == nullptr) ? 1 :
-        countWrappedLines(font, std::string(window->getText().c_str()), width);
+    // The row spans the page minus 16 design pixels on each side; the text uses that whole width
+    const CEGUI::Window* parent = window->getParent();
+    float width = window->getPixelSize().d_width;
+    if(parent != nullptr)
+        width = parent->getPixelSize().d_width - PROFILE_ROW_INSET_TOTAL * scale;
+    const std::size_t lines = countWrappedLines(window, width);
     const float height = getProfileLinesHeight(window, lines, scale);
     setScaledArea(window, CEGUI::URect(CEGUI::UDim(0, 16), CEGUI::UDim(0, y),
         CEGUI::UDim(1, -16), CEGUI::UDim(0, y + height)));

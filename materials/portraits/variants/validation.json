@@ -1,0 +1,181 @@
+{
+  "portraits": 34,
+  "patches": 632,
+  "source_images_unchanged": 632,
+  "base_portraits_unchanged": 34,
+  "technical_validation": "passed",
+  "correction_options": 422,
+  "native_visual_acceptance": "open",
+  "details": [
+    {
+      "id": "Kobold.mesh",
+      "patches": 19,
+      "corrections": 15
+    },
+    {
+      "id": "Kobold.mesh-female",
+      "patches": 21,
+      "corrections": 15
+    },
+    {
+      "id": "Goblin.mesh",
+      "patches": 19,
+      "corrections": 15
+    },
+    {
+      "id": "Goblin.mesh-female",
+      "patches": 21,
+      "corrections": 15
+    },
+    {
+      "id": "Orc.mesh",
+      "patches": 19,
+      "corrections": 15
+    },
+    {
+      "id": "Orc.mesh-female",
+      "patches": 21,
+      "corrections": 15
+    },
+    {
+      "id": "Dwarf1.mesh",
+      "patches": 19,
+      "corrections": 12
+    },
+    {
+      "id": "Dwarf1.mesh-female",
+      "patches": 19,
+      "corrections": 14
+    },
+    {
+      "id": "Dwarf2.mesh",
+      "patches": 19,
+      "corrections": 16
+    },
+    {
+      "id": "Dwarf2.mesh-female",
+      "patches": 19,
+      "corrections": 16
+    },
+    {
+      "id": "RunelordDwarf.mesh",
+      "patches": 19,
+      "corrections": 14
+    },
+    {
+      "id": "RunelordDwarf.mesh-female",
+      "patches": 19,
+      "corrections": 12
+    },
+    {
+      "id": "Gnome.mesh",
+      "patches": 17,
+      "corrections": 12
+    },
+    {
+      "id": "Gnome.mesh-female",
+      "patches": 19,
+      "corrections": 12
+    },
+    {
+      "id": "Adventurer.mesh",
+      "patches": 21,
+      "corrections": 12
+    },
+    {
+      "id": "Adventurer.mesh-female",
+      "patches": 21,
+      "corrections": 12
+    },
+    {
+      "id": "Monk.mesh",
+      "patches": 21,
+      "corrections": 12
+    },
+    {
+      "id": "Monk.mesh-female",
+      "patches": 21,
+      "corrections": 12
+    },
+    {
+      "id": "Defender.mesh",
+      "patches": 21,
+      "corrections": 14
+    },
+    {
+      "id": "Defender.mesh-female",
+      "patches": 21,
+      "corrections": 14
+    },
+    {
+      "id": "Wizard.mesh",
+      "patches": 21,
+      "corrections": 12
+    },
+    {
+      "id": "Wizard.mesh-female",
+      "patches": 21,
+      "corrections": 12
+    },
+    {
+      "id": "Elf.mesh-male",
+      "patches": 21,
+      "corrections": 13
+    },
+    {
+      "id": "Elf.mesh",
+      "patches": 21,
+      "corrections": 13
+    },
+    {
+      "id": "DarkElf.mesh-male",
+      "patches": 21,
+      "corrections": 13
+    },
+    {
+      "id": "DarkElf.mesh",
+      "patches": 21,
+      "corrections": 13
+    },
+    {
+      "id": "Troll.mesh",
+      "patches": 19,
+      "corrections": 15
+    },
+    {
+      "id": "Troll.mesh-female",
+      "patches": 19,
+      "corrections": 15
+    },
+    {
+      "id": "Lizardman.mesh",
+      "patches": 17,
+      "corrections": 13
+    },
+    {
+      "id": "Lizardman.mesh-female",
+      "patches": 19,
+      "corrections": 15
+    },
+    {
+      "id": "Knight.mesh",
+      "patches": 9,
+      "corrections": 2
+    },
+    {
+      "id": "Knight.mesh-female",
+      "patches": 9,
+      "corrections": 4
+    },
+    {
+      "id": "Cultist.mesh",
+      "patches": 9,
+      "corrections": 4
+    },
+    {
+      "id": "Cultist.mesh-female",
+      "patches": 9,
+      "corrections": 4
+    }
+  ]
+}

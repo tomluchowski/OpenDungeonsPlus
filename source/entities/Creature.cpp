@@ -2679,7 +2679,7 @@ float Creature::fillProfilePage(CEGUI::Window* page)
     else
     {
         page->getChild("Portrait/Image")->setProperty("Image",
-            getCreatureProfilePortraitImage(getName(), definition->getMeshName()).getName());
+            getCreatureProfilePortraitImage(getName(), definition->getMeshName(), profile.mGender).getName());
     }
     page->getChild("NameText")->setText(profile.getFullName());
 

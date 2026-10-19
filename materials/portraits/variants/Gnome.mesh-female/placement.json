@@ -1,0 +1,344 @@
+[
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/build-1-slim.png",
+    "source_sha256": "e1a83e61663e26cce2226059188be901df17b3563889e01c12d53ebcb742d252",
+    "rect": [
+      0,
+      930,
+      887,
+      844
+    ],
+    "scale": 0.7403508771929824,
+    "offset": [
+      6.692982456140351,
+      -87.36140350877193
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/build-2-sturdy.png",
+    "source_sha256": "b05b7afaccc3ebeb7934a0074f1b79f9d5f1299d70ea71b3e2996d52b6e88799",
+    "rect": [
+      0,
+      930,
+      887,
+      844
+    ],
+    "scale": 0.7258592471358429,
+    "offset": [
+      -4.355155482815114,
+      -77.39116202945995
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-1-swept.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/hair-1-swept.png",
+    "source_sha256": "a6c99de7712342677cf7436a0b085f0b6f4216855d1513f93aa21b1e241351a6",
+    "rect": [
+      120,
+      600,
+      650,
+      900
+    ],
+    "scale": 0.5268542199488491,
+    "offset": [
+      -27.202046035805623,
+      -25.094629156010228
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-2-waves.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/hair-2-waves.png",
+    "source_sha256": "bdfcc7ce5cd31f5fc49d9a31ae6d0694af3752252561bc75aa827514d0da577c",
+    "rect": [
+      120,
+      600,
+      650,
+      900
+    ],
+    "scale": 0.6943820224719102,
+    "offset": [
+      -233.97752808988767,
+      -30.523595505617983
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/eyes-1-narrow.png",
+    "source_sha256": "966606f06afe8e145289663b8746017955f68b9cc5ffb21b11ebb56a3885011b",
+    "rect": [
+      322,
+      492,
+      315,
+      155
+    ],
+    "scale": 0.21652639632746748,
+    "offset": [
+      -34.45065034429992,
+      -19.50382555470543
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/eyes-2-round.png",
+    "source_sha256": "8f11e4067527a9a0932f0f39a86268981a4047fea810044e76ffdf75eb1dd3dd",
+    "rect": [
+      322,
+      492,
+      315,
+      155
+    ],
+    "scale": 0.19693806541405706,
+    "offset": [
+      -37.37021572720946,
+      -0.7828810020876844
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/eyes-3-eyepatch.png",
+    "source_sha256": "fa419777132ab6a36926fe343399d721782c28ba5df93e91b4083ac26a13b32b",
+    "rect": [
+      322,
+      492,
+      315,
+      155
+    ],
+    "scale": 0.2120689655172414,
+    "offset": [
+      -30.6051724137931,
+      -17.93103448275862
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/nose-1-crooked.png",
+    "source_sha256": "de224f2f0c1cee9a78b52f619109a4171243e581b0c28e446c1cad396d22b65b",
+    "rect": [
+      420,
+      580,
+      160,
+      120
+    ],
+    "scale": 0.10068649885583524,
+    "offset": [
+      12.187643020594969,
+      -0.814645308924483
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/nose-2-broad.png",
+    "source_sha256": "ddab5d3f42f9c21e2cca29cd3eab34db97078176e37ee461d6eafbaeeedde7fd",
+    "rect": [
+      420,
+      580,
+      160,
+      120
+    ],
+    "scale": 0.13193403298350825,
+    "offset": [
+      -21.32533733133434,
+      -7.880059970014994
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/mouth-1-teeth.png",
+    "source_sha256": "b4db49a74947969cde7c8454beef6224a972af52c64c0aeea0d8b3548cba891f",
+    "rect": [
+      335,
+      670,
+      290,
+      110
+    ],
+    "scale": 0.13805309734513274,
+    "offset": [
+      22.339823008849557,
+      -8.435398230088495
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/mouth-2-grin.png",
+    "source_sha256": "f6dc5e029a75de1c9e410eed8e79b71fba1927ad0556033d052fa9fb01a16c7c",
+    "rect": [
+      335,
+      670,
+      290,
+      110
+    ],
+    "scale": 0.12037037037037036,
+    "offset": [
+      34.1388888888889,
+      0.7129629629629637
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/mouth-3-cigar.png",
+    "source_sha256": "af12e8691522bad9f1d25087aa48756d832595c48b46aeae52ad620617eec3df",
+    "rect": [
+      335,
+      670,
+      290,
+      110
+    ],
+    "scale": 0.1776765375854214,
+    "offset": [
+      -20.061503416856482,
+      -23.088838268792706
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-1-square.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/chin-1-square.png",
+    "source_sha256": "d9010e4ecd7fb13a65dfc0cf246806059533f676e3d5c61bbaf98cb0949e82d3",
+    "rect": [
+      325,
+      725,
+      290,
+      150
+    ],
+    "scale": 0.19001610305958133,
+    "offset": [
+      -0.7423510466988859,
+      -26.753623188405797
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-2-rounded.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/chin-2-rounded.png",
+    "source_sha256": "2f24237c3eaeeb5d0509f5e1630e4bc8004da35fe23a5ed0b3842913c8c5cda0",
+    "rect": [
+      325,
+      725,
+      290,
+      150
+    ],
+    "scale": 0.17027417027417027,
+    "offset": [
+      14.910533910533914,
+      -13.116883116883116
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/scar-1-diagonal.png",
+    "source_sha256": "8bf57d93d172de83cc6b11d38f112fa4e93e87a5270b52c483ffa6657081c001",
+    "rect": [
+      285,
+      625,
+      170,
+      130
+    ],
+    "scale": 0.10828729281767956,
+    "offset": [
+      16.83314917127072,
+      -5.76574585635359
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/scar-2-scratches.png",
+    "source_sha256": "a8e928efce9a68b7aaed797258ae4104bbb816c32d6b09c7ec7471450d2d1223",
+    "rect": [
+      285,
+      625,
+      170,
+      130
+    ],
+    "scale": 0.10652173913043478,
+    "offset": [
+      12.884782608695652,
+      -7.860869565217392
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/scar-3-warpaint.png",
+    "source_sha256": "68fe3f6f6aa36ee908d99518762a6acae6c1d523ef7ad4b72c4a9b6238e33b1d",
+    "rect": [
+      285,
+      625,
+      170,
+      130
+    ],
+    "scale": 0.13411078717201166,
+    "offset": [
+      7.282798833819243,
+      -18.819241982507293
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/neck-1-teeth.png",
+    "source_sha256": "2d3b7f84e535e8f45296950ee163eef2d7cb6796a1848c29785372571468cb56",
+    "rect": [
+      295,
+      765,
+      310,
+      190
+    ],
+    "scale": 0.19899244332493704,
+    "offset": [
+      2.3727959697732928,
+      -7.083123425692698
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh-female/neck-2-torque.png",
+    "source_sha256": "62f3114ac3984324e3034b8be2e1fb21d7b398e3fe3d5d490693fc0324db9f06",
+    "rect": [
+      295,
+      765,
+      310,
+      190
+    ],
+    "scale": 0.20387096774193547,
+    "offset": [
+      -1.572903225806435,
+      -10.50322580645161
+    ],
+    "visual_acceptance": "native-review-pending"
+  }
+]

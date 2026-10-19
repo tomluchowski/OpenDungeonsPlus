@@ -1,0 +1,308 @@
+[
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh/build-1-slim.png",
+    "source_sha256": "257dcd3516ba69cc91b69a4f6cc2c5f4f7ca2020440cd2c4605b7e10b236d6bd",
+    "rect": [
+      0,
+      930,
+      887,
+      844
+    ],
+    "scale": 0.7926720285969616,
+    "offset": [
+      -18.231456657730117,
+      -140.40080428954425
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh/build-2-sturdy.png",
+    "source_sha256": "f1000020170cc54e26308211911d4f797c36c8f5d79956874f8dbc9004f9d933",
+    "rect": [
+      0,
+      930,
+      887,
+      844
+    ],
+    "scale": 0.7686308492201039,
+    "offset": [
+      -4.611785095320624,
+      -154.857452339688
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh/eyes-1-narrow.png",
+    "source_sha256": "b707949bbd617c458a353875a0405e4d897c4d3bc4bd3c587ffd43a9f0358428",
+    "rect": [
+      322,
+      492,
+      315,
+      155
+    ],
+    "scale": 0.19831814996496147,
+    "offset": [
+      -20.68885774351787,
+      -10.05746320953049
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh/eyes-2-round.png",
+    "source_sha256": "81a9a4a9324903b5c9f7bd9d6e92c120aacee18b3d6a2ef33206a10c10c1c475",
+    "rect": [
+      322,
+      492,
+      315,
+      155
+    ],
+    "scale": 0.21455648218347234,
+    "offset": [
+      -32.48976497346475,
+      -17.33396512509477
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh/eyes-3-eyepatch.png",
+    "source_sha256": "c85da1eb54bffe0e36ac0b2b343b6c018baa9143a6bb7754d88b3d731c4e4b02",
+    "rect": [
+      322,
+      492,
+      315,
+      155
+    ],
+    "scale": 0.20130932896890344,
+    "offset": [
+      -25.288870703764324,
+      -13.391162029459903
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh/nose-1-crooked.png",
+    "source_sha256": "508ce2d04f6d1de5e4d97bf725e224eb552889e5ab504acd82198af02809d1da",
+    "rect": [
+      420,
+      580,
+      160,
+      120
+    ],
+    "scale": 0.1368584758942457,
+    "offset": [
+      -25.17573872472783,
+      -9.729393468118193
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh/nose-2-broad.png",
+    "source_sha256": "3a3fcbcd667bf513d5a16677f22d2fb237b2f766c83233d4f987ec818080183d",
+    "rect": [
+      420,
+      580,
+      160,
+      120
+    ],
+    "scale": 0.15520282186948853,
+    "offset": [
+      -39.19576719576719,
+      -14.885361552028218
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh/mouth-1-teeth.png",
+    "source_sha256": "ee5065e27b8cc7befab21d983cdcfc3960954717276841abfbbcb2d6b6e7d848",
+    "rect": [
+      335,
+      670,
+      290,
+      110
+    ],
+    "scale": 0.15087040618955513,
+    "offset": [
+      11.177949709864599,
+      -12.212765957446809
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh/mouth-2-grin.png",
+    "source_sha256": "c5e0255e0fc04222562e58e58e7d271aedb4cd1a72db636037209e9435518008",
+    "rect": [
+      335,
+      670,
+      290,
+      110
+    ],
+    "scale": 0.1291390728476821,
+    "offset": [
+      30.776490066225172,
+      -2.2086092715231764
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh/mouth-3-cigar.png",
+    "source_sha256": "04ae2226b368d95da42b973572b1adc27ec35ac9459971ac6cf0ebb1e66ab662",
+    "rect": [
+      335,
+      670,
+      290,
+      110
+    ],
+    "scale": 0.1326530612244898,
+    "offset": [
+      25.545918367346935,
+      -7.877551020408166
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-1-square.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh/chin-1-square.png",
+    "source_sha256": "88504ef56339e18b86ab46cd2757774c3516f73ffbf816dd38394a3efc3ae399",
+    "rect": [
+      325,
+      725,
+      290,
+      150
+    ],
+    "scale": 0.1544502617801047,
+    "offset": [
+      26.382198952879577,
+      -4.5418848167539245
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-2-rounded.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh/chin-2-rounded.png",
+    "source_sha256": "ab709b919a67f3488dae3172f4636b1a219adc87eadae3a5a7ea408d3ab4bc83",
+    "rect": [
+      325,
+      725,
+      290,
+      150
+    ],
+    "scale": 0.15691489361702127,
+    "offset": [
+      23.547872340425535,
+      -7.694148936170212
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh/scar-1-diagonal.png",
+    "source_sha256": "9479ef435bed0443d862f48e89733d7d0f7f7e17618b06acedd10afa5494697b",
+    "rect": [
+      285,
+      625,
+      170,
+      130
+    ],
+    "scale": 0.09949238578680203,
+    "offset": [
+      19.534010152284264,
+      2.170558375634519
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh/scar-2-scratches.png",
+    "source_sha256": "ceffaf1c189b2ed47c3912b4839ed78d151150124b0b1ca7ea8214ae3747548f",
+    "rect": [
+      285,
+      625,
+      170,
+      130
+    ],
+    "scale": 0.12980132450331125,
+    "offset": [
+      -14.362913907284764,
+      -1.5231788079470192
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh/scar-3-warpaint.png",
+    "source_sha256": "7e93ab0e1e5b35d06a1d1c5e7e3ae002826acaf5ab694de492ff531a9e000ac6",
+    "rect": [
+      285,
+      625,
+      170,
+      130
+    ],
+    "scale": 0.10615384615384615,
+    "offset": [
+      4.004615384615384,
+      10.702307692307693
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh/neck-1-teeth.png",
+    "source_sha256": "dcaf8a2a8d9041043d1251bbb95151af6182082a25c0b18e2d6bb93daf789795",
+    "rect": [
+      295,
+      765,
+      310,
+      190
+    ],
+    "scale": 0.20899470899470898,
+    "offset": [
+      -5.6124338624338606,
+      -9.079365079365079
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Gnome.mesh/neck-2-torque.png",
+    "source_sha256": "dccbe102eb49dd43beae73d6ea1eb3ab2a2eedaff4186d0c2ccf79e6ceebbe09",
+    "rect": [
+      295,
+      765,
+      310,
+      190
+    ],
+    "scale": 0.21286370597243492,
+    "offset": [
+      -34.02297090352221,
+      -1.2143950995405923
+    ],
+    "visual_acceptance": "native-review-pending"
+  }
+]

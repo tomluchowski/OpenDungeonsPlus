@@ -88,3 +88,11 @@ writes normalized skin bounds to `config/dungeonbook-base-tints.cfg`, and record
 pixel bounds and source hashes in `base-tint-measurements.json`. All inspected
 bases have blank faces and no hair or beard; absent regions are recorded without
 inventing boxes from feature placement. Tint shifts remain neutral.
+
+
+## Existing isolated feature placement
+
+`prepare_existing_features.py` reads the existing isolated feature PNGs and the tracked feature catalog/layouts; it writes derived RGBA patches and manifests under `materials/portraits/variants/`, and local review composites under `work/existing-feature-review/`.
+It uses the same already available Pillow dependency as the grid helper and does not call an image-generation service or modify its input PNGs.
+Run `python tools/portraits/validate_existing_features.py` to check the delivery contract, source/base hashes and correction statuses.
+See the [delivery report](../../materials/portraits/variants/README.md) for known fit failures and the limits of technical validation.

@@ -6,20 +6,23 @@ repo = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(repo / 'tools/portraits'))
 import preview_tints as tints
 
-palettes, portraits = tints.load_config(repo / 'config/portrait-tints.cfg')
-
-for name, colours in palettes.items():
-    assert colours, 'palette %s is empty' % name
-    for colour in colours:
-        assert 0 <= colour[1] <= 360 and 0 <= colour[2] <= 1 and 0 < colour[3] <= 1, (name, colour)
+# load_config() applies the same parsing rules as PortraitTint::loadFromFile(): every line the game
+# would reject (for example a commented-out [Palette] opener) is reported here
+palettes, portraits, errors = tints.load_config(repo / 'config/portrait-tints.cfg')
+assert not errors, 'portrait-tints.cfg would not load in game: ' + '; '.join(errors)
 
 required = ('Kobold Dwarf1 Dwarf2 RunelordDwarf Gnome Adventurer Monk Knight Wizard Defender Cultist Elf DarkElf '
             'Goblin Orc Troll Lizardman').split()
 for mesh in required:
-    assert mesh in portraits and portraits[mesh], 'no tint regions for ' + mesh
+    assert mesh + '.mesh' in portraits and portraits[mesh + '.mesh'], 'no tint regions for ' + mesh
+
+# Every gender image has its own regions (the base regions do not fit another painting)
+for image in sorted((repo / 'materials/textures').glob('portrait-*.mesh-*.png')):
+    key = image.name[len('portrait-'):-len('.png')]
+    assert key in portraits and portraits[key], 'no tint regions for gender image ' + image.name
 
 for mesh, regions in portraits.items():
-    assert (repo / ('materials/textures/portrait-%s.mesh.png' % mesh)).exists(), 'no portrait for ' + mesh
+    assert (repo / ('materials/textures/portrait-%s.png' % mesh)).exists(), 'no portrait for ' + mesh
     for region_name, region in regions:
         where = '%s/%s' % (mesh, region_name)
         if 'palette' in region:
@@ -33,7 +36,7 @@ for mesh, regions in portraits.items():
         assert 0 <= region['sat'][0] <= region['sat'][1] <= 1 and 0 <= region['val'][0] <= region['val'][1] <= 1, where
 
 creature = (repo / 'source/entities/Creature.cpp').read_text()
-assert 'getCreatureProfilePortraitImage(getName(), definition->getMeshName())' in creature
+assert 'getCreatureProfilePortraitImage(getName(), definition->getMeshName(), profile.mGender)' in creature
 assert 'clearCreatureProfilePortraits();' in (repo / 'source/modes/GameMode.cpp').read_text()
 assert 'render/PortraitTint.cpp' in (repo / 'CMakeLists.txt').read_text()
 print('portrait tints ok: %d meshes' % len(portraits))

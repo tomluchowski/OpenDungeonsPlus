@@ -1,0 +1,128 @@
+[
+  {
+    "file": "build-1-slim.png",
+    "size": [
+      1217,
+      1293
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "sha256": "e185d74d223f19bbb9d106999080945e3c91abc6b17b89d32828685fa9963be4",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "build-2-sturdy.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "sha256": "a2082c67e67f3181dbbc57e8097d8b358f7e0fb6c08d319ef8ba4abddb06c249",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "hair-1-swept.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "sha256": "3b942b6b54d67c741bd8ea42380f427d8d8e49966d48e4e02e7c51797799eb83",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "hair-2-waves.png",
+    "size": [
+      1774,
+      887
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "sha256": "bef8b723631ff9cb0219d647fa09f1f11a27d983723e195256934ba65108aecb",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "scar-1-diagonal.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "sha256": "4e335d0774cfab2b251f0198adb73c1c5f349d7772a99b96e08684ea97dee7bd",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "scar-2-scratches.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "sha256": "c034f025c7ca3c46978c35a527a51b1d9305fe80c8398e934f7348c23cd21383",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "scar-3-warpaint.png",
+    "size": [
+      1331,
+      1181
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "sha256": "0dbc4322ae54c7c031341cd220ab21da952885135ad7259b0a2560a16f16bceb",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "neck-1-teeth.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "sha256": "4d0bc4b82f01cb81e68980367bd12c502763a5d848722cf42fda71c994e7be01",
+    "exact_generator_copy": true
+  },
+  {
+    "file": "neck-2-torque.png",
+    "size": [
+      1774,
+      887
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "sha256": "55d0aeeed67d7e16398078b872fc02246fb72c89261855de37bed9579870775f",
+    "exact_generator_copy": true
+  }
+]

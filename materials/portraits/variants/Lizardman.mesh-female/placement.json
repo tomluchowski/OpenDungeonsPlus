@@ -1,0 +1,344 @@
+[
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-1-slim.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh-female/build-1-slim.png",
+    "source_sha256": "132d2c17f8e448bf588bba6b3738db595b1f27078bc70dca69c74e5ed6a77e61",
+    "rect": [
+      0,
+      890,
+      887,
+      884
+    ],
+    "scale": 0.6560650887573964,
+    "offset": [
+      -8.528846153846153,
+      66.73076923076923
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "build-2-sturdy.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh-female/build-2-sturdy.png",
+    "source_sha256": "8f566e2b1b1f0ff7b127acaad303b9174319e51b8d7e9c1584f92c669c62c5f2",
+    "rect": [
+      0,
+      890,
+      887,
+      884
+    ],
+    "scale": 0.6455604075691412,
+    "offset": [
+      -5.684341886080802e-14,
+      69.18886462882094
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-1-shortfrill.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh-female/hair-1-shortfrill.png",
+    "source_sha256": "123e396ed1ed02da24eb7c6d74e1802509fd9c06703904d067260ea7d9f90965",
+    "rect": [
+      120,
+      160,
+      620,
+      900
+    ],
+    "scale": 0.5703200775945684,
+    "offset": [
+      -140.26770126091174,
+      -2.8205625606207576
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "hair-2-wavefrill.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh-female/hair-2-wavefrill.png",
+    "source_sha256": "92a522086e0caa3de45a4917d2721a43f9387a0d8168961cb43190e7cece5fa2",
+    "rect": [
+      120,
+      160,
+      620,
+      900
+    ],
+    "scale": 0.4659270998415214,
+    "offset": [
+      -23.603803486529323,
+      9.011093502377179
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-1-narrow.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh-female/eyes-1-narrow.png",
+    "source_sha256": "0401ab08604b657973b728b794ffc4d4643e9144fe06990cc16ace670d4115db",
+    "rect": [
+      345,
+      410,
+      280,
+      180
+    ],
+    "scale": 0.13276231263383298,
+    "offset": [
+      -4.179871520342612,
+      42.935760171306214
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-2-round.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh-female/eyes-2-round.png",
+    "source_sha256": "4745063cb438f9b756d5b2f91c993ddd412469077709297bd3b0d0d55c0f7654",
+    "rect": [
+      345,
+      410,
+      280,
+      180
+    ],
+    "scale": 0.16041397153945666,
+    "offset": [
+      -3.7309184993531694,
+      17.89391979301423
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "eyes-3-eyepatch.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh-female/eyes-3-eyepatch.png",
+    "source_sha256": "be83b091123dda119d91926d3f3bd7153b9d9ad9e534bc73197a636cd8f2e7a3",
+    "rect": [
+      345,
+      410,
+      280,
+      180
+    ],
+    "scale": 0.14648552864737152,
+    "offset": [
+      9.847607796810411,
+      26.7182516243355
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-1-crooked.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh-female/nose-1-crooked.png",
+    "source_sha256": "2e68868e0d5c1d6aa575eb9e360f88c42f894f0f4659091b7b02cb15ab123511",
+    "rect": [
+      475,
+      490,
+      230,
+      190
+    ],
+    "scale": 0.14119749776586238,
+    "offset": [
+      27.52815013404826,
+      4.1394101876675595
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "nose-2-broad.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh-female/nose-2-broad.png",
+    "source_sha256": "62d647fe68ee60a8b2fd6c73ca1091568fca62400dfe79abb3c785e1e15bb0b3",
+    "rect": [
+      475,
+      490,
+      230,
+      190
+    ],
+    "scale": 0.18876941457586618,
+    "offset": [
+      -29.97491039426523,
+      -2.876941457586618
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-1-teeth.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh-female/mouth-1-teeth.png",
+    "source_sha256": "c18d3fa9af0e64c4d918b795ce0131d0c7abb4fdcbb6bec85fba44d4f882d278",
+    "rect": [
+      335,
+      580,
+      400,
+      220
+    ],
+    "scale": 0.23115577889447236,
+    "offset": [
+      -5.035175879396984,
+      9.10050251256282
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-2-grin.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh-female/mouth-2-grin.png",
+    "source_sha256": "c18d4aa889b5bab3b08643393987ed1da07558417a809ee14547787dde96ae76",
+    "rect": [
+      335,
+      580,
+      400,
+      220
+    ],
+    "scale": 0.22744128553770088,
+    "offset": [
+      -3.787391841779975,
+      10.494437577255873
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "mouth-3-cigar.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh-female/mouth-3-cigar.png",
+    "source_sha256": "9620cd0723fd819490c5cc0ae8cf613de4c0ebee894f19bebe2361b70ecd2a32",
+    "rect": [
+      335,
+      580,
+      400,
+      220
+    ],
+    "scale": 0.24516988674217188,
+    "offset": [
+      -17.83344437041972,
+      2.8607594936708907
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-1-square.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh-female/chin-1-square.png",
+    "source_sha256": "75f660161a1c31ab280bddbb9357cb9cbebf567016348cc98d66c3a3c0179e9e",
+    "rect": [
+      335,
+      725,
+      360,
+      150
+    ],
+    "scale": 0.15712383488681758,
+    "offset": [
+      60.193075898801595,
+      2.95872170439414
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "chin-2-rounded.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh-female/chin-2-rounded.png",
+    "source_sha256": "dde5bbeaf4489afa1a1f875e2fd936bc646267e023d14b975f1e44e4629fc771",
+    "rect": [
+      335,
+      725,
+      360,
+      150
+    ],
+    "scale": 0.1912479740680713,
+    "offset": [
+      33.12155591572123,
+      -20.14586709886548
+    ],
+    "visual_acceptance": "needs-correction"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-1-diagonal.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh-female/scar-1-diagonal.png",
+    "source_sha256": "9df9a57ddf9fee97bb277ed2e5d40350f5a863dc5ffec32c5b647795a06e52fe",
+    "rect": [
+      260,
+      565,
+      180,
+      140
+    ],
+    "scale": 0.09045226130653267,
+    "offset": [
+      34.417085427135675,
+      13.015075376884422
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-2-scratches.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh-female/scar-2-scratches.png",
+    "source_sha256": "8e6ebf35cb845195a45d68e0709e01a6e63da901f8195d38ad23139e6a52aed1",
+    "rect": [
+      260,
+      565,
+      180,
+      140
+    ],
+    "scale": 0.11563169164882227,
+    "offset": [
+      -3.603854389721633,
+      10.680942184154176
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "scar-3-warpaint.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh-female/scar-3-warpaint.png",
+    "source_sha256": "2c1fc0bfa2e1eca9a9026c8721ed1611030ce9a442612385df85296b44255026",
+    "rect": [
+      260,
+      565,
+      180,
+      140
+    ],
+    "scale": 0.07479224376731301,
+    "offset": [
+      51.668975069252085,
+      14.878116343490312
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-1-teeth.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh-female/neck-1-teeth.png",
+    "source_sha256": "30b10353bcf96e4204a0d9b24d6bdc9c5bb4c8969cd577bdd4df84cd2546dfa0",
+    "rect": [
+      270,
+      885,
+      420,
+      250
+    ],
+    "scale": 0.2474460839954597,
+    "offset": [
+      17.239500567536908,
+      -0.5788876276957993
+    ],
+    "visual_acceptance": "native-review-pending"
+  },
+  {
+    "method": "visible-alpha-v2",
+    "file": "neck-2-torque.png",
+    "source": "materials/portraits/generated-features/Lizardman.mesh-female/neck-2-torque.png",
+    "source_sha256": "47c41dcbe64ab76515b334b14d20af5f9d14383619426e9f8d52fbde3418f5cb",
+    "rect": [
+      270,
+      885,
+      420,
+      250
+    ],
+    "scale": 0.2474460839954597,
+    "offset": [
+      19.7139614074915,
+      -3.548240635641317
+    ],
+    "visual_acceptance": "needs-correction"
+  }
+]

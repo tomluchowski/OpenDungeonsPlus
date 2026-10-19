@@ -3,10 +3,13 @@
 This mirrors the recolouring in source/render/PortraitTint.cpp (same maths, same quarter
 resolution), so the config can be tuned without starting the game.
 
-  preview_tints.py sheet OUT.png MESH [COUNT [X0,Y0,X1,Y1]]   original plus COUNT tinted variants (creature names MESH1..), optional zoomed crop
-  preview_tints.py mask OUT.png MESH REGION       original with the selection weight of one region in red
+KEY is the portrait image name without 'portrait-' and '.png', for example Orc.mesh or Orc.mesh-female.
+
+  preview_tints.py sheet OUT.png KEY [COUNT [X0,Y0,X1,Y1]]   original plus COUNT tinted variants (creature names MESH1..), optional zoomed crop
+  preview_tints.py mask OUT.png KEY REGION       original with the selection weight of one region in red
 """
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -49,35 +52,109 @@ def field_rng(name, field):
     return Rng(fnv1a64(name) ^ fnv1a64('field:' + field))
 
 
+# Kinds of block the config file is in while it is read (as in PortraitTint.cpp)
+BLOCK_NONE = -1
+BLOCK_PALETTE = 0
+BLOCK_PORTRAIT = 1
+NUMBER = re.compile(r'^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$')
+
+
+def parse_floats(text):
+    """Same rules as parseFloats() in PortraitTint.cpp: comma separated numbers, at least one."""
+    values = []
+    for item in text.split(','):
+        item = item.strip()
+        if not NUMBER.match(item):
+            return None
+        values.append(float(item))
+    return values
+
+
+def parse_region(cols, palettes):
+    """Same rules as PortraitTint::parseRegion(). Returns (region, error)."""
+    if len(cols) < 3:
+        return None, 'Region needs a name and settings'
+    region = {}
+    for col in cols[2:]:
+        if '=' not in col:
+            return None, "expected key=value but found '%s'" % col
+        key, text = col.split('=', 1)
+        if key == 'palette':
+            if text not in palettes:
+                return None, "unknown palette '%s'" % text
+            region['palette'] = text
+            continue
+        values = parse_floats(text)
+        if values is None:
+            return None, "bad numbers in '%s'" % col
+        if key == 'shift' and len(values) == 3:
+            region['shift'] = values
+        elif key in ('box',) and len(values) == 4:
+            region[key] = values
+        elif key == 'not' and len(values) % 4 == 0:
+            region[key] = values
+        elif key in ('hue', 'sat', 'val') and len(values) == 2:
+            region[key] = values
+        else:
+            return None, "unknown key or wrong number of values in '%s'" % col
+    if not (('palette' in region or 'shift' in region) and all(k in region for k in ('box', 'hue', 'sat', 'val'))):
+        return None, "Region '%s' needs palette= or shift=, box=, hue=, sat= and val=" % cols[1]
+    return region, None
+
+
 def load_config(path):
+    """Parse the tint config with the same rules as PortraitTint::loadFromFile().
+
+    Returns (palettes, portraits, errors); every line the C++ loader would reject is an entry in errors.
+    """
     palettes = {}
     portraits = {}
-    current = None
-    for raw in Path(path).read_text().splitlines():
-        line = raw.split('#', 1)[0].rstrip()
+    errors = []
+    current = BLOCK_NONE
+    palette = None
+    portrait = None
+    for number, raw in enumerate(Path(path).read_text().splitlines(), 1):
+        line = raw.split('#', 1)[0]
         if not line.strip():
             continue
-        cols = line.split('\t')
-        key = cols[0].strip()
+        cols = [c.strip() for c in line.split('\t')]
+        key = cols[0]
+        where = '%s:%d: ' % (Path(path).name, number)
         if key == '[Palette]':
-            current = ('palette', None)
+            palette = []
+            palettes['?unnamed%d' % len(palettes)] = palette
+            current = BLOCK_PALETTE
         elif key == '[Portrait]':
-            current = ('portrait', None)
-        elif key == 'Name':
-            palettes[cols[1]] = []
-            current = ('palette', cols[1])
-        elif key == 'Colour':
-            palettes[current[1]].append((cols[1], float(cols[2]), float(cols[3]), float(cols[4])))
-        elif key == 'Mesh':
-            portraits[cols[1]] = []
-            current = ('portrait', cols[1])
-        elif key == 'Region':
-            fields = {}
-            for col in cols[2:]:
-                k, v = col.split('=')
-                fields[k] = [float(x) for x in v.split(',')] if k != 'palette' else v
-            portraits[current[1]].append((cols[1], fields))
-    return palettes, portraits
+            portrait = []
+            portraits['?unnamed%d' % len(portraits)] = portrait
+            current = BLOCK_PORTRAIT
+        elif key == 'Name' and current == BLOCK_PALETTE and len(cols) >= 2:
+            if cols[1] in palettes:
+                errors.append(where + "duplicate palette '%s'" % cols[1])
+            palettes = {(cols[1] if v is palette else k): v for k, v in palettes.items()}
+        elif key == 'Colour' and current == BLOCK_PALETTE and len(cols) >= 5:
+            numbers = [parse_floats(c) for c in cols[2:5]]
+            if any(n is None or len(n) != 1 for n in numbers):
+                errors.append(where + 'bad Colour numbers')
+                continue
+            palette.append((cols[1], numbers[0][0], numbers[1][0], numbers[2][0]))
+        elif key == 'Mesh' and current == BLOCK_PORTRAIT and len(cols) >= 2:
+            if cols[1] in portraits:
+                errors.append(where + "duplicate portrait '%s'" % cols[1])
+            portraits = {(cols[1] if v is portrait else k): v for k, v in portraits.items()}
+        elif key == 'Region' and current == BLOCK_PORTRAIT:
+            region, error = parse_region(cols, palettes)
+            if error:
+                errors.append(where + error)
+            elif 'palette' in region and not palettes[region['palette']]:
+                errors.append(where + "palette '%s' has no colours" % region['palette'])
+            else:
+                portrait.append((cols[1], region))
+        else:
+            errors.append(where + "unexpected line '%s'" % key)
+    palettes = {k: v for k, v in palettes.items() if not k.startswith('?')}
+    portraits = {k: v for k, v in portraits.items() if not k.startswith('?')}
+    return palettes, portraits, errors
 
 
 def rgb_to_hsv(rgb):
@@ -175,7 +252,7 @@ def tint(base, name, palettes, regions):
 
 
 def load_base(mesh):
-    image = Image.open(REPO / ('materials/textures/portrait-%s.mesh.png' % mesh)).convert('RGB')
+    image = Image.open(REPO / ('materials/textures/portrait-%s.png' % mesh)).convert('RGB')
     width, height = image.size[0] // SCALE, image.size[1] // SCALE
     array = np.asarray(image, dtype=np.float32) / 255.0
     array = array[:height * SCALE, :width * SCALE]
@@ -188,7 +265,9 @@ def to_image(array):
 
 def main():
     cmd, out, mesh = sys.argv[1], sys.argv[2], sys.argv[3]
-    palettes, portraits = load_config(REPO / 'config/portrait-tints.cfg')
+    palettes, portraits, errors = load_config(REPO / 'config/portrait-tints.cfg')
+    for error in errors:
+        print('config error:', error)
     base = load_base(mesh)
     regions = portraits[mesh]
     if cmd == 'mask':
