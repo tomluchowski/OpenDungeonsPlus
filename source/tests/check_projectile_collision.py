@@ -150,7 +150,7 @@ for key, value in replacements.items():
 upkeep = replacements['UPKEEP']
 for text in ('computeDestination(position3f, moveDist, mDirection, destination, tiles)',
              'if(lastTile == nullptr)', 'destination.x = position.x;', 'destination.y = position.y;',
-             'if(stopsOnTile(tmpTile))', 'if(tmpTile->isEntityOnTile(target))',
+             'if(tmpTile->getFullness() > 0.0)', 'if(tmpTile->isEntityOnTile(target))',
              'hitTargetEntity(tmpTile, target);', 'if(!hitCreature(tmpTile, creature))',
              'getVisibleCreatures(tileVector, getSeat(), true)',
              'getVisibleCreatures(tileVector, getSeat(), false)',
