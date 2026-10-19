@@ -170,6 +170,7 @@ def check_sources():
     launch = function(read("source/creatureskill/CreatureSkillMissileLaunch.cpp"), "bool CreatureSkillMissileLaunch::tryUseFight(")
     assert launch.count("CreatureProgression::stat(") == 3
     assert "CombatDamage::scale(" in launch and "setCreatureDamageRange(" in launch
+    assert "setCreatureShot(creature->isPossessed())" in launch
     assert "rollAttackHit(" not in launch and "rollMeleeDefence(" not in launch
     missile = read("source/entities/MissileOneHit.cpp")
     hurt = function(missile, "void MissileOneHit::hurt(")
