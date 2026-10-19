@@ -29,8 +29,8 @@ for sig in ('void Creature::exportToPacket(', 'void Creature::exportToPacketForU
     assert 'exportProgressToPacket(os, seat);' in function(creature, sig)
 for sig in ('void Creature::importFromPacket(', 'void Creature::updateFromPacket('):
     assert 'importProgressFromPacket(is);' in function(creature, sig)
-assert '--mAttackRecoveryTurns;' in source
-assert 'mAttackRecoveryDuration = std::max(skillData.mWarmup, skillData.mCooldown)' in source
+assert 'mAttackRecoveryTurns = std::max(0.0, mAttackRecoveryTurns - 1.0);' in source
+assert 'mAttackRecoveryDuration = std::max(static_cast<double>(skillData.mWarmup), skillData.mCooldown)' in source
 server = (root / 'source/network/ODServer.cpp').read_text()
 assert server.count('packetSend << clientSocket->supportsCreatureProgress();') == 1
 assert server.count('packetSend << client->supportsCreatureProgress();') == 1
@@ -57,13 +57,13 @@ struct Definition {double needed=100;double getXPNeededWhenLevel(unsigned)const{
 struct Creature {
  bool server=true,mHasProgressInformation=false,mNeedFireRefresh=false;unsigned mLevel=1;
  double mExp=0,mExperienceProgress=0;Definition def;Definition* mDefinition=&def;
- uint32_t mAttackRecoveryTurns=0,mAttackRecoveryDuration=0,mAttackRecoverySerial=0;
+ double mAttackRecoveryTurns=0,mAttackRecoveryDuration=0;uint32_t mAttackRecoverySerial=0;
  bool getIsOnServerMap()const{return server;}std::string getName()const{return "probe";}
  double getExperienceProgress()const;void receiveExp(double);
  void exportProgressToPacket(ODPacket&,const Seat*)const;void importProgressFromPacket(ODPacket&);
  bool hasProgressInformation()const{return mHasProgressInformation;}
- uint32_t getAttackRecoveryTurns()const{return mAttackRecoveryTurns;}
- uint32_t getAttackRecoveryDuration()const{return mAttackRecoveryDuration;}
+ double getAttackRecoveryTurns()const{return mAttackRecoveryTurns;}
+ double getAttackRecoveryDuration()const{return mAttackRecoveryDuration;}
  uint32_t getAttackRecoverySerial()const{return mAttackRecoverySerial;}
 };
 METHODS
@@ -77,7 +77,7 @@ struct MovableTextOverlay {
 };
 struct CreatureOverlayStatus {
  Creature* mCreature;MovableTextOverlay* mMovableTextOverlay;std::vector<uint32_t> mOverlayIds{0,1,2,3};
- uint32_t mRecoveryTurns=0,mRecoverySerial=0;float mRecoveryElapsed=0;
+ double mRecoveryTurns=0;uint32_t mRecoverySerial=0;float mRecoveryElapsed=0;
  void updateProgress(float);
 };
 CLOCK
@@ -95,9 +95,9 @@ int main(){int checks=0,failures=0;auto check=[&](bool ok,const char* why){++che
  check(!b.mHasProgressInformation&&sentinel==27,"old client/server payload untouched");
  ODClient::getSingleton().enabled=true;ODServer::getSingleton().enabled=true;
  for(double invalid:{-.1,1.1,std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::infinity()}){
-  ODPacket packet;packet<<invalid<<uint32_t(0)<<uint32_t(0)<<uint32_t(0);b.importProgressFromPacket(packet);check(!b.mHasProgressInformation,"invalid XP rejected");
+  ODPacket packet;packet<<invalid<<0.0<<0.0<<uint32_t(0);b.importProgressFromPacket(packet);check(!b.mHasProgressInformation,"invalid XP rejected");
  }
- ODPacket bad;bad<<.5<<uint32_t(8)<<uint32_t(2)<<uint32_t(1);b.importProgressFromPacket(bad);check(!b.mHasProgressInformation,"invalid recovery rejected");
+ ODPacket bad;bad<<.5<<8.0<<2.0<<uint32_t(1);b.importProgressFromPacket(bad);check(!b.mHasProgressInformation,"invalid recovery rejected");
  ODPacket shortPacket;shortPacket<<.5;b.importProgressFromPacket(shortPacket);check(!b.mHasProgressInformation,"truncated payload rejected");
  a.mLevel=1;a.mExp=0;a.receiveExp(-1);check(a.mExp==0,"negative gain rejected");a.receiveExp(20);check(a.mExp==20&&a.mNeedFireRefresh,"XP changes schedule replication");
  MovableTextOverlay overlay;CreatureOverlayStatus status{&b,&overlay};b.mHasProgressInformation=true;b.mExperienceProgress=.5;b.mAttackRecoveryDuration=4;b.mAttackRecoveryTurns=4;b.mAttackRecoverySerial=1;
@@ -107,6 +107,10 @@ int main(){int checks=0,failures=0;auto check=[&](bool ok,const char* why){++che
  status.updateProgress(1000);check(overlay.frames[2]<17,"missing server tick cannot fake readiness");
  b.mAttackRecoveryTurns=1;status.updateProgress(0);check(overlay.frames[2]==47,"server corrects recovery");
  b.mAttackRecoveryTurns=0;status.updateProgress(0);check(overlay.frames[2]==0,"ready hides clock");
+ a.mAttackRecoveryDuration=2.35;a.mAttackRecoveryTurns=0.35;ODPacket fractional;a.exportProgressToPacket(fractional,&seat);b.importProgressFromPacket(fractional);
+ check(b.mAttackRecoveryTurns==0.35&&b.mAttackRecoveryDuration==2.35,"fractional recovery round trip");
+ b.mAttackRecoveryDuration=2.35;b.mAttackRecoveryTurns=0.35;++b.mAttackRecoverySerial;status.updateProgress(0);status.updateProgress(1000);
+ check(overlay.frames[2]>0&&overlay.frames[2]<=63,"fractional remainder keeps the clock inside the ring");b.mAttackRecoveryDuration=4;
  b.mAttackRecoveryTurns=4;++b.mAttackRecoverySerial;status.updateProgress(0);check(overlay.frames[2]==1,"repeated attack resets clock");
  b.mHasProgressInformation=false;status.updateProgress(0);check(!overlay.shown[1]&&overlay.frames[2]==0,"legacy replay does not invent progress");
  std::cout<<"CHECKS="<<checks<<" FAILURES="<<failures<<'\n';return failures?1:0;

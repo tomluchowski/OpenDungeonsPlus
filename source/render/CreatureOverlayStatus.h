@@ -56,7 +56,7 @@ private:
     void updateProgress(Ogre::Real timeSincelastFrame);
 
     //! \brief Recovery turns left, as last read from the creature
-    uint32_t mRecoveryTurns = 0;
+    double mRecoveryTurns = 0.0;
     //! \brief Attack counter, as last read from the creature
     uint32_t mRecoverySerial = 0;
     //! \brief Seconds since mRecoveryTurns or mRecoverySerial changed, used to move the recovery

@@ -1122,9 +1122,9 @@ void Creature::doUpkeep()
     ++mNbTurnsWithoutBattle;
 
     bool isWarmUp = false;
-    if(mAttackRecoveryTurns > 0)
+    if(mAttackRecoveryTurns > 0.0)
     {
-        --mAttackRecoveryTurns;
+        mAttackRecoveryTurns = std::max(0.0, mAttackRecoveryTurns - 1.0);
         mNeedFireRefresh = true;
     }
     // We use creature skills if we can
@@ -1136,9 +1136,9 @@ void Creature::doUpkeep()
             isWarmUp = true;
         }
 
-        if(skillData.mCooldown > 0)
+        if(skillData.mCooldown > 0.0)
         {
-            --skillData.mCooldown;
+            skillData.mCooldown = std::max(0.0, skillData.mCooldown - 1.0);
             continue;
         }
 
@@ -1490,7 +1490,7 @@ bool Creature::searchBestTargetInList(const std::vector<GameEntity*>& listObject
         double skillRangeMax = 0.0;
         for(CreatureSkillData& skillDataTmp : mSkillData)
         {
-            if(skillDataTmp.mCooldown > 0)
+            if(skillDataTmp.mCooldown > 0.0)
                 continue;
 
             if(!skillDataTmp.mSkill->canBeUsedBy(this))
@@ -1865,15 +1865,16 @@ void Creature::importProgressFromPacket(ODPacket& is)
     if(!ODClient::getSingleton().supportsCreatureProgress())
         return;
     double experience = 0.0;
-    uint32_t remaining = 0;
-    uint32_t duration = 0;
+    double remaining = 0.0;
+    double duration = 0.0;
     uint32_t serial = 0;
     if(!(is >> experience >> remaining >> duration >> serial))
     {
         OD_LOG_ERR("Incomplete creature progress for " + getName());
         return;
     }
-    if(!std::isfinite(experience) || experience < 0.0 || experience > 1.0 || remaining > duration)
+    if(!std::isfinite(experience) || experience < 0.0 || experience > 1.0 ||
+       !std::isfinite(remaining) || !std::isfinite(duration) || remaining < 0.0 || remaining > duration)
     {
         OD_LOG_ERR("Invalid creature progress for " + getName());
         return;
@@ -2386,26 +2387,45 @@ void Creature::receiveExp(double experience)
     mNeedFireRefresh = true;
 }
 
-uint32_t Creature::getAppliedCooldownNbTurns(const CreatureSkill& skill) const
+namespace
 {
-    const uint32_t definitionCooldown = skill.getCooldownNbTurns();
-    if(dynamic_cast<const CreatureSkillMeleeFight*>(&skill) == nullptr)
-        return definitionCooldown;
+//! \brief Tells whether the cooldown of the skill shrinks with the creature level: the melee attack and the
+//! ranged attacks (missile, guided bolt, grenade). Support skills and other spells keep their cooldown.
+bool isLevelScaledAttack(const CreatureSkill& skill)
+{
+    if(dynamic_cast<const CreatureSkillMeleeFight*>(&skill) != nullptr)
+        return true;
 
-    const Weapon* weapons[2] = {mWeaponL, mWeaponR};
-    uint32_t weaponCooldown = 0;
-    for(const Weapon* weapon : weapons)
+    const std::string& name = skill.getSkillName();
+    return (name == "MissileLaunch") || (name == "GuidedBolt") || (name == "Grenade");
+}
+}
+
+//! \brief Gets the cooldown in turns applied after the skill was used (weapon value for melee, level scaled for attacks).
+double Creature::getAppliedCooldownNbTurns(const CreatureSkill& skill) const
+{
+    uint32_t baseCooldown = skill.getCooldownNbTurns();
+    if(dynamic_cast<const CreatureSkillMeleeFight*>(&skill) != nullptr)
     {
-        if(weapon == nullptr)
-            continue;
+        // The melee cooldown comes only from the weapons (shields have none); the larger value counts
+        const Weapon* weapons[2] = {mWeaponL, mWeaponR};
+        uint32_t weaponCooldown = 0;
+        for(const Weapon* weapon : weapons)
+        {
+            if(weapon == nullptr)
+                continue;
 
-        weaponCooldown = std::max(weaponCooldown, weapon->getCooldownNbTurns());
+            weaponCooldown = std::max(weaponCooldown, weapon->getCooldownNbTurns());
+        }
+
+        if(weaponCooldown != 0)
+            baseCooldown = weaponCooldown;
     }
 
-    if(weaponCooldown == 0)
-        return definitionCooldown;
+    if(!isLevelScaledAttack(skill))
+        return baseCooldown;
 
-    return weaponCooldown;
+    return CreatureProgression::cooldownAtLevel(baseCooldown, getLevel());
 }
 
 void Creature::useAttack(CreatureSkillData& skillData, GameEntity& entityAttack,
@@ -2435,7 +2455,7 @@ void Creature::useAttack(CreatureSkillData& skillData, GameEntity& entityAttack,
     skillData.mCooldown = getAppliedCooldownNbTurns(*skillData.mSkill);
 
     // Both timers count down together; either can postpone the next attack.
-    mAttackRecoveryDuration = std::max(skillData.mWarmup, skillData.mCooldown);
+    mAttackRecoveryDuration = std::max(static_cast<double>(skillData.mWarmup), skillData.mCooldown);
     mAttackRecoveryTurns = mAttackRecoveryDuration;
     ++mAttackRecoverySerial;
     mNeedFireRefresh = true;

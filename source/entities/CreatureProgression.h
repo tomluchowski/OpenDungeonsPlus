@@ -32,6 +32,23 @@ inline double stat(double base, double perLevel, uint32_t level)
     return std::max(base + (std::max(1u, level) - 1) * perLevel,
         base * powerMultiplier(level));
 }
+
+//! Share of the cooldown that is saved per level above 1 (0.75 percent).
+const double COOLDOWN_REDUCTION_PER_LEVEL = 0.0075;
+
+//! Returns the cooldown of an attack at the given level: the base cooldown times
+//! 1 - 0.0075 x (level - 1), not rounded to whole turns, but never below 1 turn.
+//! A base cooldown of 0 stays 0.
+//! \param baseTurns The cooldown at level 1 in turns.
+//! \param level The creature level.
+inline double cooldownAtLevel(uint32_t baseTurns, uint32_t level)
+{
+    if(baseTurns == 0)
+        return 0.0;
+
+    const double factor = 1.0 - COOLDOWN_REDUCTION_PER_LEVEL * (std::max(1u, level) - 1);
+    return std::max(1.0, baseTurns * factor);
+}
 }
 
 #endif

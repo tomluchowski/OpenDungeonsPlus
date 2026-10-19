@@ -3050,6 +3050,10 @@ bool RenderManager::getWeaponMount(const Ogre::Skeleton* skeleton, const std::st
 
 void RenderManager::rrCreateWeapon(Creature* curCreature, const Weapon* curWeapon, const std::string& hand)
 {
+    // A weapon with the mesh name "none" is already part of the creature model, so nothing is attached
+    if(curWeapon->getMeshName() == "none")
+        return;
+
     Ogre::Entity* ent = mSceneManager->getEntity(curCreature->getOgreNamePrefix() + curCreature->getName());
     std::string weaponName = curWeapon->getOgreNamePrefix() + hand;
     WeaponMount mount;

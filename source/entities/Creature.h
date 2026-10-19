@@ -78,7 +78,7 @@ enum class CreatureSound
 class CreatureSkillData
 {
 public:
-    CreatureSkillData(const CreatureSkill* skill, uint32_t cooldown, uint32_t warmup) :
+    CreatureSkillData(const CreatureSkill* skill, double cooldown, uint32_t warmup) :
         mSkill(skill),
         mCooldown(cooldown),
         mWarmup(warmup)
@@ -86,7 +86,8 @@ public:
     }
 
     const CreatureSkill* mSkill;
-    uint32_t mCooldown;
+    //! Turns left until the skill can be used again; fractions of a turn are possible (level scaled cooldown)
+    double mCooldown;
     uint32_t mWarmup;
 };
 
@@ -195,8 +196,10 @@ public:
     CreatureActivity getActivity() const;
 
     double getExperienceProgress() const;
-    uint32_t getAttackRecoveryTurns() const { return mAttackRecoveryTurns; }
-    uint32_t getAttackRecoveryDuration() const { return mAttackRecoveryDuration; }
+    //! \brief Turns left until the creature can attack again (may be a fraction of a turn)
+    double getAttackRecoveryTurns() const { return mAttackRecoveryTurns; }
+    //! \brief Turns the recovery after the last attack lasts in total (may be a fraction of a turn)
+    double getAttackRecoveryDuration() const { return mAttackRecoveryDuration; }
     uint32_t getAttackRecoverySerial() const { return mAttackRecoverySerial; }
     bool hasProgressInformation() const { return mHasProgressInformation; }
 
@@ -341,10 +344,11 @@ public:
     //! \brief Gets the number of cooldown turns that really applies after the given skill was used.
     //! For the melee skill, a creature carrying weapons with a cooldown uses the larger weapon cooldown
     //! (weapons without one, like shields, are ignored). Without such a weapon, and for every other skill,
-    //! it is the cooldown from the creature definition.
+    //! it is the cooldown from the creature definition. The melee and ranged attacks then get shorter with the
+    //! creature level (0.75 percent per level above 1, not rounded, never below 1 turn).
     //! \param skill The skill that was used.
-    //! \return The cooldown in turns that is applied and shown on the recovery clock.
-    uint32_t getAppliedCooldownNbTurns(const CreatureSkill& skill) const;
+    //! \return The cooldown in turns (may be a fraction) that is applied and shown on the recovery clock.
+    double getAppliedCooldownNbTurns(const CreatureSkill& skill) const;
 
     //! \brief performs the given attack on the given target
     void useAttack(CreatureSkillData& skillData, GameEntity& entityAttack,
@@ -874,8 +878,10 @@ private:
     //! \brief Skills the creature can use
     std::vector<CreatureSkillData> mSkillData;
 
-    uint32_t mAttackRecoveryTurns = 0;
-    uint32_t mAttackRecoveryDuration = 0;
+    //! \brief Turns left until the creature can attack again (may be a fraction of a turn)
+    double mAttackRecoveryTurns = 0.0;
+    //! \brief Turns the recovery after the last attack lasts in total (longest of warmup and cooldown, may be a fraction)
+    double mAttackRecoveryDuration = 0.0;
     uint32_t mAttackRecoverySerial = 0;
     double mExperienceProgress = 0.0;
     bool mHasProgressInformation = false;
