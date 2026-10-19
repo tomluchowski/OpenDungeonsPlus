@@ -174,6 +174,9 @@ public:
     void stopGameRenderer();
     void createMainMenuScene();
     void freeMainMenuScene();
+    //! Starts the zoom flight of the main menu scene (only after createMainMenuScene)
+    void startMainMenuFlight();
+    bool isMainMenuFlightActive() const;
     void updateMenuScene(Ogre::Real timeSinceLastFrame);
 
     //! \brief Accessors for camera manager

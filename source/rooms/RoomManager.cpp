@@ -524,7 +524,8 @@ void RoomManager::checkSellRoomTiles(GameMap* gameMap, const InputManager& input
         if(!tile->getIsRoom())
             continue;
 
-        if(tile->getTileVisual() == TileVisual::portalRoom || tile->getTileVisual() == TileVisual::portalWaveRoom)
+        if(tile->getTileVisual() == TileVisual::dungeonTempleRoom ||
+            tile->getTileVisual() == TileVisual::portalRoom || tile->getTileVisual() == TileVisual::portalWaveRoom)
             continue;
 
         if(tile->getSeat() != player->getSeat())
@@ -538,7 +539,9 @@ void RoomManager::checkSellRoomTiles(GameMap* gameMap, const InputManager& input
     {
         inputCommand.unselectAllTiles();
         Tile* tile = gameMap->getTile(inputManager.mXPos, inputManager.mYPos);
-        if(tile != nullptr && (tile->getTileVisual() == TileVisual::portalRoom || tile->getTileVisual() == TileVisual::portalWaveRoom))
+        if(tile != nullptr && tile->getTileVisual() == TileVisual::dungeonTempleRoom)
+            inputCommand.displayText(Ogre::ColourValue::Red, "Dungeon hearts cannot be sold.");
+        else if(tile != nullptr && (tile->getTileVisual() == TileVisual::portalRoom || tile->getTileVisual() == TileVisual::portalWaveRoom))
             inputCommand.displayText(Ogre::ColourValue::Red, "Portals cannot be sold.");
         else
             inputCommand.displayText(Ogre::ColourValue::Red, "Select a room owned by you to sell.");

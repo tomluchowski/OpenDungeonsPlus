@@ -53,6 +53,21 @@ public:
         mStoreCurrentModeAtChange = keepCurrentModeInHistory;
     }
 
+    //! Request the main menu, opened with its skirmish sub-menu (used after the defeat debriefing)
+    void requestMainMenuWithSkirmishSubMenu()
+    {
+        mOpenSkirmishSubMenu = true;
+        requestMode(MENU_MAIN);
+    }
+
+    //! Returns true once if the main menu should open its skirmish sub-menu, then forgets it
+    bool consumeSkirmishSubMenuRequest()
+    {
+        const bool requested = mOpenSkirmishSubMenu;
+        mOpenSkirmishSubMenu = false;
+        return requested;
+    }
+
     //! \brief Request to load the previous mode type.
     void requestPreviousMode();
     void requestSavedGame(const std::string& filename);
@@ -84,6 +99,8 @@ private:
     //! \brief Tells whether the current mode should be kept in history
     //! when changing from the current mode.
     bool mStoreCurrentModeAtChange;
+    //! Set by requestMainMenuWithSkirmishSubMenu, consumed by the main menu when it is activated
+    bool mOpenSkirmishSubMenu = false;
     std::string mRequestedSavedGame;
 
     //! \brief Actually change the mode if needed

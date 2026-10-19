@@ -22,6 +22,8 @@
 #ifndef RENDERMANAGER_H
 #define RENDERMANAGER_H
 
+#include <set>
+
 #include <string>
 #include <map>
 #include <OgreSingleton.h>
@@ -151,6 +153,10 @@ public:
     void rrUpdateEntityOpacity(RenderedMovableEntity* entity);
     void rrCreateCreature(Creature* curCreature);
     void rrDestroyCreature(Creature* curCreature);
+    //! \brief Replaces the mesh of an already rendered creature by its current mesh (for example the chicken mesh of a
+    //! creature hit by Hexen Hen), keeping the running animation if the new mesh has it.
+    //! \param curCreature The creature whose mesh changed.
+    void rrChangeCreatureMesh(Creature* curCreature);
     void rrOrientEntityToward(MovableGameEntity* gameEntity, const Ogre::Vector3& direction);
 
     //! \brief Like rrOrientEntityToward but a creature turns in a short smooth movement (clients, before a blow).
@@ -208,14 +214,41 @@ public:
         const std::string& particleScript);
     void rrEntityRemoveParticleEffect(GameEntity* entity, Ogre::ParticleSystem* particleSystem);
     void rrToggleHandSelectorVisibility();
-    void rrSetHandPose(bool pointing, bool digging);
+    void rrSetHandPose(bool pointing, bool digging, bool building = false);
+    void rrPlayBuildAnimation();
+    bool rrPlayIdleHandAnimation();
+    bool rrIsIdleHandAnimationPlaying() const;
+    void rrCancelIdleHandAnimation();
     void rrPlayDigAnimation();
-    void rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour);
+    void rrDrawTilePreview(const std::vector<Tile*>& tiles, const Ogre::ColourValue& colour, bool construction = false);
     void rrCreateRoomConstructionEffect(const std::vector<Tile*>& tiles);
+
+    //! \brief Creates a free-standing particle effect that stays until rrDestroyFreeParticleEffect().
+    //! \param colour If not null, the colour of every emitter of the script is set to it.
+    void rrCreateFreeParticleEffect(const std::string& effectName, const std::string& particleScript,
+        const Ogre::Vector3& position, const Ogre::ColourValue* colour);
+    void rrMoveFreeParticleEffect(const std::string& effectName, const Ogre::Vector3& position);
+    void rrDestroyFreeParticleEffect(const std::string& effectName);
+    //! Client-only copy of the dungeon heart for the defeat sequence (the server has already removed the
+    //! real heart object), placed like the real one: DungeonTempleObject mesh on the floor, no turn, scale 1.
+    //! Its materials are clones, so that its core can glow without changing other hearts.
+    void rrCreateDefeatHeart(const Ogre::Vector3& position);
+    //! Moves and scales the copy; glow 0 is its normal look, 1 the hottest red
+    void rrUpdateDefeatHeart(const Ogre::Vector3& position, Ogre::Real scale, Ogre::Real glow);
+    void rrDestroyDefeatHeart();
+    //! Creates count rubble pieces of the burst heart (a small procedural shard mesh with the heart's
+    //! own shell material), one scene node each, hidden until they are first moved
+    void rrCreateDefeatRubble(size_t count);
+    //! Places rubble piece index; rotation holds the degrees around the x, y and z axes
+    void rrMoveDefeatRubblePiece(size_t index, const Ogre::Vector3& position, const Ogre::Vector3& rotation,
+        const Ogre::Vector3& scale);
+    void rrDestroyDefeatRubble();
     //! \brief Plays the hit reaction of a creature and, depending on the flags, sparks (weaponClash)
     //! and blood (bodyDamage); the direction of the hit comes from the attacker position.
     void rrCreateCreatureCombatImpact(Creature* creature, bool weaponClash,
         bool bodyDamage, const Ogre::Vector3& attackerPosition);
+    void rrSetFeedingChicken(Creature* creature, MovableGameEntity* chicken,
+        const Ogre::Vector3& position);
 
     //! \brief Toggles the creatures text overlay
     void rrSetCreaturesTextOverlay(GameMap& gameMap, bool value);
@@ -314,6 +347,9 @@ private:
     Ogre::AnimationState* mHandAnimationState;
     std::string mHandPose = "Idle";
     Ogre::ManualObject* mHandPickaxe = nullptr;
+    Ogre::Entity* mHandHammer = nullptr;
+    Ogre::ManualObject* mHandIdleProp = nullptr;
+    Ogre::Vector3 mHammerStrikePoint = Ogre::Vector3::ZERO;
     Ogre::ManualObject* mTilePreview = nullptr;
 
     //! \brief Short particle effect shown at a creature that was hit.
@@ -363,6 +399,83 @@ private:
     std::map<std::string, Ogre::Vector3> mAttackTurnNotes;
     //! \brief Advances the smooth turns of the creatures and removes the finished ones
     void updateCreatureTurns(Ogre::Real timeSinceLastFrame);
+
+    enum class CreatureFeedingStyle
+    {
+        peck,
+        lunge,
+        heavy,
+        humanoid,
+        magical,
+        coil
+    };
+
+    struct CreatureFeedingBone
+    {
+        Ogre::Bone* mBone;
+        Ogre::Vector3 mPosition;
+        Ogre::Quaternion mOrientation;
+        bool mWasManual;
+        Ogre::Bone* mDriver = nullptr;
+        Ogre::Vector3 mScale = Ogre::Vector3::UNIT_SCALE;
+    };
+    struct CreatureFeedingLimb
+    {
+        Ogre::Bone* mUpper;
+        Ogre::Bone* mLower;
+        Ogre::Bone* mTip;
+        Ogre::Vector3 mTipOffset;
+        Ogre::Vector3 mRestTip;
+        Ogre::Vector3 mGripOffset = Ogre::Vector3::ZERO;
+    };
+    struct CreatureFeedingAnimation
+    {
+        Creature* mCreature;
+        Ogre::SceneNode* mNode;
+        Ogre::Entity* mEntity;
+        Ogre::Vector3 mBasePosition;
+        Ogre::Quaternion mBaseOrientation;
+        Ogre::Vector3 mBaseScale;
+        Ogre::Real mElapsed;
+        CreatureFeedingStyle mStyle;
+        Ogre::AnimationState* mAnimation;
+        Ogre::SceneNode* mChickenNode;
+        Ogre::Entity* mChickenEntity;
+        Ogre::Vector3 mChickenStart;
+        Ogre::Vector3 mChickenScale;
+        Ogre::Bone* mHead;
+        unsigned int mFeatherBursts;
+        std::vector<CreatureFeedingBone> mReachBones;
+        std::vector<Ogre::Bone*> mRoots;
+        Ogre::Bone* mSpine = nullptr;
+        CreatureFeedingLimb mArms[2] = {};
+        CreatureFeedingLimb mLegs[2] = {};
+    };
+    std::vector<CreatureFeedingAnimation> mCreatureFeedingAnimations;
+
+    struct ChickenFeatherEffect
+    {
+        Ogre::SceneNode* mNode;
+        Ogre::ParticleSystem* mParticleSystem;
+        Ogre::Real mRemainingTime;
+    };
+    std::vector<ChickenFeatherEffect> mChickenFeatherEffects;
+    uint64_t mChickenFeatherEffectNumber = 0;
+
+    struct CreatureSleepAnimation
+    {
+        Creature* mCreature;
+        Ogre::Entity* mEntity;
+        Ogre::SceneNode* mNode;
+        Ogre::Vector3 mBaseScale;
+        Ogre::AnimationState* mAnimation;
+        Ogre::Real mElapsed;
+        bool mNativeEntry;
+        Ogre::Vector3 mBasePosition, mRestPosition;
+        Ogre::Quaternion mBaseOrientation, mRestOrientation;
+    };
+    std::vector<CreatureSleepAnimation> mCreatureSleepAnimations;
+    std::set<Creature*> mSteppingCreatures;
 
     struct CreatureDropAnimation
     {
@@ -418,6 +531,17 @@ private:
 
     //! \brief Destroys the combat effects and reactions of the given creature, or of all creatures if null.
     void clearCreatureCombatEffects(Creature* creature = nullptr);
+    void startCreatureFeedingAnimation(Creature* creature, Ogre::Entity* entity);
+    void prepareCreatureFeedingReach(CreatureFeedingAnimation& feeding);
+    Ogre::Vector3 updateCreatureFeedingReach(CreatureFeedingAnimation& feeding, Ogre::Real progress);
+    void cancelCreatureFeedingAnimation(Creature* creature = nullptr);
+    void createChickenFeatherEffect(const Ogre::Vector3& position);
+    void clearChickenFeatherEffects();
+    void startCreatureSleepAnimation(Creature* creature, Ogre::Entity* entity);
+    void fitCreatureToBed(CreatureSleepAnimation& sleeping);
+    void cancelCreatureSleepAnimation(Creature* creature = nullptr);
+    void updateCreatureStep(Creature* creature);
+    void cancelCreatureStep(Creature* creature = nullptr);
     //! \brief Destroys the effect at the iterator and returns the iterator of the following one.
     std::vector<CreatureCombatImpactEffect>::iterator destroyCreatureCombatImpactEffect(
         std::vector<CreatureCombatImpactEffect>::iterator it);

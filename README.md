@@ -29,6 +29,23 @@ seat-selection step. Long save descriptions can be scrolled.
 
 Creature combat uses model-specific attacks, directional impact reactions, visible fireballs and arrows, with an optional blood-effects setting.
 
+Creatures reach for and carry chicken meals using their available limb rigs, with brief feather effects and cleanup when eating is interrupted.
+
+Creatures settle into their beds, align with the mattress and restore their ground pose and facing when waking or interrupted.
+Use Production beside the minimap or in Options to inspect owned trap orders and workshop progress, and move pending orders up or down in the production priority.
+
+Research rooms, traps and spells through three levels in the skill tree; completed upgrades, research points and the selected order are retained in saved games.
+
+Creatures route through usable gaps around solid room furniture, including corner-aligned beds, without treating other creatures as route blockers.
+
+The hand holds a pointer-aligned hammer while building rooms, traps and doors; an eligible build request reuses the digging hand angle and strike movement.
+
+Creature health and needs indicators are visible by default; press Alt to toggle
+them, and zoom in to enlarge their level, experience and attack-recovery display.
+Depleted health segments disappear so creatures remain visible through the gaps.
+
+After thirty seconds without input, the empty hand randomly checks a wristwatch or plays with a yo-yo while retaining its normal angle; the index finger follows each yo-yo pull, and any input immediately returns the hand to the current action.
+
 ### Be part of the community
 
 As free software aficionados, we value community-based development and

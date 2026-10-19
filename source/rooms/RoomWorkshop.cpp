@@ -16,8 +16,13 @@
  */
 
 #include "rooms/RoomWorkshop.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 
 #include "entities/BuildingObject.h"
+#include "gamemap/RoomObjectNavigation.h"
+#include "creatureaction/CreatureActionWalkToTile.h"
+#include "utils/MakeUnique.h"
 #include "entities/CraftedTrap.h"
 #include "entities/Creature.h"
 #include "entities/CreatureDefinition.h"
@@ -25,6 +30,7 @@
 #include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
+#include "game/Seat.h"
 #include "gamemap/GameMap.h"
 #include "rooms/RoomManager.h"
 #include "traps/Trap.h"
@@ -418,6 +424,7 @@ void RoomWorkshop::doUpkeep()
 
     CraftedTrap* craftedTrap = new CraftedTrap(getGameMap(), getName(), mTrapType);
     craftedTrap->setSeat(getSeat());
+    getSeat()->getStatistics().mItemsMade++;
     craftedTrap->addToGameMap();
     Ogre::Vector3 spawnPosition(static_cast<Ogre::Real>(tileCraftedTrap->getX()), static_cast<Ogre::Real>(tileCraftedTrap->getY()), static_cast<Ogre::Real>(0.0));
     craftedTrap->createMesh();
@@ -453,16 +460,16 @@ bool RoomWorkshop::useRoom(Creature& creature, bool forced)
         OD_LOG_ERR("unexpected null building object");
         return false;
     }
-    // We consider that the creature is in the good place if it is in the expected tile and not moving
-    Tile* expectedDest = getGameMap()->getTile(Helper::round(wantedX), Helper::round(wantedY));
-    if(expectedDest == nullptr)
+    std::vector<Ogre::Vector2> approach;
+    if(!RoomObjectNavigation::workApproach(creature, *ro, {wantedX, wantedY}, {-1, 1}, approach))
     {
-        OD_LOG_ERR("room=" + getName() + ", creature=" + creature.getName());
+        creature.popAction();
         return false;
     }
-    if(tileCreature != expectedDest)
+    if(!approach.empty())
     {
-        creature.setDestination(expectedDest);
+        creature.setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, approach, false);
+        creature.pushAction(Utils::make_unique<CreatureActionWalkToTile>(creature));
         return false;
     }
 
@@ -476,7 +483,8 @@ bool RoomWorkshop::useRoom(Creature& creature, bool forced)
     OD_ASSERT_TRUE_MSG(creatureRoomAffinity.getRoomType() == getType(), "name=" + getName() + ", creature=" + creature.getName()
         + ", creatureRoomAffinityType=" + Helper::toString(static_cast<int>(creatureRoomAffinity.getRoomType())));
 
-    mPoints += static_cast<int32_t>(creatureRoomAffinity.getEfficiency() * ConfigManager::getSingleton().getRoomConfigDouble("WorkshopPointsPerWork"));
+    mPoints += static_cast<int32_t>(creatureRoomAffinity.getEfficiency() * SkillManager::getResearchValue(
+        getSeat(), SkillType::roomWorkshop, ConfigManager::getSingleton().getRoomConfigDouble("WorkshopPointsPerWork")));
     creature.jobDone(ConfigManager::getSingleton().getRoomConfigDouble("WorkshopWakefulnessPerWork"));
     creature.setJobCooldown(Random::Uint(ConfigManager::getSingleton().getRoomConfigUInt32("WorkshopCooldownWorkMin"),
         ConfigManager::getSingleton().getRoomConfigUInt32("WorkshopCooldownWorkMax")));

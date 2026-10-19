@@ -56,6 +56,7 @@ class SkillDef;
 class SkillManager
 {
 public:
+    //! \brief Builds the research tree: every room, trap, door and spell skill with the skills it depends on.
     SkillManager();
     virtual ~SkillManager();
 
@@ -66,6 +67,10 @@ public:
     //! \brief Checks if the given spell is available for the given seat. This check
     //! should be done on server side to avoid cheating
     static bool isSpellAvailable(SpellType type, const Seat* seat);
+
+    //! \brief True for a spell that the seat cannot cast because it lost its library
+    //! (an enemy took it over), even though the spell was researched.
+    static bool isLockedByLostLibrary(SkillType type, const Seat* seat);
 
     //! \brief Checks if the given trap is available for the given trap. This check
     //! should be done on server side to avoid cheating
@@ -84,6 +89,10 @@ public:
         const Seat* seat);
 
     static const Skill* getSkill(SkillType resType);
+
+    static double getResearchValue(SkillType type, uint32_t level, double base, bool secondary = false);
+    static double getResearchValue(const Seat* seat, SkillType type, double base, bool secondary = false);
+    static std::string getResearchDescription(SkillType type, uint32_t level);
 
     //! \brief Lists all the skills and calls the given function for each one with parameters:
     //! - Gui skill button name

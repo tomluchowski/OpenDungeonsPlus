@@ -77,6 +77,9 @@ class ODServer: public Ogre::Singleton<ODServer>,
     inline ServerMode getServerMode() const
     { return mServerMode; }
 
+    //! \brief Loads the level and starts the server. Level files whose dungeon heart does not cover
+    //! 25 tiles (5x5) are refused; savegames and the editor may still load older hearts.
+    //! \return true when the server is running.
     bool startServer(const std::string& creator, const std::string& levelFilename, ServerMode mode, bool useMasterServer);
     void stopServer() override;
 
@@ -85,7 +88,10 @@ class ODServer: public Ogre::Singleton<ODServer>,
 
     //! Whether the recipient negotiated full mood in creature snapshots and updates.
     bool supportsCreatureMood(Player* player);
+    //! Whether the recipient negotiated the creature activity in creature snapshots and updates.
     bool supportsCreatureActivity(Player* player);
+    //! Whether the recipient negotiated experience and attack recovery in creature snapshots and updates.
+    bool supportsCreatureProgress(Player* player);
 
     //! Whether the recipient negotiated cosmetic events (see CosmeticEvent.h)
     bool supportsCosmeticEvents(Player* player);

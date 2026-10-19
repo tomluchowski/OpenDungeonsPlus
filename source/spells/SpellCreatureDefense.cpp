@@ -32,6 +32,8 @@
 #include "spells/SpellType.h"
 #include "spells/SpellManager.h"
 #include "utils/ConfigManager.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -173,7 +175,8 @@ bool SpellCreatureDefense::castSpell(GameMap* gameMap, Player* player, ODPacket&
         return false;
 
     uint32_t duration = ConfigManager::getSingleton().getSpellConfigUInt32("CreatureDefenseDuration");
-    double value = ConfigManager::getSingleton().getSpellConfigDouble("CreatureDefenseValue");
+    double value = SkillManager::getResearchValue(player->getSeat(), SkillType::spellCreatureDefense,
+        ConfigManager::getSingleton().getSpellConfigDouble("CreatureDefenseValue"));
     CreatureEffectDefense* effect = new CreatureEffectDefense(duration, value, 0.0, 0.0, "SpellCreatureDefense");
     creature->addCreatureEffect(effect);
 

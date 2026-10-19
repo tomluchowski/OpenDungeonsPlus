@@ -2,7 +2,7 @@
 
 <GUILayout version="4" >
     <Window type="OD/FrameWindow" name="GameOptionsWindow" >
-        <Property name="Area" value="{{0.5,-160},{0.5,-268},{0.5,160},{0.5,268}}" />
+        <Property name="Area" value="{{0.5,-160},{0.5,-291},{0.5,160},{0.5,291}}" />
         <Property name="Text" value="Options" />
         <Property name="SizingEnabled" value="False" />
         <Window type="OD/IconButton" name="ObjectivesButton" >
@@ -73,8 +73,14 @@
             <Property name="Text" value="Back" />
             <Property name="Visible" value="False" />
         </Window>
-        <Window type="OD/Button" name="ContinueButton">
+        <Window type="OD/IconButton" name="ProductionButton">
             <Property name="Area" value="{{0,24},{0,450},{1,-24},{0,488}}" />
+            <Property name="IconImage" value="OpenDungeonsIcons/HammerAnvilIcon" />
+            <Property name="Text" value="Production" />
+            <Property name="TooltipText" value="View workshop progress and change trap order priority." />
+        </Window>
+        <Window type="OD/Button" name="ContinueButton">
+            <Property name="Area" value="{{0,24},{0,496},{1,-24},{0,534}}" />
             <Property name="Text" value="Continue Game" />
         </Window>
     </Window>

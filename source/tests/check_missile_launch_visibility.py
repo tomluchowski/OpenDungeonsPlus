@@ -11,6 +11,7 @@ entity_source = (repo / 'source/entities/GameEntity.cpp').read_text()
 visibility = entity_source.split('void GameEntity::notifySeatsWithVision(', 1)[1].split('\nvoid GameEntity::addSeatWithVision(', 1)[0]
 probe = r'''
 #include <OgreVector.h>
+#include "entities/CreatureProgression.h"
 #include <algorithm>
 #include <functional>
 #include <iostream>
@@ -47,7 +48,7 @@ struct MissileOneHit:GameEntity {
 std::vector<MissileOneHit*> MissileOneHit::created;
 const Ogre::Real CANNON_MISSILE_HEIGHT=.3f;
 struct CreatureSkillMissileLaunch {
- std::string mMissileMesh,mMissilePartScript="MissileMagic";double mMissileSpeed=3,mPhyAtk=0,mPhyAtkPerLvl=0,mMagAtk=13,mMagAtkPerLvl=.25,mEleAtkPerLvl=0;
+ std::string mMissileMesh,mMissilePartScript="MissileMagic";double mMissileSpeed=3,mPhyAtk=0,mPhyAtkPerLvl=0,mMagAtk=13,mMagAtkPerLvl=.25,mEleAtk=0,mEleAtkPerLvl=0;
  bool tryUseFight(GameMap&,Creature*,float,GameEntity*,Tile*,bool,bool)const;
 };
 bool CreatureSkillMissileLaunch::tryUseFight(LAUNCH
@@ -80,6 +81,6 @@ prefix = Path(os.environ['CMAKE_PREFIX_PATH'])
 with tempfile.TemporaryDirectory(prefix='odp-missile-launch-') as directory:
     work = Path(directory)
     (work / 'check.cpp').write_text(probe)
-    subprocess.run(['cl', '/nologo', '/EHsc', '/MD', '/std:c++14', f'/I{prefix / "include/OGRE"}',
+    subprocess.run(['cl', '/nologo', '/EHsc', '/MD', '/std:c++14', f'/I{repo / "source"}', f'/I{prefix / "include/OGRE"}',
                     'check.cpp', '/Fecheck.exe', '/link', f'/LIBPATH:{prefix / "lib"}', 'OgreMain.lib'], cwd=work, check=True)
     subprocess.run([str(work / 'check.exe')], cwd=work, check=True)

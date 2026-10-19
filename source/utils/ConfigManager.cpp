@@ -72,6 +72,8 @@ static const double DEFAULT_ATTACK_TURN_SPEED = 540.0;
 //! Default most seconds the strike clip waits for the turn to the target
 static const double DEFAULT_ATTACK_TURN_MAX_DELAY = 0.25;
 }
+//! \brief Default extra mana per second for each claimed mana well tile; global.cfg can override it.
+static const double DEFAULT_MANA_WELL_BONUS_PER_TILE = 100.0;
 
 const std::string ConfigManager::DefaultWorkerCreatureDefinition = "DefaultWorker";
 
@@ -111,7 +113,8 @@ ConfigManager::ConfigManager(const std::string& configPath, const std::string& u
     mParryShieldMax(DEFAULT_PARRY_SHIELD_MAX),
     mTimePayDay(300),
     mNbTurnsFuriousMax(120),
-    mMaxManaPerSeat(250000.0),
+    mMaxManaPerSeat(200000.0),
+    mManaWellBonusPerTile(DEFAULT_MANA_WELL_BONUS_PER_TILE),
     mClaimingWallPenalty(0.8),
     mDigCoefGold(5.0),
     mDigCoefGem(1.0),
@@ -687,6 +690,13 @@ bool ConfigManager::loadGlobalGameConfig(std::stringstream& configFile)
         {
             configFile >> nextParam;
             mMaxManaPerSeat = Helper::toDouble(nextParam);
+            // Not mandatory
+        }
+
+        if(nextParam == "ManaWellBonusPerTile")
+        {
+            configFile >> nextParam;
+            mManaWellBonusPerTile = Helper::toDouble(nextParam);
             // Not mandatory
         }
 
@@ -1364,6 +1374,12 @@ bool ConfigManager::loadTilesets(const std::string& fileName)
             return false;
         if(!loadTilesetValues(defFile, TileVisual::tortureRoom, tileSet->configureTileValues(TileVisual::tortureRoom),*mHighMap))
             return false;
+        if(!loadTilesetValues(defFile, TileVisual::guardRoom, tileSet->configureTileValues(TileVisual::guardRoom),*mHighMap))
+            return false;
+        if(!loadTilesetValues(defFile, TileVisual::manaWellGround, tileSet->configureTileValues(TileVisual::manaWellGround),*mHighMap))
+            return false;
+        if(!loadTilesetValues(defFile, TileVisual::templeRoom, tileSet->configureTileValues(TileVisual::templeRoom),*mHighMap))
+            return false;
 
     }
 
@@ -1820,6 +1836,15 @@ double ConfigManager::getTrapConfigDouble(const std::string& param) const
         OD_LOG_ERR("Unknown parameter param=" + param);
         return 0.0;
     }
+
+    return Helper::toDouble(it->second);
+}
+
+double ConfigManager::getTrapConfigDoubleOrDefault(const std::string& param, double defaultValue) const
+{
+    std::map<const std::string, std::string>::const_iterator it = mTrapsConfig.find(param);
+    if(it == mTrapsConfig.end())
+        return defaultValue;
 
     return Helper::toDouble(it->second);
 }

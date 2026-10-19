@@ -4959,12 +4959,12 @@
                     <Dim type="BottomEdge"><OperatorDim op="Subtract"><UnifiedDim scale="1" type="BottomEdge" /><ImageDim name="OpenDungeonsSkin/ButtonBottomNormal" dimension="Height" /></OperatorDim></Dim>
                 </Area>
                 <Image name="OpenDungeonsSkin/SelectionBrush" />
-                <Colours topLeft="FF1A2228" topRight="FF1A2228" bottomLeft="FF080C10" bottomRight="FF080C10" />
+                <Colours topLeft="FF2E2117" topRight="FF221810" bottomLeft="FF120C08" bottomRight="FF0C0806" />
                 <VertFormat type="Stretched" /><HorzFormat type="Stretched" />
             </ImageryComponent>
         </ImagerySection>
-        <StateImagery name="EnabledFrame"><Layer><Section look="OD/GameTabButton" section="navigation_frame" /></Layer></StateImagery>
-        <StateImagery name="DisabledFrame"><Layer><Section look="OD/GameTabButton" section="navigation_frame" /></Layer></StateImagery>
+        <StateImagery name="EnabledFrame"><Layer><Section look="OD/GameTabButton" section="navigation_frame"><Colours topLeft="FFC98F55" topRight="FFA9703F" bottomLeft="FF8A5A32" bottomRight="FF6E4626" /></Section></Layer></StateImagery>
+        <StateImagery name="DisabledFrame"><Layer><Section look="OD/GameTabButton" section="navigation_frame"><Colours topLeft="FFC98F55" topRight="FFA9703F" bottomLeft="FF8A5A32" bottomRight="FF6E4626" /></Section></Layer></StateImagery>
         <StateImagery name="WithFrameEnabledBackground"><Layer><Section section="inset" /></Layer></StateImagery>
         <StateImagery name="WithFrameDisabledBackground"><Layer><Section section="inset" /></Layer></StateImagery>
     </WidgetLook>

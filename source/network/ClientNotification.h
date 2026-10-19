@@ -51,6 +51,9 @@ enum class ClientNotificationType
     askCastSpell,
     askSetSkillTree,
     askSetPlayerSettings,
+    //! \brief Asks for the payout level of the casino on a tile and optionally sets it:
+    //! + int tileX, int tileY, uint32_t payoutLevel (a CasinoPayout value), bool isSet
+    askCasinoPayout,
 
     askSaveMap,
     askExecuteConsoleCommand,
@@ -83,7 +86,18 @@ enum class ClientNotificationType
 
     // Append new messages to preserve existing network and replay identifiers.
     changeNick,
-    askHandDropAll
+    askHandDropAll,
+
+    askTrapProductionQueue,
+    askMoveTrapProductionOrder,
+    //! Possession: the direction the possessed creature should walk (Vector2, zero to stop)
+    askPossessMove,
+    //! Possession: the player wants to leave the possessed creature
+    askPossessExit,
+    //! Possession: left click attack, the direction the creature looks at (Vector2)
+    askPossessAttack,
+    //! Possession: use the creature skill of the given slot (uint32_t, 0 to 3) in the given direction (Vector2)
+    askPossessSkill
 };
 
 ODPacket& operator<<(ODPacket& os, const ClientNotificationType& nt);

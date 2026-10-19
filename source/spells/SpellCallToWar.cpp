@@ -27,6 +27,8 @@
 #include "network/ODClient.h"
 #include "spells/SpellManager.h"
 #include "utils/ConfigManager.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -154,6 +156,9 @@ bool SpellCallToWar::castSpell(GameMap* gameMap, Player* player, ODPacket& packe
 
     SpellCallToWar* spell = new SpellCallToWar(gameMap);
     spell->setSeat(player->getSeat());
+    spell->setDuration(static_cast<int32_t>(std::round(SkillManager::getResearchValue(
+        player->getSeat(), SkillType::spellCallToWar,
+        ConfigManager::getSingleton().getSpellConfigInt32("CallToWarNbTurnsMax")))));
     spell->addToGameMap();
     Ogre::Vector3 spawnPosition(static_cast<Ogre::Real>(tile->getX()),
                                 static_cast<Ogre::Real>(tile->getY()),

@@ -64,6 +64,7 @@ void ODSocketClient::disconnect(bool keepReplay)
     mSupportsCreatureMood = false;
     mSupportsCreatureActivity = false;
     mSupportsCreaturePanel = false;
+    mSupportsCreatureProgress = false;
     mSupportsCosmeticEvents = false;
     mPendingTimestamp = -1;
     ODSource src = mSource;

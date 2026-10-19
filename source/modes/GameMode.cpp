@@ -23,7 +23,9 @@
 #include "entities/CreatureDefinition.h"
 #include "entities/CreatureDefinition.h"
 #include "entities/GameEntityType.h"
+#include "entities/RenderedMovableEntity.h"
 #include "entities/Tile.h"
+#include "game/HeartHealthRing.h"
 #include "game/Player.h"
 #include "game/Skill.h"
 #include "game/SkillManager.h"
@@ -47,6 +49,7 @@
 #include "render/RenderManager.h"
 #include "render/TextRenderer.h"
 #include "rooms/Room.h"
+#include "rooms/RoomCasino.h"
 #include "rooms/RoomManager.h"
 #include "rooms/RoomType.h"
 #include "sound/MusicPlayer.h"
@@ -66,6 +69,9 @@
 #include <CEGUI/widgets/PushButton.h>
 #include <CEGUI/widgets/ToggleButton.h>
 #include <CEGUI/widgets/ProgressBar.h>
+#include <CEGUI/widgets/Listbox.h>
+#include <CEGUI/widgets/ListboxTextItem.h>
+#include <CEGUI/widgets/Scrollbar.h>
 
 #include <OgreRoot.h>
 #include <OgreRenderWindow.h>
@@ -84,6 +90,30 @@ const std::string TEXT_SEAT_TEAM_ID_PREFIX = "TextSeatTeam";
 
 const double AUTOSCROLL_EDGE_RATIO = 0.02;
 const float HAND_DROP_ALL_HOLD_DURATION = 0.35f;
+const std::string DEFEAT_EXPLOSION_EFFECT_NAME = "DefeatHeartExplosion";
+//! The particle systems of the heart burst (particles/HeartExplosion.particle), all created at the burst
+const size_t DEFEAT_BURST_EFFECT_COUNT = 4;
+const std::string DEFEAT_BURST_EFFECT_NAMES[DEFEAT_BURST_EFFECT_COUNT] = {DEFEAT_EXPLOSION_EFFECT_NAME, "DefeatHeartExplosionFlash", "DefeatHeartExplosionSparks", "DefeatHeartExplosionSmoke"};
+const std::string DEFEAT_BURST_EFFECT_SCRIPTS[DEFEAT_BURST_EFFECT_COUNT] = {"HeartExplosion", "HeartExplosionFlash", "HeartExplosionSparks", "HeartExplosionSmoke"};
+const std::string DEFEAT_SWIRL_EFFECT_NAME = "DefeatSwirl";
+const std::string DEFEAT_CAMERA_MARKER_IMAGE = "OpenDungeonsIcons/CameraIcon";
+const std::string DEFEAT_FIRST_SUBTITLE = "Your dungeon heart has been destroyed.";
+const std::string DEFEAT_SECOND_SUBTITLE = "That's it for today. Until next time.";
+const std::string DEFEAT_DEBRIEFING_ELAPSED = "Time elapsed: ";
+
+//! \brief Skill slots sent to the server when the possession keys 1 to 4 are pressed
+const uint32_t POSSESSION_SKILL_SLOT_FIRST = 0;
+const uint32_t POSSESSION_SKILL_SLOT_SECOND = 1;
+const uint32_t POSSESSION_SKILL_SLOT_THIRD = 2;
+const uint32_t POSSESSION_SKILL_SLOT_FOURTH = 3;
+//! \brief Squared length below which the possession movement direction counts as "not moving"
+const float POSSESSION_MIN_DIRECTION_SQUARED_LENGTH = 0.0001f;
+//! \brief Dot product of the old and the new movement direction below which the direction counts as changed
+const float POSSESSION_DIRECTION_CHANGE_DOT = 0.99f;
+//! \brief Seconds after which the current movement direction is sent again while the player keeps moving
+const float POSSESSION_MOVE_RESEND_SECONDS = 0.5f;
+//! \brief Minimum seconds between two sent changes of the movement direction
+const float POSSESSION_MOVE_MIN_SEND_SECONDS = 0.1f;
 
 static double getAutoscrollIntensity(int mousePosition, int screenSize, bool minimumEdge)
 {
@@ -115,9 +145,13 @@ GameMode::GameMode(ModeManager *modeManager):
     mIndexEvent(0),
     mSettings(mRootWindow, modeManager->getGui(), false, true),
     mIsSkillWindowOpen(false),
+    mIsLibraryLostShown(false),
     mCurrentSkillType(SkillType::nullSkillType),
     mCurrentSkillProgress(0.0),
     mPreviousMousePosition(MouseMoveEvent{0, 0}),
+    mCasinoX(-1),
+    mCasinoY(-1),
+    mCasinoPayout(static_cast<uint32_t>(CasinoPayout::smiles)),
     showTileDebugWindow(false),
     config(ConfigManager::getSingleton())
 {
@@ -138,6 +172,25 @@ GameMode::GameMode(ModeManager *modeManager):
 
     addEventConnection(mRootWindow->getChild("MiniMapZoomButton")->subscribeEvent(
         CEGUI::Window::EventMouseClick, CEGUI::Event::Subscriber(&GameMode::zoomMiniMap, this)));
+    addEventConnection(mRootWindow->getChild(Gui::DISPLAY_MANA)->getChild("Icon")->subscribeEvent(
+        CEGUI::Window::EventMouseClick, CEGUI::Event::Subscriber(&GameMode::clickHeartBadge, this)));
+    addEventConnection(mRootWindow->getChild("ResearchButton")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::toggleSkillWindow, this)));
+    for(const char* name : {"ProductionButton", "GameOptionsWindow/ProductionButton"})
+        addEventConnection(mRootWindow->getChild(name)->subscribeEvent(
+            CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::showTrapProductionQueue, this)));
+    addEventConnection(mRootWindow->getChild("ProductionWindow")->subscribeEvent(
+        CEGUI::FrameWindow::EventCloseClicked, CEGUI::Event::Subscriber(&GameMode::closeTrapProductionQueue, this)));
+    addEventConnection(mRootWindow->getChild("ProductionWindow/CloseButton")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameMode::closeTrapProductionQueue, this)));
+    addEventConnection(mRootWindow->getChild("ProductionWindow/Orders")->subscribeEvent(
+        CEGUI::Listbox::EventSelectionChanged, CEGUI::Event::Subscriber(&GameMode::updateTrapProductionButtons, this)));
+    addEventConnection(mRootWindow->getChild("ProductionWindow/MoveUp")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber([this](const CEGUI::EventArgs&)
+        { return moveTrapProductionOrder(true); })));
+    addEventConnection(mRootWindow->getChild("ProductionWindow/MoveDown")->subscribeEvent(
+        CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber([this](const CEGUI::EventArgs&)
+        { return moveTrapProductionOrder(false); })));
     addEventConnection(mRootWindow->getChild("MapWindow")->subscribeEvent(
         CEGUI::FrameWindow::EventCloseClicked, CEGUI::Event::Subscriber(&GameMode::closeMap, this)));
     addEventConnection(mRootWindow->getChild("MapWindow")->subscribeEvent(
@@ -208,6 +261,20 @@ GameMode::GameMode(ModeManager *modeManager):
         guiSheet->getChild("ObjectivesWindow")->subscribeEvent(
             CEGUI::FrameWindow::EventCloseClicked,
             CEGUI::Event::Subscriber(&GameMode::hideObjectivesWindow, this)
+        )
+    );
+
+    //Casino payout window
+    addEventConnection(
+        guiSheet->getChild("CasinoPayoutWindow")->subscribeEvent(
+            CEGUI::FrameWindow::EventCloseClicked,
+            CEGUI::Event::Subscriber(&GameMode::hideCasinoPayoutWindow, this)
+        )
+    );
+    addEventConnection(
+        guiSheet->getChild("CasinoPayoutWindow/CasinoPayoutButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&GameMode::cycleCasinoPayout, this)
         )
     );
 
@@ -387,6 +454,16 @@ GameMode::GameMode(ModeManager *modeManager):
 
 GameMode::~GameMode()
 {
+    resetIdleHand();
+    if(mDefeatSequence.isStarted())
+    {
+        stopDefeatEffects();
+        destroyDefeatWindows();
+        // The hand and the pointer belong to the game, give them back to the next one
+        if(!RenderManager::getSingleton().isKeeperHandVisible())
+            RenderManager::getSingleton().rrToggleHandSelectorVisibility();
+        CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setVisible(true);
+    }
     TextRenderer::getSingleton().setCharacterHeight(ODApplication::POINTER_INFO_STRING, 16.0f);
     for(const MessageTab& tab : mMessageTabs)
         CEGUI::WindowManager::getSingleton().destroyWindow(tab.window);
@@ -428,10 +505,19 @@ GameMode::~GameMode()
 
 void GameMode::activate()
 {
+    resetIdleHand();
+    mIdleHandKeys.clear();
+    for(unsigned key = 1; key < 256; ++key)
+        if(getKeyboard()->isKeyDown(static_cast<OIS::KeyCode>(key)))
+            mIdleHandKeys.insert(static_cast<OIS::KeyCode>(key));
     // Loads the corresponding Gui sheet.
     Gui& gui = getModeManager().getGui();
     gui.loadGuiSheet(Gui::inGameMenu);
     RenderManager::getSingleton().rrEnableHeldCreatureDisplay(true, mGameMap->getLocalPlayer());
+    mIndicatorLeftAltDown = getKeyboard()->isKeyDown(OIS::KC_LMENU);
+    mIndicatorRightAltDown = getKeyboard()->isKeyDown(OIS::KC_RMENU);
+    RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap,
+        mCreatureIndicatorsVisible);
 
     // We free the menu scene as it is not required anymore
     ODFrameListener::getSingleton().freeMainMenuScene();
@@ -442,8 +528,12 @@ void GameMode::activate()
     CEGUI::Window* guiSheet = mRootWindow;
     guiSheet->getChild(Gui::EXIT_CONFIRMATION_POPUP)->hide();
     guiSheet->getChild("ObjectivesWindow")->hide();
+    guiSheet->getChild("CasinoPayoutWindow")->hide();
     guiSheet->getChild("PlayerSettingsWindow")->hide();
     guiSheet->getChild("SkillTreeWindow")->hide();
+    guiSheet->getChild("ProductionWindow")->hide();
+    mTrapProductionData = TrapProductionData{};
+    mProductionRequestPending = false;
     mReturningToSettingsNavigation = false;
     guiSheet->getChild("SettingsWindow")->hide();
     guiSheet->getChild("SettingsNavigationWindow")->setModalState(false);
@@ -476,6 +566,13 @@ void GameMode::activate()
 
 bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
 {
+    resetIdleHand();
+    if(mDefeatSequence.blocksInput())
+    {
+        if(mDefeatSequence.allowsGuiInput())
+            AbstractApplicationMode::mouseMoved(arg);
+        return true;
+    }
     AbstractApplicationMode::mouseMoved(arg);
 
     auto mouseEvent = toSFMLMouseMove(arg);
@@ -484,6 +581,14 @@ bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
 
     if (!isConnected())
         return true;
+
+    // While the player controls a creature, the mouse only turns its view
+    if (isLocalPlayerPossessing())
+    {
+        ODFrameListener::getSingleton().getCameraManager()->possessionLook(
+            static_cast<Ogre::Real>(arg.state.X.rel), static_cast<Ogre::Real>(arg.state.Y.rel));
+        return true;
+    }
 
     InputManager& inputManager = mModeManager->getInputManager();
     inputManager.mCommandState = (inputManager.mLMouseDown ? InputCommandState::building : InputCommandState::infoOnly);
@@ -690,6 +795,13 @@ void GameMode::sendPendingHandDropRequest(bool dropAllCreatures)
 
 bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
 {
+    resetIdleHand();
+    if(mDefeatSequence.blocksInput())
+    {
+        if(mDefeatSequence.allowsGuiInput())
+            CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonDown(Gui::convertButton(id));
+        return true;
+    }
     InputManager& inputManager = mModeManager->getInputManager();
 
     CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonDown(
@@ -715,6 +827,17 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
             log = false;
             OD_LOG_ERR("LOCAL PLAYER DOES NOT EXIST!!");
         }
+        return true;
+    }
+
+    // While the player controls a creature, the right button makes him leave it
+    if (isLocalPlayerPossessing())
+    {
+        if (id == OIS::MB_Right)
+            sendPossessionExit();
+        else if (id == OIS::MB_Left)
+            sendPossessionAttack();
+
         return true;
     }
 
@@ -918,6 +1041,19 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
     }
 
 
+    // Clicking on one of our casinos opens its payout control
+    if(mPlayerSelection.getCurrentAction() == SelectedAction::none)
+    {
+        Room* room = tileClicked->getCoveringRoom();
+        Player* localPlayer = mGameMap->getLocalPlayer();
+        if((room != nullptr) && (localPlayer != nullptr) && (room->getType() == RoomType::casino) &&
+           (room->getSeat() == localPlayer->getSeat()))
+        {
+            showCasinoPayoutWindow(tileClicked);
+            return true;
+        }
+    }
+
     // If we are doing nothing and we click on a tile, it is a tile selection
     if(mPlayerSelection.getCurrentAction() == SelectedAction::none)
         mPlayerSelection.setCurrentAction(SelectedAction::selectTile);
@@ -931,6 +1067,13 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
 
 bool GameMode::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
 {
+    resetIdleHand();
+    if(mDefeatSequence.blocksInput())
+    {
+        if(mDefeatSequence.allowsGuiInput())
+            CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonUp(Gui::convertButton(id));
+        return true;
+    }
     CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonUp(Gui::convertButton(id));
 
     InputManager& inputManager = mModeManager->getInputManager();
@@ -956,6 +1099,10 @@ bool GameMode::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
         }
         return true;
     }
+
+    // While the player controls a creature, the left button is used for its attack only
+    if (isLocalPlayerPossessing())
+        return true;
 
     if (id != OIS::MB_Left)
         return true;
@@ -999,6 +1146,11 @@ bool GameMode::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
 
 bool GameMode::keyPressed(const OIS::KeyEvent& arg)
 {
+    resetIdleHand();
+    if(mDefeatSequence.blocksInput())
+        return true;
+    mIdleHandKeys.insert(arg.key);
+    updateCreatureIndicatorAlt(arg.key, true);
     if(mLoadMenu && mLoadMenu->isOpenInGame())
         return mLoadMenu->keyPressed(arg);
     // Inject key to Gui
@@ -1042,6 +1194,8 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
             closeMap();
         return true;
     }
+    if (isLocalPlayerPossessing() && handlePossessionKey(arg.key, true))
+        return true;
 
     switch (arg.key)
     {
@@ -1110,10 +1264,6 @@ bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
             frameListener.getCameraManager()->setNextDefaultView();
         break;
 
-    case OIS::KC_LMENU:
-        RenderManager::getSingleton().
-        RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap, true);
-        break;
 
     // Zooms to the next event
     case OIS::KC_F:
@@ -1250,10 +1400,14 @@ void GameMode::refreshMainUI()
     tempSS.str("");
     tempSS << mySeat->getMana();
     widget->setText(tempSS.str());
+    // Show the mana income and the worker upkeep per second separately, the colour follows
+    // the net of both
     tempSS.str("");
-    tempSS << (mySeat->getManaDelta() >= 0 ? "+" : "") << mySeat->getManaDelta();
+    tempSS << "+" << static_cast<long>(mySeat->getManaIncomePerSecond())
+        << " / -" << static_cast<long>(mySeat->getManaUpkeepPerSecond() + mySeat->getManaOneOffPerSecond());
     widget->getChild("Change")->setText(tempSS.str());
-    widget->getChild("Change")->setProperty("TextColours", mySeat->getManaDelta() >= 0 ? "FF00C880" : "FFFF4848");
+    widget->getChild("Change")->setProperty("TextColours",
+        mySeat->getManaIncomePerSecond() >= mySeat->getManaUpkeepPerSecond() + mySeat->getManaOneOffPerSecond() ? "FF7FE3A6" : "FFFF4848");
     unsigned int workers = 0;
     unsigned int fighters = 0;
     for(Creature* creature : mGameMap->getCreaturesBySeat(mySeat))
@@ -1282,6 +1436,11 @@ void GameMode::refreshPlayerGoals(const std::string& goalsDisplayString)
 
 bool GameMode::keyReleased(const OIS::KeyEvent &arg)
 {
+    resetIdleHand();
+    if(mDefeatSequence.blocksInput())
+        return true;
+    mIdleHandKeys.erase(arg.key);
+    updateCreatureIndicatorAlt(arg.key, false);
     if(arg.key == OIS::KC_M)
         mMapKeyDown = false;
     CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyUp(static_cast<CEGUI::Key::Scan>(arg.key));
@@ -1296,11 +1455,11 @@ bool GameMode::keyReleasedNormal(const OIS::KeyEvent &arg)
 {
     ODFrameListener& frameListener = ODFrameListener::getSingleton();
 
+    if (isLocalPlayerPossessing() && handlePossessionKey(arg.key, false))
+        return true;
+
     switch (arg.key)
     {
-    case OIS::KC_LMENU:
-        RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap, false);
-        break;
 
     default:
         break;
@@ -1338,6 +1497,11 @@ void GameMode::updateCameraControls(float elapsed)
     const std::function<bool(OIS::KeyCode)> down = [this](OIS::KeyCode key) { return getKeyboard()->isKeyDown(key); };
     if(!down(OIS::KC_M))
         mMapKeyDown = false;
+    if(mDefeatSequence.blocksInput())
+    {
+        camera->move(CameraManager::fullStop);
+        return;
+    }
     if(cameraInputBlocked())
     {
         camera->move(CameraManager::fullStop);
@@ -1443,6 +1607,17 @@ bool GameMode::zoomMiniMap(const CEGUI::EventArgs& arg)
         level = std::max(0, level);
     mMiniMap->setZoomLevel(level);
     mMiniMap->update(0.5f, mCameraTilesIntersections);
+    return true;
+}
+
+bool GameMode::clickHeartBadge(const CEGUI::EventArgs& arg)
+{
+    const CEGUI::MouseEventArgs& mouse = static_cast<const CEGUI::MouseEventArgs&>(arg);
+    if(mouse.button != CEGUI::RightButton)
+        return false;
+    // focusRoom does nothing when the local player has no living heart
+    if(!cameraInputBlocked())
+        focusRoom(RoomType::dungeonTemple);
     return true;
 }
 
@@ -1553,8 +1728,34 @@ bool GameMode::storeUserCamera(const CEGUI::EventArgs&)
     return true;
 }
 
+void GameMode::updateCreatureIndicatorAlt(OIS::KeyCode key, bool pressed)
+{
+    if(key != OIS::KC_LMENU && key != OIS::KC_RMENU)
+        return;
+    const bool wasDown = mIndicatorLeftAltDown || mIndicatorRightAltDown;
+    (key == OIS::KC_LMENU ? mIndicatorLeftAltDown : mIndicatorRightAltDown) = pressed;
+    if(pressed && !wasDown)
+    {
+        mCreatureIndicatorsVisible = !mCreatureIndicatorsVisible;
+        RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap,
+            mCreatureIndicatorsVisible);
+    }
+}
+
 void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
 {
+    // Recover releases missed while focus was elsewhere without changing the toggle.
+    if(!getKeyboard()->isKeyDown(OIS::KC_LMENU))
+        updateCreatureIndicatorAlt(OIS::KC_LMENU, false);
+    if(!getKeyboard()->isKeyDown(OIS::KC_RMENU))
+        updateCreatureIndicatorAlt(OIS::KC_RMENU, false);
+
+    if(mRootWindow->getChild("ProductionWindow")->isVisible())
+    {
+        mProductionRefreshElapsed += evt.timeSinceLastFrame;
+        if(mProductionRefreshElapsed >= 1.0f)
+            requestTrapProductionQueue();
+    }
     if(mFullMap)
         updateMapDetail();
     GameEditorModeBase::onFrameStarted(evt);
@@ -1594,6 +1795,23 @@ void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
     player->frameStarted(evt.timeSinceLastFrame);
     mCreaturePanel->update();
 
+    HeartHealthRing::BadgeState& heartBadge = ODClient::getSingleton().getHeartBadge();
+    heartBadge.update(evt.timeSinceLastFrame);
+    if(heartBadge.takeDirty())
+        mModeManager->getGui().updateHeartBadge(heartBadge.mFraction, heartBadge.mGlow);
+    // Every frame, so that the text also survives the GUI being rebuilt
+    if(heartBadge.mMaxHP > 0.0)
+    {
+        std::ostringstream heartText;
+        heartText << "Dungeon heart at " << HeartHealthRing::healthPercent(heartBadge.mHP, heartBadge.mMaxHP)
+            << " %. Right-click moves the view to the heart.";
+        CEGUI::Window* heartIcon = mRootWindow->getChild(Gui::DISPLAY_MANA)->getChild("Icon");
+        if(!heartIcon->isUserStringDefined("ContextHelp") || heartIcon->getUserString("ContextHelp") != heartText.str())
+            heartIcon->setUserString("ContextHelp", heartText.str());
+    }
+
+    updatePossessionInput(evt.timeSinceLastFrame);
+
     // After frameStarted, so that the countdown shown is the one just computed.
     refreshActionFeedback(evt.timeSinceLastFrame);
 
@@ -1612,6 +1830,10 @@ void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
 
         mSkillCurrentCompletion.mProgressBar->setProgress(mSkillCurrentCompletion.mCompletenessDisplayed);
     }
+
+    // onFrameStarted runs more than once per frame (from ODFrameListener::frameStarted and from
+    // ModeManager::update), so the sequence follows the clock instead of summing frame times
+    updateDefeatSequence(std::chrono::steady_clock::now());
 }
 
 void GameMode::onFrameEnded(const Ogre::FrameEvent& evt)
@@ -1661,6 +1883,15 @@ void GameMode::notifyGuiAction(GuiAction guiAction)
     }
 }
 
+bool GameMode::onClickDefeatDebriefingConfirm(const CEGUI::EventArgs& /*arg*/)
+{
+    if(!mDefeatSequence.confirmDebriefing())
+        return true;
+    // Same way out as the quit menu, but the main menu opens with the skirmish sub-menu
+    mModeManager->requestMainMenuWithSkirmishSubMenu();
+    return true;
+}
+
 bool GameMode::onClickYesQuitMenu(const CEGUI::EventArgs& /*arg*/)
 {
     if(mExitToDesktop)
@@ -1693,6 +1924,62 @@ bool GameMode::toggleObjectivesWindow(const CEGUI::EventArgs& e)
     else
         showObjectivesWindow(e);
     return true;
+}
+
+void GameMode::showCasinoPayoutWindow(Tile* tile)
+{
+    mCasinoX = tile->getX();
+    mCasinoY = tile->getY();
+    setCasinoPayoutShown(mCasinoX, mCasinoY, static_cast<uint32_t>(CasinoPayout::smiles));
+    mRootWindow->getChild("CasinoPayoutWindow")->show();
+
+    // The payout is kept by the server, so we ask it what it currently is
+    ClientNotification* clientNotification = new ClientNotification(
+        ClientNotificationType::askCasinoPayout);
+    clientNotification->mPacket << mCasinoX << mCasinoY << static_cast<uint32_t>(CasinoPayout::smiles) << false;
+    ODClient::getSingleton().queueClientNotification(clientNotification);
+}
+
+bool GameMode::hideCasinoPayoutWindow(const CEGUI::EventArgs&)
+{
+    mRootWindow->getChild("CasinoPayoutWindow")->hide();
+    return true;
+}
+
+bool GameMode::cycleCasinoPayout(const CEGUI::EventArgs&)
+{
+    uint32_t nextLevel = (mCasinoPayout + 1) % static_cast<uint32_t>(CasinoPayout::nbValues);
+    ClientNotification* clientNotification = new ClientNotification(
+        ClientNotificationType::askCasinoPayout);
+    clientNotification->mPacket << mCasinoX << mCasinoY << nextLevel << true;
+    ODClient::getSingleton().queueClientNotification(clientNotification);
+    return true;
+}
+
+void GameMode::setCasinoPayoutShown(int tileX, int tileY, uint32_t level)
+{
+    if((tileX != mCasinoX) || (tileY != mCasinoY))
+        return;
+
+    if(level >= static_cast<uint32_t>(CasinoPayout::nbValues))
+        return;
+
+    mCasinoPayout = level;
+    std::string levelText;
+    std::string infoText;
+    switch(static_cast<CasinoPayout>(level))
+    {
+        case CasinoPayout::money:
+            levelText = "Payout: Money";
+            infoText = "The casino keeps a large share of the bets. Creatures get annoyed.";
+            break;
+        default:
+            levelText = "Payout: Smiles";
+            infoText = "The casino keeps little of the bets. Creatures get cheered up.";
+            break;
+    }
+    mRootWindow->getChild("CasinoPayoutWindow/CasinoPayoutButton")->setText(levelText);
+    mRootWindow->getChild("CasinoPayoutWindow/CasinoPayoutText")->setText(infoText);
 }
 
 bool GameMode::showPlayerSettingsWindow(const CEGUI::EventArgs&)
@@ -1749,9 +2036,501 @@ void GameMode::syncPlayerSettings()
 
 bool GameMode::showSkillWindow(const CEGUI::EventArgs&)
 {
+    while(closeTopWindow())
+    {
+    }
     resetSkillTree();
     mRootWindow->getChild("SkillTreeWindow")->show();
+    mRootWindow->getChild("SkillTreeWindow")->moveToFront();
     return true;
+}
+
+bool GameMode::showTrapProductionQueue(const CEGUI::EventArgs&)
+{
+    CEGUI::Window* production = mRootWindow->getChild("ProductionWindow");
+    const bool wasVisible = production->isVisible();
+    while(closeTopWindow())
+    {
+    }
+    if(wasVisible)
+        return true;
+    production->show();
+    production->moveToFront();
+    requestTrapProductionQueue();
+    return true;
+}
+
+bool GameMode::closeTrapProductionQueue(const CEGUI::EventArgs&)
+{
+    mRootWindow->getChild("ProductionWindow")->hide();
+    return true;
+}
+
+void GameMode::requestTrapProductionQueue()
+{
+    if(mProductionRequestPending || !isConnected())
+        return;
+    mProductionRequestPending = true;
+    mProductionRefreshElapsed = 0.0f;
+    updateTrapProductionButtons();
+    ODClient::getSingleton().queueClientNotification(
+        new ClientNotification(ClientNotificationType::askTrapProductionQueue));
+}
+
+bool GameMode::updateTrapProductionButtons(const CEGUI::EventArgs&)
+{
+    CEGUI::Listbox* orders = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("ProductionWindow/Orders"));
+    CEGUI::ListboxItem* selected = orders->getFirstSelectedItem();
+    const bool valid = selected != nullptr &&
+        selected->getID() < mTrapProductionData.orders.size();
+    mRootWindow->getChild("ProductionWindow/MoveUp")->setEnabled(valid && selected->getID() > 0);
+    mRootWindow->getChild("ProductionWindow/MoveDown")->setEnabled(valid && selected->getID() + 1 < mTrapProductionData.orders.size());
+    return true;
+}
+
+bool GameMode::moveTrapProductionOrder(bool earlier)
+{
+    if(!isConnected())
+        return true;
+    CEGUI::Listbox* orders = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("ProductionWindow/Orders"));
+    CEGUI::ListboxItem* selected = orders->getFirstSelectedItem();
+    if(selected == nullptr || selected->getID() >= mTrapProductionData.orders.size())
+        return true;
+    ClientNotification* request = new ClientNotification(ClientNotificationType::askMoveTrapProductionOrder);
+    request->mPacket << mTrapProductionData.orders[selected->getID()].name << earlier;
+    mProductionRequestPending = true;
+    mProductionRefreshElapsed = 0.0f;
+    updateTrapProductionButtons();
+    ODClient::getSingleton().queueClientNotification(request);
+    return true;
+}
+
+void GameMode::refreshTrapProductionQueue(const TrapProductionData& data)
+{
+    CEGUI::Listbox* orders = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("ProductionWindow/Orders"));
+    CEGUI::Listbox* workshops = static_cast<CEGUI::Listbox*>(mRootWindow->getChild("ProductionWindow/Workshops"));
+    std::string selectedName;
+    CEGUI::ListboxItem* selected = orders->getFirstSelectedItem();
+    if(selected != nullptr && selected->getID() < mTrapProductionData.orders.size())
+        selectedName = mTrapProductionData.orders[selected->getID()].name;
+    const float scroll = orders->getVertScrollbar()->getScrollPosition();
+    mProductionRequestPending = true;
+    orders->resetList();
+    workshops->resetList();
+    mTrapProductionData = data;
+    for(size_t index = 0; index < data.orders.size(); ++index)
+    {
+        const TrapProductionOrder& order = data.orders[index];
+        const std::string text = Helper::toString(index + 1) + ". " +
+            TrapManager::getTrapNameFromTrapType(order.type) + " - " +
+            Helper::toString(order.needed) + " required (" + order.name + ")";
+        CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(text, static_cast<CEGUI::uint>(index));
+        item->setTextParsingEnabled(false);
+        item->setSelectionBrushImage("OpenDungeonsSkin/SelectionBrush");
+        orders->addItem(item);
+        if(order.name == selectedName)
+            orders->setItemSelectState(item, true);
+    }
+    orders->getVertScrollbar()->setScrollPosition(scroll);
+    for(const TrapProductionWorkshop& workshop : data.workshops)
+    {
+        std::string text = workshop.name + ": ";
+        if(workshop.type == TrapType::nullTrapType)
+            text += "Idle";
+        else
+            text += TrapManager::getTrapNameFromTrapType(workshop.type) + " - " +
+                Helper::toString(workshop.points) + "/" + Helper::toString(workshop.required) + " work points";
+        CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(text);
+        item->setTextParsingEnabled(false);
+        workshops->addItem(item);
+    }
+    mRootWindow->getChild("ProductionWindow/OrdersLabel")->setText(
+        data.orders.empty() ? "No pending trap orders" : "Order priority (required items)");
+    mRootWindow->getChild("ProductionWindow/WorkshopsLabel")->setText(
+        data.workshops.empty() ? "No workshops" : "Work in progress");
+    mProductionRequestPending = false;
+    updateTrapProductionButtons();
+}
+
+void GameMode::startDefeatSequence(int32_t conquerorSeatId, int32_t heartTileX, int32_t heartTileY)
+{
+    OD_LOG_INF("Defeat sequence requested: conquerorSeatId=" + Helper::toString(conquerorSeatId)
+        + ", heartTile=" + Helper::toString(heartTileX) + "," + Helper::toString(heartTileY));
+    const std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
+    if(!mDefeatSequence.start(conquerorSeatId, heartTileX, heartTileY, startTime))
+    {
+        OD_LOG_INF("Defeat sequence already running, request ignored");
+        return;
+    }
+
+    // Nothing the player was doing may go on: drop the held buttons and the pending hand drop
+    InputManager& inputManager = mModeManager->getInputManager();
+    inputManager.mLMouseDown = false;
+    inputManager.mRMouseDown = false;
+    inputManager.mMMouseDown = false;
+    mPendingHandDrop = false;
+
+    // The pointer, the hand and the texts that follow it disappear with the interface
+    CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setVisible(false);
+    TextRenderer::getSingleton().setText(ODApplication::POINTER_INFO_STRING, "");
+    RenderManager& renderManager = RenderManager::getSingleton();
+    if(renderManager.isKeeperHandVisible())
+        renderManager.rrToggleHandSelectorVisibility();
+    renderManager.rrSetCreaturesTextOverlay(*mGameMap, false);
+
+    CameraManager* cameraManager = ODFrameListener::getSingleton().getCameraManager();
+    if(mDefeatSequence.isHeartKnown())
+    {
+        mDefeatHeartPosition = Ogre::Vector3(static_cast<Ogre::Real>(heartTileX),
+            static_cast<Ogre::Real>(heartTileY), 0.0f);
+    }
+    else
+    {
+        // Unknown heart: stay where the camera looks instead of jumping somewhere
+        mDefeatHeartPosition = cameraManager->getCameraViewTarget();
+    }
+    cutCameraToHeart(mDefeatHeartPosition);
+
+    createDefeatWindows();
+
+    // The server has already removed the heart object, so a client-only copy stands in for it: it shakes
+    // and glows until it bursts (the burst effects start in updateDefeatSequence)
+    if(mDefeatSequence.isHeartKnown())
+    {
+        // The server may remove the real heart object only a moment later: hide it, so that it does
+        // not stand in the copy. Its node is destroyed with it, nothing keeps a pointer to it.
+        const std::vector<RenderedMovableEntity*>& objects = mGameMap->getRenderedMovableEntities();
+        for(std::vector<RenderedMovableEntity*>::const_iterator it = objects.begin(); it != objects.end(); ++it)
+        {
+            RenderedMovableEntity* object = *it;
+            if(object->getMeshName() == "DungeonTempleObject" && object->getEntityNode() != nullptr
+                && object->getPositionTile() != nullptr && object->getPositionTile()->getX() == heartTileX
+                && object->getPositionTile()->getY() == heartTileY)
+                object->getEntityNode()->setVisible(false);
+        }
+        renderManager.rrCreateDefeatHeart(mDefeatHeartPosition);
+        mDefeatHeartShown = true;
+    }
+
+    updateDefeatSequence(startTime);
+}
+
+void GameMode::cutCameraToHeart(const Ogre::Vector3& heartPosition)
+{
+    CameraManager* cameraManager = ODFrameListener::getSingleton().getCameraManager();
+    cameraManager->resetCamera(Ogre::Vector3(heartPosition.x, heartPosition.y,
+        DefeatSequenceSettings::CAMERA_HEIGHT), Ogre::Vector3(DefeatSequenceSettings::CAMERA_PITCH, 0.0f, 0.0f));
+
+    // The camera looks obliquely, so move it back until the heart is what it looks at
+    Ogre::Vector3 viewTarget = cameraManager->getCameraViewTarget();
+    Ogre::Vector3 position = cameraManager->getActiveCameraNode()->getPosition();
+    position.x += heartPosition.x - viewTarget.x;
+    position.y += heartPosition.y - viewTarget.y;
+    cameraManager->getActiveCameraNode()->setPosition(position);
+}
+
+void GameMode::createDefeatWindows()
+{
+    CEGUI::WindowManager& windowManager = CEGUI::WindowManager::getSingleton();
+
+    mDefeatTint = windowManager.createWindow("OD/StaticText", "DefeatTint");
+    mDefeatTint->setProperty("BackgroundColours", "FFFF0000");
+    mDefeatFade = windowManager.createWindow("OD/StaticText", "DefeatFade");
+    mDefeatFade->setProperty("BackgroundColours", "FF000000");
+
+    CEGUI::Window* covers[2] = {mDefeatTint, mDefeatFade};
+    for(size_t i = 0; i < 2; ++i)
+    {
+        CEGUI::Window* cover = covers[i];
+        cover->setProperty("FrameEnabled", "False");
+        cover->setProperty("BackgroundEnabled", "True");
+        cover->setAlpha(0.0f);
+        cover->setArea(CEGUI::UDim(0, 0), CEGUI::UDim(0, 0), CEGUI::UDim(1, 0), CEGUI::UDim(1, 0));
+        cover->setMousePassThroughEnabled(true);
+        cover->setAlwaysOnTop(true);
+        mRootWindow->addChild(cover);
+    }
+
+    // A camera symbol in the top right corner, shown while the sequence runs
+    mDefeatCameraMarker = windowManager.createWindow("OD/StaticImage", "DefeatCameraMarker");
+    mDefeatCameraMarker->setArea(CEGUI::UDim(1, -50), CEGUI::UDim(0, 10), CEGUI::UDim(0, 40), CEGUI::UDim(0, 40));
+    mDefeatCameraMarker->setProperty("Image", DEFEAT_CAMERA_MARKER_IMAGE);
+    mDefeatCameraMarker->setProperty("ImageColours", "FFFF4848");
+    mDefeatCameraMarker->setProperty("FrameEnabled", "False");
+    mDefeatCameraMarker->setProperty("BackgroundEnabled", "False");
+    mDefeatCameraMarker->setMousePassThroughEnabled(true);
+    mDefeatCameraMarker->setAlwaysOnTop(true);
+    mRootWindow->addChild(mDefeatCameraMarker);
+
+    mDefeatSubtitle = windowManager.createWindow("OD/StaticText", "DefeatSubtitle");
+    mDefeatSubtitle->setFont("MedievalSharp-20");
+    mDefeatSubtitle->setArea(CEGUI::UDim(0.1f, 0), CEGUI::UDim(0.8f, 0), CEGUI::UDim(0.8f, 0), CEGUI::UDim(0.1f, 0));
+    mDefeatSubtitle->setProperty("TextColours", "FFFFFFFF");
+    mDefeatSubtitle->setProperty("HorzFormatting", "CentreAligned");
+    mDefeatSubtitle->setProperty("FrameEnabled", "False");
+    mDefeatSubtitle->setProperty("BackgroundEnabled", "False");
+    mDefeatSubtitle->setProperty("TextParsingEnabled", "False");
+    mDefeatSubtitle->setProperty("VertFormatting", "CentreAligned");
+    mDefeatSubtitle->setMousePassThroughEnabled(true);
+    mDefeatSubtitle->setAlwaysOnTop(true);
+    mRootWindow->addChild(mDefeatSubtitle);
+}
+
+void GameMode::destroyDefeatWindows()
+{
+    CEGUI::WindowManager& windowManager = CEGUI::WindowManager::getSingleton();
+    CEGUI::Window** windows[5] = {&mDefeatTint, &mDefeatFade, &mDefeatSubtitle, &mDefeatCameraMarker,
+        &mDefeatDebriefing};
+    for(size_t i = 0; i < 5; ++i)
+    {
+        if(*windows[i] != nullptr)
+            windowManager.destroyWindow(*windows[i]);
+        *windows[i] = nullptr;
+    }
+}
+
+void GameMode::hideInterfaceForDefeat()
+{
+    for(size_t index = 0; index < mRootWindow->getChildCount(); ++index)
+    {
+        CEGUI::Window* child = mRootWindow->getChildAtIdx(index);
+        if(child == mDefeatTint || child == mDefeatFade || child == mDefeatSubtitle
+           || child == mDefeatCameraMarker || child == mDefeatDebriefing)
+            continue;
+        if(child->isVisible())
+            child->hide();
+    }
+}
+
+void GameMode::startDefeatSwirl()
+{
+    mDefeatSwirlDone = true;
+    Seat* conqueror = mGameMap->getSeatById(mDefeatSequence.getConquerorSeatId());
+    if(conqueror == nullptr)
+    {
+        OD_LOG_INF("Defeat sequence: unknown conqueror seat, no swirl");
+        return;
+    }
+    Ogre::ColourValue seatColour = conqueror->getColorValue();
+    seatColour.a = 1.0f;
+
+    // Away from the camera, so that the swirl visibly leaves the heart across the floor
+    Ogre::Vector3 direction = ODFrameListener::getSingleton().getCameraManager()->getActiveCamera()
+        ->getDerivedDirection();
+    direction.z = 0.0f;
+    if(direction.squaredLength() < 0.0001f)
+        direction = Ogre::Vector3::UNIT_Y;
+    direction.normalise();
+    mDefeatSwirlDirection = direction;
+
+    Ogre::Vector3 position = mDefeatHeartPosition;
+    position.z = 0.15f;
+    RenderManager::getSingleton().rrCreateFreeParticleEffect(DEFEAT_SWIRL_EFFECT_NAME, "DefeatSwirl",
+        position, &seatColour);
+    mDefeatSwirlEffectActive = true;
+}
+
+void GameMode::startDefeatBurst(float time)
+{
+    mDefeatBurstDone = true;
+    RenderManager& renderManager = RenderManager::getSingleton();
+    if(mDefeatHeartShown)
+    {
+        renderManager.rrDestroyDefeatHeart();
+        mDefeatHeartShown = false;
+    }
+    // A single frame may have run past the explosion phase; then its particles are skipped
+    if(DefeatSequence::isExplosionEffectActiveAt(time))
+    {
+        Ogre::Vector3 position = mDefeatHeartPosition;
+        position.z = DefeatHeartBurstSettings::BURST_HEIGHT;
+        for(size_t i = 0; i < DEFEAT_BURST_EFFECT_COUNT; ++i)
+            renderManager.rrCreateFreeParticleEffect(DEFEAT_BURST_EFFECT_NAMES[i], DEFEAT_BURST_EFFECT_SCRIPTS[i],
+                position, nullptr);
+        mDefeatExplosionEffectActive = true;
+    }
+    if(mDefeatSequence.isHeartKnown())
+    {
+        mDefeatRubble = DefeatHeartBurst::buildRubbleLayout();
+        renderManager.rrCreateDefeatRubble(mDefeatRubble.size());
+        mDefeatRubbleShown = true;
+    }
+}
+
+void GameMode::stopDefeatEffects()
+{
+    RenderManager& renderManager = RenderManager::getSingleton();
+    if(mDefeatExplosionEffectActive)
+    {
+        for(size_t i = 0; i < DEFEAT_BURST_EFFECT_COUNT; ++i)
+            renderManager.rrDestroyFreeParticleEffect(DEFEAT_BURST_EFFECT_NAMES[i]);
+    }
+    if(mDefeatSwirlEffectActive)
+        renderManager.rrDestroyFreeParticleEffect(DEFEAT_SWIRL_EFFECT_NAME);
+    if(mDefeatHeartShown)
+        renderManager.rrDestroyDefeatHeart();
+    if(mDefeatRubbleShown)
+        renderManager.rrDestroyDefeatRubble();
+    mDefeatExplosionEffectActive = false;
+    mDefeatSwirlEffectActive = false;
+    mDefeatHeartShown = false;
+    mDefeatRubbleShown = false;
+}
+
+void GameMode::updateDefeatSequence(std::chrono::steady_clock::time_point now)
+{
+    if(!mDefeatSequence.isStarted())
+        return;
+
+    const bool finished = mDefeatSequence.advanceTo(now);
+    const float time = mDefeatSequence.getElapsed();
+    RenderManager& renderManager = RenderManager::getSingleton();
+
+    hideInterfaceForDefeat();
+    mDefeatTint->setAlpha(DefeatSequence::redTintAlphaAt(time));
+    mDefeatFade->setAlpha(DefeatSequence::blackAlphaAt(time));
+    if(DefeatSequence::isSecondSubtitleVisibleAt(time))
+        mDefeatSubtitle->setText(DEFEAT_SECOND_SUBTITLE);
+    else if(DefeatSequence::isFirstSubtitleVisibleAt(time))
+        mDefeatSubtitle->setText(DEFEAT_FIRST_SUBTITLE);
+    else
+        mDefeatSubtitle->setText("");
+
+    if(!mDefeatBurstDone && DefeatHeartBurst::isBurstDueAt(time))
+        startDefeatBurst(time);
+    if(mDefeatHeartShown)
+    {
+        const Ogre::Vector3 shake(DefeatHeartBurst::heartShakeXAt(time), DefeatHeartBurst::heartShakeYAt(time), 0.0f);
+        renderManager.rrUpdateDefeatHeart(mDefeatHeartPosition + shake, DefeatHeartBurst::heartPulseScaleAt(time),
+            DefeatHeartBurst::heartGlowAt(time));
+    }
+    if(mDefeatRubbleShown)
+    {
+        const float sinceBurst = time - DefeatHeartBurstSettings::BURST_TIME;
+        for(size_t i = 0; i < mDefeatRubble.size(); ++i)
+        {
+            const DefeatRubblePiece& piece = mDefeatRubble[i];
+            const DefeatRubblePose pose = DefeatHeartBurst::rubblePoseAt(piece, sinceBurst);
+            renderManager.rrMoveDefeatRubblePiece(i, mDefeatHeartPosition + Ogre::Vector3(pose.x, pose.y, pose.z),
+                Ogre::Vector3(pose.tiltX, pose.tiltY, pose.turn), Ogre::Vector3(piece.scaleX, piece.scaleY, piece.scaleZ));
+        }
+    }
+
+    if(mDefeatExplosionEffectActive && !DefeatSequence::isExplosionEffectActiveAt(time))
+    {
+        for(size_t i = 0; i < DEFEAT_BURST_EFFECT_COUNT; ++i)
+            renderManager.rrDestroyFreeParticleEffect(DEFEAT_BURST_EFFECT_NAMES[i]);
+        mDefeatExplosionEffectActive = false;
+    }
+
+    if(!mDefeatSwirlDone && mDefeatSequence.isSwirlWanted() && DefeatSequence::isSwirlActiveAt(time))
+        startDefeatSwirl();
+    if(mDefeatSwirlEffectActive)
+    {
+        if(DefeatSequence::isSwirlActiveAt(time))
+        {
+            Ogre::Vector3 position = mDefeatHeartPosition
+                + mDefeatSwirlDirection * (DefeatSequenceSettings::SWIRL_DISTANCE
+                    * DefeatSequence::swirlProgressAt(time));
+            position.z = 0.15f;
+            renderManager.rrMoveFreeParticleEffect(DEFEAT_SWIRL_EFFECT_NAME, position);
+        }
+        else
+        {
+            renderManager.rrDestroyFreeParticleEffect(DEFEAT_SWIRL_EFFECT_NAME);
+            mDefeatSwirlEffectActive = false;
+        }
+    }
+
+    if(finished)
+        onDefeatSequenceFinished();
+}
+
+void GameMode::onDefeatSequenceFinished()
+{
+    OD_LOG_INF("Defeat sequence finished");
+    // The screen is black: the rubble and whatever effect is left can go
+    stopDefeatEffects();
+    if(!mDefeatSequence.openDebriefing())
+        return;
+    // The screen stays black; the subtitle and the camera marker make room for the debriefing
+    mDefeatSubtitle->hide();
+    mDefeatCameraMarker->hide();
+    showDefeatDebriefing();
+}
+
+void GameMode::showDefeatDebriefing()
+{
+    mDefeatDebriefing = CEGUI::WindowManager::getSingleton().loadLayoutFromFile("WindowDefeatDebriefing.layout");
+    mDefeatDebriefing->setAlwaysOnTop(true);
+    mRootWindow->addChild(mDefeatDebriefing);
+
+    const std::string nick = mGameMap->getLocalPlayer()->getNick();
+    mDefeatDebriefing->getChild("Panel/PlayerName")->setText(reinterpret_cast<const CEGUI::utf8*>(nick.c_str()));
+    // The statistics snapshot taken by the server at the defeat wins over the client's own values
+    const bool hasStatistics = ODClient::getSingleton().hasLevelStatistics();
+    const LevelStatistics& statistics = ODClient::getSingleton().getLevelStatistics();
+    mDefeatDebriefing->getChild("Panel/Outcome")->setText(debriefingOutcomeText(debriefingLevelWon(hasStatistics, statistics, false)));
+    const int64_t clientSeconds = debriefingElapsedSeconds(mGameMap->getTurnNumber(), ODApplication::turnsPerSecond);
+    const int64_t seconds = debriefingSeconds(hasStatistics, statistics, clientSeconds);
+    mDefeatDebriefing->getChild("Panel/Elapsed")->setText(DEFEAT_DEBRIEFING_ELAPSED + formatDebriefingTime(seconds));
+    if(hasStatistics)
+        fillDefeatStatistics(buildDebriefingTable(statistics));
+
+    addEventConnection(
+        mDefeatDebriefing->getChild("Panel/ConfirmButton")->subscribeEvent(
+            CEGUI::PushButton::EventClicked,
+            CEGUI::Event::Subscriber(&GameMode::onClickDefeatDebriefingConfirm, this)
+        )
+    );
+
+    // The pointer is back for the button. The CEGUI arrow image of this game is transparent
+    // (OpenDungeonsSkin/MouseArrow): the visible pointer is the keeper hand, which the sequence hid.
+    CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().setVisible(true);
+    RenderManager& renderManager = RenderManager::getSingleton();
+    if(!renderManager.isKeeperHandVisible())
+        renderManager.rrToggleHandSelectorVisibility();
+}
+
+void GameMode::fillDefeatStatistics(const std::vector<DebriefingTableRow>& rows)
+{
+    if(rows.empty())
+        return;
+
+    CEGUI::WindowManager& windowManager = CEGUI::WindowManager::getSingleton();
+    CEGUI::Window* area = mDefeatDebriefing->getChild("Panel/StatisticsArea");
+    for(size_t row = 0; row < rows.size(); ++row)
+    {
+        CEGUI::Window* label = windowManager.createWindow("OD/StaticText", "DefeatStatisticsLabel" + std::to_string(row));
+        label->setProperty("Area", debriefingLabelArea(row));
+        label->setProperty("Font", "MedievalSharp-12");
+        label->setProperty("FrameEnabled", "False");
+        label->setProperty("BackgroundEnabled", "False");
+        label->setProperty("HorzFormatting", "LeftAligned");
+        label->setProperty("VertFormatting", "CentreAligned");
+        label->setText(rows[row].mLabel);
+        area->addChild(label);
+
+        const std::vector<DebriefingTableCell>& cells = rows[row].mCells;
+        for(size_t column = 0; column < cells.size(); ++column)
+        {
+            // A seat the client does not know is drawn in white
+            Seat* seat = mGameMap->getSeatById(cells[column].mSeatId);
+            const Ogre::ColourValue colour = (seat == nullptr) ? Ogre::ColourValue::White : seat->getColorValue();
+            CEGUI::Window* cell = windowManager.createWindow("OD/StaticText",
+                "DefeatStatisticsCell" + std::to_string(row) + "_" + std::to_string(column));
+            cell->setProperty("Area", debriefingCellArea(row, column, cells.size()));
+            cell->setProperty("Font", "MedievalSharp-12");
+            cell->setProperty("FrameEnabled", "False");
+            cell->setProperty("BackgroundEnabled", "False");
+            cell->setProperty("HorzFormatting", "CentreAligned");
+            cell->setProperty("VertFormatting", "CentreAligned");
+            cell->setProperty("TextColours", debriefingColourText(colour.getAsARGB()));
+            cell->setText(cells[column].mText);
+            area->addChild(cell);
+        }
+    }
+    area->show();
 }
 
 bool GameMode::hideSkillWindow(const CEGUI::EventArgs&)
@@ -1828,7 +2607,7 @@ void GameMode::setOptionsPage(bool endGame)
 {
     CEGUI::Window* options = mRootWindow->getChild("GameOptionsWindow");
     for(const char* name : {"ObjectivesButton", "SkillButton", "SaveGameButton", "LoadGameButton",
-        "SettingsButton", "EndGameButton", "HelpButton", "PlayerSettingsButton", "UserCamerasButton"})
+        "SettingsButton", "EndGameButton", "HelpButton", "PlayerSettingsButton", "UserCamerasButton", "ProductionButton"})
         options->getChild(name)->setVisible(!endGame);
     for(const char* name : {"QuitGameButton", "ExitGameButton", "BackButton"})
         options->getChild(name)->setVisible(endGame);
@@ -1869,11 +2648,10 @@ bool GameMode::showObjectivesFromOptions(const CEGUI::EventArgs& e)
     return showObjectivesWindow(e);
 }
 
-bool GameMode::showSkillFromOptions(const CEGUI::EventArgs& /*e*/)
+bool GameMode::showSkillFromOptions(const CEGUI::EventArgs& e)
 {
     mRootWindow->getChild("GameOptionsWindow")->hide();
-    showSkillWindow();
-    return true;
+    return toggleSkillWindow(e);
 }
 
 bool GameMode::loadGame(const CEGUI::EventArgs& /*e*/)
@@ -2176,7 +2954,8 @@ void GameMode::refreshSkillButtonState(const std::string& skillButtonName, const
 {
     // Determine the widget name and button accordingly to the SkillType given
     Seat* localPlayerSeat = mGameMap->getLocalPlayer()->getSeat();
-    bool isDone = localPlayerSeat->isSkillDone(resType);
+    const uint32_t level = localPlayerSeat->getSkillLevel(resType);
+    bool isDone = level >= 3;
     bool isAllowed = true;
     uint32_t queueNumber = 0;
     if(!isDone)
@@ -2295,6 +3074,31 @@ void GameMode::refreshSkillButtonState(const std::string& skillButtonName, const
         skillButton->setEnabled(true);
         skillProgressBar->hide();
     }
+    guiSheet->getChild(castButtonName)->setVisible(level > 0 || !isAllowed);
+    const bool isLockedByLibrary = SkillManager::isLockedByLostLibrary(resType, localPlayerSeat);
+    guiSheet->getChild(castButtonName)->setEnabled(!isLockedByLibrary);
+    const std::string levelText = level == 0 ? "0" : (level == 1 ? "I" : (level == 2 ? "II" : "III"));
+    skillButton->setText(levelText + (queueNumber > 0 ? "\n" + Helper::toString(queueNumber) : ""));
+    std::string description = Skills::skillTypeToPlayerVisibleString(resType) + " - level " +
+        Helper::toString(level) + "/3";
+    if(!isAllowed)
+        description += "\nUnavailable on this map.";
+    else if(isLockedByLibrary)
+        description += "\nCannot be cast: the library was lost.";
+    else if(level >= 3)
+        description += "\nMaximum level. " + SkillManager::getResearchDescription(resType, level);
+    else
+    {
+        description += "\nNext: level " + Helper::toString(level + 1) + " - " +
+            Helper::toString(SkillManager::getSkill(resType)->getNeededSkillPoints(level + 1)) + " research points.\n" +
+            SkillManager::getResearchDescription(resType, level + 1);
+        if(queueNumber > 0)
+            description += "\nQueue position: " + Helper::toString(queueNumber) + ".";
+        if(resType == curResType)
+            description += " Progress: " + Helper::toString(static_cast<int>(curSkillProgress * 100)) + "%.";
+    }
+    skillButton->setTooltipText(description);
+    skillButton->setUserString("ContextHelp", description);
 }
 
 void GameMode::refreshGuiSkill(bool forceRefresh)
@@ -2311,6 +3115,13 @@ void GameMode::refreshGuiSkill(bool forceRefresh)
         forceRefresh = true;
     }
 
+    // Losing or regaining the library locks or unlocks the spells
+    if(mIsLibraryLostShown != localPlayerSeat->isLibraryLost())
+    {
+        mIsLibraryLostShown = localPlayerSeat->isLibraryLost();
+        forceRefresh = true;
+    }
+
     if(!forceRefresh && !localPlayerSeat->getGuiSkillNeedsRefresh())
         return;
 
@@ -2320,7 +3131,7 @@ void GameMode::refreshGuiSkill(bool forceRefresh)
         for(auto it = mSkillPending.begin(); it != mSkillPending.end();)
         {
             SkillType resType = *it;
-            if(!localPlayerSeat->isSkillDone(resType))
+            if(localPlayerSeat->getSkillLevel(resType) == mSkillEditLevels[resType])
             {
                 ++it;
                 continue;
@@ -2328,6 +3139,8 @@ void GameMode::refreshGuiSkill(bool forceRefresh)
 
             it = mSkillPending.erase(it);
         }
+        for(std::pair<const SkillType, uint32_t>& entry : mSkillEditLevels)
+            entry.second = localPlayerSeat->getSkillLevel(entry.first);
     }
 
     localPlayerSeat->guiSkillRefreshed();
@@ -2472,8 +3285,51 @@ void GameMode::refreshActionFeedback(float elapsed)
     const bool digging = !overGui && !holding && !mGameMap->getGamePaused() && tile != nullptr &&
         (mPlayerSelection.getCurrentAction() == SelectedAction::selectTile ||
          (!active && !mPreviewTiles.empty() && tile->isDiggable(player->getSeat())));
-    RenderManager::getSingleton().rrSetHandPose(overGui || (!holding && (active || mActionTargetValid)), digging);
-    refreshHeldCreatureIcons();}
+    const bool building = !overGui && !holding && !mGameMap->getGamePaused() && tile != nullptr &&
+        (mPlayerSelection.getCurrentAction() == SelectedAction::buildRoom ||
+         mPlayerSelection.getCurrentAction() == SelectedAction::buildTrap);
+    RenderManager::getSingleton().rrSetHandPose(overGui || (!holding && (active || mActionTargetValid)), digging, building);
+    updateIdleHand(elapsed, !holding &&
+        !mGameMap->getGamePaused() && !cameraInputBlocked() &&
+        !inputManager.mLMouseDown && !inputManager.mRMouseDown && !inputManager.mMMouseDown &&
+        isConnected() && RenderManager::getSingleton().isKeeperHandVisible());
+    refreshHeldCreatureIcons();
+}
+
+void GameMode::resetIdleHand()
+{
+    mIdleHandElapsed = 0.0f;
+    RenderManager::getSingleton().rrCancelIdleHandAnimation();
+}
+
+void GameMode::deactivate()
+{
+    resetIdleHand();
+    mIdleHandKeys.clear();
+    GameEditorModeBase::deactivate();
+}
+
+void GameMode::updateIdleHand(float elapsed, bool eligible)
+{
+    for(std::set<OIS::KeyCode>::iterator key = mIdleHandKeys.begin(); key != mIdleHandKeys.end();)
+    {
+        if(!getKeyboard()->isKeyDown(*key))
+            key = mIdleHandKeys.erase(key);
+        else
+            ++key;
+    }
+    if(!eligible || !mIdleHandKeys.empty())
+    {
+        resetIdleHand();
+        return;
+    }
+    RenderManager& renderer = RenderManager::getSingleton();
+    if(renderer.rrIsIdleHandAnimationPlaying())
+        return;
+    mIdleHandElapsed += elapsed;
+    if(mIdleHandElapsed >= 30.0f && renderer.rrPlayIdleHandAnimation())
+        mIdleHandElapsed = 0.0f;
+}
 
 void GameMode::refreshHeldCreatureIcons()
 {
@@ -2535,20 +3391,23 @@ void GameMode::updateSelectedTiles()
 {
     const bool building = mPlayerSelection.getCurrentAction() == SelectedAction::buildRoom ||
         mPlayerSelection.getCurrentAction() == SelectedAction::buildTrap;
+    const bool roomDemolition = mPlayerSelection.getCurrentAction() == SelectedAction::destroyRoom ||
+        (mPlayerSelection.getCurrentAction() == SelectedAction::sellBuilding &&
+         std::any_of(mPreviewTiles.begin(), mPreviewTiles.end(), [](Tile* tile) { return tile->getIsRoom(); }));
     if(!mActionTargetValid && !building)
         mPreviewTiles.clear();
     const Ogre::ColourValue colour = mActionTargetValid ? Ogre::ColourValue(0.35f, 0.3f, 1.0f) :
         Ogre::ColourValue(1.0f, 0.15f, 0.1f);
     if(mPreviewTiles == mSelectedTiles)
     {
-        RenderManager::getSingleton().rrDrawTilePreview(mSelectedTiles, colour);
+        RenderManager::getSingleton().rrDrawTilePreview(mSelectedTiles, colour, building || roomDemolition);
         return;
     }
     Player* player = mGameMap->getLocalPlayer();
     for(Tile* tile : mSelectedTiles)
         tile->setSelected(false, player);
     mSelectedTiles = mPreviewTiles;
-    RenderManager::getSingleton().rrDrawTilePreview(mSelectedTiles, colour);
+    RenderManager::getSingleton().rrDrawTilePreview(mSelectedTiles, colour, building || roomDemolition);
 }
 
 void GameMode::unselectAllTiles()
@@ -2577,6 +3436,180 @@ void GameMode::displayPointerText(const Ogre::ColourValue& txtColour, const std:
     textRenderer.setText(ODApplication::POINTER_INFO_STRING, txt);
 }
 
+bool GameMode::isLocalPlayerPossessing()
+{
+    Player* player = mGameMap->getLocalPlayer();
+    if (player == nullptr)
+        return false;
+
+    return player->isPossessing();
+}
+
+bool GameMode::handlePossessionKey(OIS::KeyCode key, bool pressed)
+{
+    switch (key)
+    {
+    case OIS::KC_W:
+    case OIS::KC_UP:
+        mPossessKeyForward = pressed;
+        return true;
+
+    case OIS::KC_S:
+    case OIS::KC_DOWN:
+        mPossessKeyBackward = pressed;
+        return true;
+
+    case OIS::KC_A:
+    case OIS::KC_LEFT:
+        mPossessKeyLeft = pressed;
+        return true;
+
+    case OIS::KC_D:
+    case OIS::KC_RIGHT:
+        mPossessKeyRight = pressed;
+        return true;
+
+    // The exit key. It is the same as the right mouse button
+    case OIS::KC_ESCAPE:
+        if (pressed)
+            sendPossessionExit();
+        return true;
+
+    // The creature skills (other than its attack, which is on the left mouse button)
+    case OIS::KC_1:
+        if (pressed)
+            sendPossessionSkill(POSSESSION_SKILL_SLOT_FIRST);
+        return true;
+
+    case OIS::KC_2:
+        if (pressed)
+            sendPossessionSkill(POSSESSION_SKILL_SLOT_SECOND);
+        return true;
+
+    case OIS::KC_3:
+        if (pressed)
+            sendPossessionSkill(POSSESSION_SKILL_SLOT_THIRD);
+        return true;
+
+    case OIS::KC_4:
+        if (pressed)
+            sendPossessionSkill(POSSESSION_SKILL_SLOT_FOURTH);
+        return true;
+
+    // These keys move the RTS camera, which is not used while possessing
+    case OIS::KC_Q:
+    case OIS::KC_E:
+    case OIS::KC_HOME:
+    case OIS::KC_END:
+    case OIS::KC_PGUP:
+    case OIS::KC_PGDOWN:
+    case OIS::KC_T:
+    case OIS::KC_V:
+    case OIS::KC_SPACE:
+    case OIS::KC_5:
+    case OIS::KC_6:
+    case OIS::KC_7:
+    case OIS::KC_8:
+    case OIS::KC_9:
+    case OIS::KC_0:
+        return true;
+
+    default:
+        return false;
+    }
+}
+
+void GameMode::updatePossessionInput(float timeSinceLastFrame)
+{
+    if (!isLocalPlayerPossessing())
+        return;
+
+    // The movement keys are relative to where the player looks
+    Ogre::Real yaw = ODFrameListener::getSingleton().getCameraManager()->getPossessionYaw();
+    Ogre::Vector2 forward = getPossessionAim();
+    Ogre::Vector2 right(Ogre::Math::Cos(yaw), Ogre::Math::Sin(yaw));
+    Ogre::Vector2 direction = Ogre::Vector2::ZERO;
+    if (mPossessKeyForward)
+        direction += forward;
+    if (mPossessKeyBackward)
+        direction -= forward;
+    if (mPossessKeyRight)
+        direction += right;
+    if (mPossessKeyLeft)
+        direction -= right;
+
+    bool isMoving = (direction.squaredLength() > POSSESSION_MIN_DIRECTION_SQUARED_LENGTH);
+    if (isMoving)
+        direction.normalise();
+    else
+        direction = Ogre::Vector2::ZERO;
+
+    mPossessTimeSinceSent += timeSinceLastFrame;
+
+    // The server walks the creature toward a point a few tiles away, so we have to keep sending
+    // the direction while the player moves. A stop is sent at once, a change of direction at most
+    // ten times per second.
+    bool wasMoving = (mPossessLastDirection.squaredLength() > POSSESSION_MIN_DIRECTION_SQUARED_LENGTH);
+    bool hasChanged = (isMoving != wasMoving) ||
+        (isMoving && (direction.dotProduct(mPossessLastDirection) < POSSESSION_DIRECTION_CHANGE_DOT));
+    if (!hasChanged && !(isMoving && (mPossessTimeSinceSent > POSSESSION_MOVE_RESEND_SECONDS)))
+        return;
+
+    if (hasChanged && isMoving && (mPossessTimeSinceSent < POSSESSION_MOVE_MIN_SEND_SECONDS))
+        return;
+
+    mPossessLastDirection = direction;
+    mPossessTimeSinceSent = 0.0f;
+    ClientNotification* clientNotification = new ClientNotification(ClientNotificationType::askPossessMove);
+    clientNotification->mPacket << direction;
+    ODClient::getSingleton().queueClientNotification(clientNotification);
+}
+
+Ogre::Vector2 GameMode::getPossessionAim()
+{
+    Ogre::Real yaw = ODFrameListener::getSingleton().getCameraManager()->getPossessionYaw();
+    return Ogre::Vector2(-Ogre::Math::Sin(yaw), Ogre::Math::Cos(yaw));
+}
+
+void GameMode::sendPossessionAttack()
+{
+    ClientNotification* clientNotification = new ClientNotification(ClientNotificationType::askPossessAttack);
+    clientNotification->mPacket << getPossessionAim();
+    ODClient::getSingleton().queueClientNotification(clientNotification);
+}
+
+void GameMode::sendPossessionSkill(uint32_t slot)
+{
+    ClientNotification* clientNotification = new ClientNotification(ClientNotificationType::askPossessSkill);
+    clientNotification->mPacket << slot << getPossessionAim();
+    ODClient::getSingleton().queueClientNotification(clientNotification);
+}
+
+void GameMode::sendPossessionExit()
+{
+    ODClient::getSingleton().queueClientNotification(ClientNotificationType::askPossessExit);
+}
+
+void GameMode::notifyPossessionStarted()
+{
+    notifyPossessionEnded();
+
+    // The spell has been cast, we do not want to cast it again
+    mPlayerSelection.setCurrentAction(SelectedAction::none);
+    unselectAllTiles();
+    TextRenderer::getSingleton().setText(ODApplication::POINTER_INFO_STRING, "");
+}
+
+void GameMode::notifyPossessionEnded()
+{
+    mPossessKeyForward = false;
+    mPossessKeyBackward = false;
+    mPossessKeyLeft = false;
+    mPossessKeyRight = false;
+    mPossessLastDirection = Ogre::Vector2::ZERO;
+    mPossessTimeSinceSent = 0.0f;
+}
+
 void GameMode::checkInputCommand()
 {
     // In the gamemode, by default, we select tiles
@@ -2603,6 +3636,8 @@ void GameMode::checkInputCommand()
             break;
         case SelectedAction::buildRoom:
             RoomManager::checkBuildRoom(mGameMap, mPlayerSelection.getNewRoomType(), inputManager, *this);
+            if(inputManager.mCommandState == InputCommandState::validated && mActionTargetValid)
+                RenderManager::getSingleton().rrPlayBuildAnimation();
             break;
         case SelectedAction::destroyRoom:
             RoomManager::checkSellRoomTiles(mGameMap, inputManager, *this);
@@ -2612,6 +3647,8 @@ void GameMode::checkInputCommand()
             break;
         case SelectedAction::buildTrap:
             TrapManager::checkBuildTrap(mGameMap, mPlayerSelection.getNewTrapType(), inputManager, *this);
+            if(inputManager.mCommandState == InputCommandState::validated && mActionTargetValid)
+                RenderManager::getSingleton().rrPlayBuildAnimation();
             break;
         case SelectedAction::queryEntity:
             handlePlayerActionQuery();
@@ -2662,6 +3699,16 @@ bool GameMode::toggleSell(const CEGUI::EventArgs& e)
 void GameMode::handlePlayerActionSell()
 {
     const InputManager& inputManager = mModeManager->getInputManager();
+    if(inputManager.mCommandState != InputCommandState::infoOnly &&
+       (inputManager.mXPos != inputManager.mLStartDragX || inputManager.mYPos != inputManager.mLStartDragY))
+    {
+        Tile* start = mGameMap->getTile(inputManager.mLStartDragX, inputManager.mLStartDragY);
+        if(start != nullptr && !start->getIsTrap())
+        {
+            RoomManager::checkSellRoomTiles(mGameMap, inputManager, *this);
+            return;
+        }
+    }
     Tile* tile = mGameMap->getTile(inputManager.mXPos, inputManager.mYPos);
     if(tile != nullptr && tile->getIsTrap())
         TrapManager::checkSellTrapTiles(mGameMap, inputManager, *this, {tile});
@@ -2852,15 +3899,21 @@ void GameMode::handlePlayerActionSelectTile()
 void GameMode::resetSkillTree()
 {
     mSkillPending = mGameMap->getLocalPlayer()->getSeat()->getSkillPending();
+    mSkillEditLevels.clear();
+    for(uint32_t index = 1; index < static_cast<uint32_t>(SkillType::countSkill); ++index)
+    {
+        const SkillType type = static_cast<SkillType>(index);
+        mSkillEditLevels[type] = mGameMap->getLocalPlayer()->getSeat()->getSkillLevel(type);
+    }
     mSkillCurrentCompletion.resetValue();
     mIsSkillWindowOpen = true;
 }
 
 bool GameMode::skillButtonTreeClicked(SkillType type)
 {
-    // If the skill is already done or not allowed, nothing to do
+    // Fully upgraded or map-disabled skills cannot be queued.
     const std::vector<SkillType>& skillDone = mGameMap->getLocalPlayer()->getSeat()->getSkillDone();
-    if(std::find(skillDone.begin(), skillDone.end(), type) != skillDone.end())
+    if(mGameMap->getLocalPlayer()->getSeat()->getSkillLevel(type) >= 3)
         return false;
     const std::vector<SkillType>& skillNotAllowed = mGameMap->getLocalPlayer()->getSeat()->getSkillNotAllowed();
     if(std::find(skillNotAllowed.begin(), skillNotAllowed.end(), type) != skillNotAllowed.end())
@@ -2871,6 +3924,9 @@ bool GameMode::skillButtonTreeClicked(SkillType type)
     {
         // The skill is pending. We remove it as well as all its dependencies
         mSkillPending.erase(it);
+
+        if(std::find(skillDone.begin(), skillDone.end(), type) != skillDone.end())
+            return true;
 
         for(it = mSkillPending.begin(); it != mSkillPending.end();)
         {
@@ -2898,7 +3954,10 @@ bool GameMode::skillButtonTreeClicked(SkillType type)
     // add them at the end of the list if all are available/done
     const Skill* skill = SkillManager::getSkill(type);
     std::vector<SkillType> dependencies;
-    skill->buildDependencies(skillDone, dependencies);
+    if(std::find(skillDone.begin(), skillDone.end(), type) != skillDone.end())
+        dependencies.push_back(type);
+    else
+        skill->buildDependencies(skillDone, dependencies);
 
     // We check if one of the dependencies is not available. If not, we cannot skill
     for(SkillType skillType : dependencies)
@@ -2936,7 +3995,7 @@ void GameMode::endSkillTree(bool apply)
         clientNotification->mPacket << nbItems;
         for(const SkillType& type : mSkillPending)
         {
-            clientNotification->mPacket << type;
+            clientNotification->mPacket << type << (mSkillEditLevels[type] + 1);
         }
         ODClient::getSingleton().queueClientNotification(clientNotification);
     }

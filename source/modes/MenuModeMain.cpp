@@ -163,7 +163,14 @@ void MenuModeMain::activate()
     window->getChild(WINDOW_EDITOR)->hide();
     window->getChild(WINDOW_SETTINGS)->hide();
     mSettingsPageOpen = false;
+    mSkirmishSubMenuPending = false;
     showMainMenuButtons(true);
+    // Coming from the defeat debriefing: fly into the menu, then go on in the skirmish sub-menu
+    if(getModeManager().consumeSkirmishSubMenuRequest())
+    {
+        mSkirmishSubMenuPending = true;
+        showMainMenuButtons(false);
+    }
 
     giveFocus();
 
@@ -178,6 +185,19 @@ void MenuModeMain::activate()
 
     ODFrameListener::getSingleton().stopGameRenderer();
     ODFrameListener::getSingleton().createMainMenuScene();
+    if(mSkirmishSubMenuPending)
+        ODFrameListener::getSingleton().startMainMenuFlight();
+}
+
+void MenuModeMain::onFrameStarted(const Ogre::FrameEvent& /*evt*/)
+{
+    if(!mSkirmishSubMenuPending)
+        return;
+    if(ODFrameListener::getSingleton().isMainMenuFlightActive())
+        return;
+
+    mSkirmishSubMenuPending = false;
+    toggleSubMenu(WINDOW_SKIRMISH);
 }
 
 void MenuModeMain::connectModeChangeEvent(const std::string& buttonName, AbstractModeManager::ModeType mode)

@@ -160,6 +160,14 @@ public:
     //! \brief Drops the creature on tile t. Returns the dropped creature
     void dropHand(Tile *t, unsigned int index = 0);
 
+    //! \brief Removes an entity from the hand without dropping it on the map.
+    void removeEntityFromHand(GameEntity* entity);
+
+    //! \brief Redeems an own worker dropped on the tile of a living own dungeon heart: the worker
+    //! is removed from the game and half of the summoning price (current worker count) is paid
+    //! back in mana. Returns true when the drop was redeemed.
+    bool redemWorkerInHeart(GameEntity* entity, Tile* tile);
+
     void rotateHand(Direction d);
 
     //! \brief Clears all creatures that a player might have in his hand
@@ -179,6 +187,15 @@ public:
 
     inline bool getHasLost() const
     { return mHasLost; }
+
+    //! \brief Remembers who destroyed this player's dungeon heart and where it stood. Called by the
+    //! heart room when its health reaches 0 (the heart object is removed shortly after). Use -1 for unknown values.
+    inline void recordHeartDestroyed(int32_t conquerorSeatId, int32_t heartTileX, int32_t heartTileY)
+    {
+        mConquerorSeatId = conquerorSeatId;
+        mDefeatHeartTileX = heartTileX;
+        mDefeatHeartTileY = heartTileY;
+    }
 
     //! \brief Notify the player is fighting
     //! Should be called on the server game map for human players only. tile represents
@@ -240,12 +257,29 @@ public:
     void notifyWorkerAction(Creature& worker, CreatureActionType actionType);
     void notifyWorkerStopsAction(Creature& worker, CreatureActionType actionType);
 
+    //! \brief Name of the creature the player currently possesses, empty if none.
+    //! Used on both server and client sides.
+    inline const std::string& getPossessedCreatureName() const
+    { return mPossessedCreatureName; }
+
+    //! \brief Remembers the name of the creature the player possesses, an empty name means none
+    inline void setPossessedCreatureName(const std::string& name)
+    { mPossessedCreatureName = name; }
+
+    //! \brief True if the player currently possesses a creature
+    inline bool isPossessing() const
+    { return !mPossessedCreatureName.empty(); }
+
     //! \brief Returns how many workers are doing the given action
     uint32_t getNbWorkersDoing(CreatureActionType actionType) const;
 
     //! \brief Returns a list of the actions the worker should do based on what the other workers
     //! of this seat are doing. The worker should try the actions on the given order
     std::vector<CreatureActionType> getWorkerPreferredActions(Creature& worker) const;
+
+    //! \brief Returns true if one more worker may reload a trap: the workers reloading traps stay within the
+    //! configured share (TrapReloadWorkerSharePercent) of the workers doing the listed jobs
+    bool isWorkerReloadShareOpen() const;
 
 private:
     //! \brief Player ID is only used during seat configuration phase
@@ -288,6 +322,12 @@ private:
 
     bool mHasLost;
 
+    //! \brief Seat id that dealt the final blow to the heart, and the heart centre tile. -1 if unknown.
+    //! Filled on the server by recordHeartDestroyed and sent with the playerDefeated notification.
+    int32_t mConquerorSeatId;
+    int32_t mDefeatHeartTileX;
+    int32_t mDefeatHeartTileY;
+
     //! \brief List of tiles there is an event on. Used on client and server
     std::vector<PlayerEvent*> mEvents;
 
@@ -300,6 +340,9 @@ private:
     //! \brief Used to know what the workers are doing. That will help to change
     //! probability to choose the action to do
     std::vector<uint32_t> mWorkersActions;
+
+    //! \brief The creature the player possesses. Empty if none
+    std::string mPossessedCreatureName;
 
     //! \brief A simple mutator function to put the given entity into the player's hand,
     //! note this should NOT be called directly for creatures on the map,

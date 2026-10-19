@@ -41,6 +41,7 @@ namespace EntityAnimation
     static const std::string getup_anim = "GetUp";
     static const std::string combat_attack_anim = "CombatAttack";
     static const std::string ranged_attack_anim = "RangedAttack";
+    static const std::string eat_chicken_anim = "EatChicken";
 };
 
 class MovableGameEntity : public GameEntity
@@ -99,6 +100,8 @@ public:
     virtual void update(Ogre::Real timeSinceLastFrame);
 
     void setWalkDirection(const Ogre::Vector3& direction);
+    const Ogre::Vector3& getWalkDirection() const
+    { return mWalkDirection; }
 
     virtual void setPosition(const Ogre::Vector3& v, GameMap *gameMap = nullptr ) override;
 

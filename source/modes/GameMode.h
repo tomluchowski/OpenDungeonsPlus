@@ -20,15 +20,22 @@
 
 #include "GameEditorModeBase.h"
 
+#include "modes/DebriefingTable.h"
+#include "modes/DefeatHeartBurst.h"
+#include "modes/DefeatSequence.h"
 #include "modes/InputCommand.h"
 #include "modes/InputBridge.h"
 #include "modes/SettingsWindow.h"
 #include "game/CreaturePanelData.h"
+#include "game/TrapProductionData.h"
 
 #include "utils/ConfigManager.h"
 #include <CEGUI/EventArgs.h>
+#include <chrono>
 #include <cstdint>
 #include <memory>
+#include <set>
+#include <vector>
 
 namespace CEGUI
 {
@@ -130,6 +137,7 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     //! \brief Called when the game mode is activated
     //! Used to call the corresponding Gui Sheet.
     void activate() override;
+    void deactivate() override;
 
     //! \brief Called when exit button is pressed
     void popupExit(bool pause);
@@ -151,6 +159,17 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     bool togglePlayerSettingsWindow(const CEGUI::EventArgs& = {});
     bool cancelPlayerSettings(const CEGUI::EventArgs& = {});
     bool applyPlayerSettings(const CEGUI::EventArgs& = {});
+
+    //! \brief Casino payout control, opened by clicking on one of the player's casinos
+    //! \param tile A tile of the casino the window is opened for
+    void showCasinoPayoutWindow(Tile* tile);
+    //! \brief Hides the casino payout window
+    bool hideCasinoPayoutWindow(const CEGUI::EventArgs& = {});
+    //! \brief Asks the server to switch the casino shown in the window to the next payout setting
+    bool cycleCasinoPayout(const CEGUI::EventArgs& = {});
+    //! \brief Called when the server tells the payout level of a casino. It is only shown if
+    //! it is the casino the window is open for.
+    void setCasinoPayoutShown(int tileX, int tileY, uint32_t level);
     //! \brief Synchronize settings displayed in the menu with settings in the seat
     void syncPlayerSettings();
 
@@ -162,6 +181,16 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     bool unselectAllSkillWindow(const CEGUI::EventArgs& = {});
     bool autoFillSkillWindow(const CEGUI::EventArgs& = {});
     void closeSkillWindow(bool saveSkill);
+    void refreshTrapProductionQueue(const TrapProductionData& data);
+
+    //! \brief Entry point of the defeat sequence, called once when the server reports that the local
+    //! player lost. conquerorSeatId is the seat that destroyed the heart (-1 if unknown); the heart tile
+    //! is the centre tile of the destroyed heart (-1/-1 if unknown).
+    void startDefeatSequence(int32_t conquerorSeatId, int32_t heartTileX, int32_t heartTileY);
+
+    //! \brief Called once when the defeat sequence has run to its end (the screen is black).
+    //! Opens the debriefing window on the black screen.
+    void onDefeatSequenceFinished();
 
     //! \brief Shows/hides/toggles the options window
     bool showOptionsWindow(const CEGUI::EventArgs& = {});
@@ -211,7 +240,13 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     void refreshActionFeedback(float elapsed);
 
     Creature* getClosestCreature(Tile*);
-    
+
+    //! \brief Called on client side when the local player takes control of a creature (possession)
+    void notifyPossessionStarted();
+
+    //! \brief Called on client side when the local player is no longer in control of a creature
+    void notifyPossessionEnded();
+
 protected:
     bool onClickYesQuitMenu(const CEGUI::EventArgs& /*arg*/);
 
@@ -280,10 +315,14 @@ private:
     //! \brief Skills pending (Client side). This is copied from the seat for temporary changes while the
     //! player clicks on the skill tree window
     std::vector<SkillType> mSkillPending;
+    std::map<SkillType, uint32_t> mSkillEditLevels;
 
     SkillCurrentCompletion mSkillCurrentCompletion;
 
     bool mIsSkillWindowOpen;
+
+    //! \brief Whether the spell buttons were last shown locked because the library was lost
+    bool mIsLibraryLostShown;
 
     SkillType mCurrentSkillType;
     float mCurrentSkillProgress;
@@ -317,10 +356,25 @@ private:
     bool storeUserCamera(const CEGUI::EventArgs&);
     unsigned int mUserCameraSlot = 0;
 
+    void resetIdleHand();
+    void updateIdleHand(float elapsed, bool eligible);
+    float mIdleHandElapsed = 0.0f;
+    std::set<OIS::KeyCode> mIdleHandKeys;
+
+    bool showTrapProductionQueue(const CEGUI::EventArgs& = {});
+    bool closeTrapProductionQueue(const CEGUI::EventArgs& = {});
+    bool updateTrapProductionButtons(const CEGUI::EventArgs& = {});
+    bool moveTrapProductionOrder(bool earlier);
+    void requestTrapProductionQueue();
+    TrapProductionData mTrapProductionData;
+    float mProductionRefreshElapsed = 0.0f;
+    bool mProductionRequestPending = false;
+
     bool toggleMap(const CEGUI::EventArgs& = {});
     bool closeMap(const CEGUI::EventArgs& = {});
     bool clickMap(const CEGUI::EventArgs&);
     bool zoomMiniMap(const CEGUI::EventArgs&);
+    bool clickHeartBadge(const CEGUI::EventArgs&);
     void updateMapDetail();
     void focusRoom(RoomType type);
     std::unique_ptr<MiniMapDrawnFull> mFullMap;
@@ -329,11 +383,49 @@ private:
     bool mMapKeyDown = false;
 
 
+    //! \brief Tile of the casino whose payout window is open and the payout level shown
+    int mCasinoX;
+    int mCasinoY;
+    uint32_t mCasinoPayout;
+
     //! \brief whether to allow showing the window with debug Tile info under middlemouse button click
     bool showTileDebugWindow;
     
     const ConfigManager &config;
     
+    //! \brief Whether the local player controls a creature (possession)
+    bool isLocalPlayerPossessing();
+
+    //! \brief Handles a key press or release while the player controls a creature. Returns
+    //! true if the key was used and should not be handled as a normal game key.
+    bool handlePossessionKey(OIS::KeyCode key, bool pressed);
+
+    //! \brief Called at each frame while possessing. Sends the walk direction to the server
+    //! when it changed.
+    void updatePossessionInput(float timeSinceLastFrame);
+
+    //! \brief The direction the possessed creature looks at (unit vector on the ground plane)
+    Ogre::Vector2 getPossessionAim();
+
+    //! \brief Sends the possession attack request (left mouse button) to the server
+    void sendPossessionAttack();
+
+    //! \brief Sends the request to use the creature skill of the given slot (keys 1 to 4)
+    void sendPossessionSkill(uint32_t slot);
+
+    //! \brief Sends the possession exit request to the server
+    void sendPossessionExit();
+
+    //! \brief The movement keys held down while possessing
+    bool mPossessKeyForward = false;
+    bool mPossessKeyBackward = false;
+    bool mPossessKeyLeft = false;
+    bool mPossessKeyRight = false;
+
+    //! \brief The last walk direction sent to the server while possessing and the time since it was sent
+    Ogre::Vector2 mPossessLastDirection = Ogre::Vector2::ZERO;
+    float mPossessTimeSinceSent = 0.0f;
+
     //! \brief Called when there is a mouse input change
     void checkInputCommand();
     void handlePlayerActionNone();
@@ -355,6 +447,52 @@ private:
 
     //! \brief Builds the player settings window
     void buildPlayerSettingsWindow();
+
+    void updateCreatureIndicatorAlt(OIS::KeyCode key, bool pressed);
+    bool mCreatureIndicatorsVisible = true;
+    bool mIndicatorLeftAltDown = false;
+    bool mIndicatorRightAltDown = false;
+
+    //! \brief Brings the defeat sequence to the wall-clock time now (does nothing before it starts)
+    void updateDefeatSequence(std::chrono::steady_clock::time_point now);
+    //! \brief Puts the camera on a low oblique view of the given floor position without a flight
+    void cutCameraToHeart(const Ogre::Vector3& heartPosition);
+    void createDefeatWindows();
+    void destroyDefeatWindows();
+    //! Loads the debriefing window (summary lines, confirm button) and shows the pointer again
+    void showDefeatDebriefing();
+    //! Fills the hidden statistics area of the debriefing with the rows and shows it (nothing for no rows)
+    void fillDefeatStatistics(const std::vector<DebriefingTableRow>& rows);
+    //! The confirm button of the debriefing: leaves to the main menu with the skirmish sub-menu open
+    bool onClickDefeatDebriefingConfirm(const CEGUI::EventArgs& arg);
+    //! \brief Hides every window of the game interface except the ones of the defeat sequence
+    void hideInterfaceForDefeat();
+    void startDefeatSwirl();
+    //! The copy of the heart bursts: it is removed, the burst effects start (unless time is already past the
+    //! explosion phase) and the rubble is created
+    void startDefeatBurst(float time);
+    //! Removes every scene object of the sequence (effects, copy of the heart, rubble); safe to call again
+    void stopDefeatEffects();
+
+    DefeatSequence mDefeatSequence;
+    //! Position of the destroyed heart in the scene
+    Ogre::Vector3 mDefeatHeartPosition = Ogre::Vector3::ZERO;
+    //! Direction (horizontal, unit length) in which the swirl travels
+    Ogre::Vector3 mDefeatSwirlDirection = Ogre::Vector3::ZERO;
+    bool mDefeatExplosionEffectActive = false;
+    bool mDefeatSwirlEffectActive = false;
+    bool mDefeatSwirlDone = false;
+    //! The client-only copy of the heart exists (from the start until the burst)
+    bool mDefeatHeartShown = false;
+    bool mDefeatBurstDone = false;
+    //! The rubble exists (from the burst until the end of the sequence)
+    bool mDefeatRubbleShown = false;
+    std::vector<DefeatRubblePiece> mDefeatRubble;
+    CEGUI::Window* mDefeatTint = nullptr;
+    CEGUI::Window* mDefeatFade = nullptr;
+    CEGUI::Window* mDefeatSubtitle = nullptr;
+    CEGUI::Window* mDefeatCameraMarker = nullptr;
+    CEGUI::Window* mDefeatDebriefing = nullptr;
 
 };
 

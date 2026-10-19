@@ -18,10 +18,12 @@
 #include "entities/MovableGameEntity.h"
 
 #include "entities/GameEntityType.h"
+#include "entities/Creature.h"
 #include "entities/Tile.h"
 #include "game/Player.h"
 #include "game/Seat.h"
 #include "gamemap/GameMap.h"
+#include "gamemap/RoomObjectNavigation.h"
 #include "network/ODServer.h"
 #include "network/ServerNotification.h"
 #include "render/CreatureReactions.h"
@@ -93,16 +95,20 @@ void MovableGameEntity::tileToVector2(const std::list<Tile*>& tiles, std::vector
 void MovableGameEntity::setWalkPath(const std::string& walkAnim, const std::string& endAnim, bool loopEndAnim,
                                     bool playIdleWhenAnimationEnds, const std::vector<Ogre::Vector2>& path, bool walkDistortion)
 {
+    std::vector<Ogre::Vector2> walkPath = path;
+    if(getIsOnServerMap() && getObjectType() == GameEntityType::creature &&
+        RoomObjectNavigation::refine(static_cast<Creature&>(*this), walkPath))
+        walkDistortion = false;
     mWalkQueue.clear();
     // We set the animation after clearing mWalkQueue and before filling it to be
     // sure it is empty when we set it
-    if(!path.empty())
+    if(!walkPath.empty())
         setAnimationState(walkAnim);
 
-    for(const Ogre::Vector2& dest : path)
+    for(const Ogre::Vector2& dest : walkPath)
         mWalkQueue.push_back(Ogre::Vector2(dest.x,dest.y));
 
-    if(path.empty())
+    if(walkPath.empty())
     {
         setAnimationState(endAnim, loopEndAnim, Ogre::Vector3::ZERO, playIdleWhenAnimationEnds);
     }
@@ -288,7 +294,10 @@ void MovableGameEntity::update(Ogre::Real timeSinceLastFrame)
         addedTime *= DIE_ANIMATION_SPEED_FACTOR;
     mAnimationTime += addedTime;
     if (!getIsOnServerMap() && getAnimationState() != nullptr &&
-        mPrevAnimationState != EntityAnimation::getup_anim)
+        mPrevAnimationState != EntityAnimation::getup_anim &&
+        mPrevAnimationState != EntityAnimation::eat_chicken_anim &&
+        !(mPrevAnimationState == EntityAnimation::sleep_anim &&
+          getObjectType() == GameEntityType::creature))
     {
         // If the animation has stopped we set it to idle if we have to
         if(mDestinationPlayIdleWhenAnimationEnds && getAnimationState()->hasEnded())

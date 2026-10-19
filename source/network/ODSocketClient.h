@@ -50,11 +50,15 @@ class ODSocketClient
             mSource(ODSource::none),
             mPlayer(nullptr),
             mLastTurnAck(-1),
+            mHeartHealthSent(-1.0f),
+            mHeartHPSent(-1.0),
+            mHeartMessageTurn(-1),
             mPendingTimestamp(-1),
             mSupportsLiveNickname(false),
             mSupportsCreatureMood(false),
             mSupportsCreatureActivity(false),
             mSupportsCreaturePanel(false),
+            mSupportsCreatureProgress(false),
             mSupportsCosmeticEvents(false)
         {}
 
@@ -81,12 +85,24 @@ class ODSocketClient
         void setSupportsCreatureActivity(bool supported) { mSupportsCreatureActivity = supported; }
         bool supportsCreaturePanel() const { return mSupportsCreaturePanel; }
         void setSupportsCreaturePanel(bool supported) { mSupportsCreaturePanel = supported; }
+        //! Whether the other side sends and understands experience and attack recovery in creature data
+        bool supportsCreatureProgress() const { return mSupportsCreatureProgress; }
+        void setSupportsCreatureProgress(bool supported) { mSupportsCreatureProgress = supported; }
         //! Whether the client negotiated cosmetic events (see CosmeticEvent.h)
         bool supportsCosmeticEvents() const { return mSupportsCosmeticEvents; }
         //! \brief Records whether the client negotiated cosmetic events (see CosmeticEvent.h)
         void setSupportsCosmeticEvents(bool supported) { mSupportsCosmeticEvents = supported; }
         int64_t getLastTurnAck() { return mLastTurnAck; }
         void setLastTurnAck(int64_t lastTurnAck) { mLastTurnAck = lastTurnAck; }
+        //! \brief Heart health fraction of the last heartHealth message sent, negative if none
+        float getHeartHealthSent() const { return mHeartHealthSent; }
+        void setHeartHealthSent(float fraction) { mHeartHealthSent = fraction; }
+        //! \brief Heart HP (whole points) of the last heartHealth message sent, negative if none
+        double getHeartHPSent() const { return mHeartHPSent; }
+        void setHeartHPSent(double hp) { mHeartHPSent = hp; }
+        //! \brief Turn of the last heartHealth message sent, negative if none
+        int64_t getHeartMessageTurn() const { return mHeartMessageTurn; }
+        void setHeartMessageTurn(int64_t turn) { mHeartMessageTurn = turn; }
         const std::string& getState() {return mState;}
         bool isDataAvailable(int miliseconds=5);
         int32_t getGameTimeMillis()
@@ -140,6 +156,9 @@ class ODSocketClient
         sf::TcpSocket mSockClient;
         Player* mPlayer;
         int64_t mLastTurnAck;
+        float mHeartHealthSent;
+        double mHeartHPSent;
+        int64_t mHeartMessageTurn;
         std::string mState;
 
 
@@ -152,6 +171,8 @@ class ODSocketClient
         bool mSupportsCreatureMood;
         bool mSupportsCreatureActivity;
         bool mSupportsCreaturePanel;
+        //! \brief Creature experience and attack recovery in creature packets
+        bool mSupportsCreatureProgress;
         //! The client agreed to receive cosmetic events
         bool mSupportsCosmeticEvents;
 

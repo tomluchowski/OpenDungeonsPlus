@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout version="4" >
+    <Window type="OD/FrameWindow" name="CasinoPayoutWindow" >
+        <Property name="Area" value="{{0.5,-150},{0.5,-70},{0.5,150},{0.5,70}}" />
+        <Property name="Text" value="Casino" />
+        <Property name="SizingEnabled" value="False" />
+        <Property name="AlwaysOnTop" value="True" />
+
+        <Window type="OD/StaticText" name="CasinoPayoutText" >
+            <Property name="Area" value="{{0,20},{0,35},{1,-20},{0,60}}" />
+            <Property name="Text" value="Payout" />
+            <Property name="FrameEnabled" value="False" />
+            <Property name="BackgroundEnabled" value="False" />
+            <Property name="HorzFormatting" value="CentreAligned" />
+        </Window>
+        <Window type="OD/Button" name="CasinoPayoutButton" >
+            <Property name="Area" value="{{0.5,-100},{0,70},{0.5,100},{0,100}}" />
+            <Property name="Text" value="Payout: Smiles" />
+            <Property name="TooltipText" value="Click to switch the payout. Money keeps more of the bets for you and annoys your creatures, Smiles pays more to them and cheers them up." />
+        </Window>
+    </Window>
+</GUILayout>

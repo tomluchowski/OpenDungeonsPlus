@@ -31,6 +31,8 @@
 #include "spells/SpellType.h"
 #include "spells/SpellManager.h"
 #include "utils/ConfigManager.h"
+#include "game/SkillManager.h"
+#include "game/SkillType.h"
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
@@ -172,7 +174,8 @@ bool SpellCreatureWeak::castSpell(GameMap* gameMap, Player* player, ODPacket& pa
         return false;
 
     uint32_t duration = ConfigManager::getSingleton().getSpellConfigUInt32("CreatureWeakDuration");
-    double value = ConfigManager::getSingleton().getSpellConfigDouble("CreatureWeakValue");
+    double value = SkillManager::getResearchValue(player->getSeat(), SkillType::spellCreatureWeak,
+        ConfigManager::getSingleton().getSpellConfigDouble("CreatureWeakValue"));
     CreatureEffectStrengthChange* effect = new CreatureEffectStrengthChange(duration, value, "SpellCreatureWeak");
     creature->addCreatureEffect(effect);
 
