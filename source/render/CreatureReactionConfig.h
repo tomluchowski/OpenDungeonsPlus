@@ -110,7 +110,9 @@ struct ReactionProp
         //! The shadow of a hand on the wall
         shadow,
         //! Pebbles pushed along the floor
-        kick
+        kick,
+        //! Small models (the mesh named in mSprite, e.g. shackles) fall from the hands to the floor and lie there
+        fall
     };
 
     //! \brief No prop: no path, one piece of size 0.1 world units that takes no time

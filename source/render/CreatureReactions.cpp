@@ -48,6 +48,7 @@
 #include <OgreEntity.h>
 #include <OgreMaterialManager.h>
 #include <OgreParticleSystem.h>
+#include <OgreResourceGroupManager.h>
 #include <OgreParticleSystemManager.h>
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
@@ -967,7 +968,9 @@ bool CreatureReactions::startReaction(Creature* creature, const ReactionEvent& e
            createProps(reaction, creature, variant))
         {
             reaction.mDuration = std::max(reaction.mDuration, variant.mProp.mSeconds);
-            reaction.mEndsWhenMoving = true;
+            // Fallen models lie on the floor, they do not follow the creature
+            if(variant.mProp.mPath != ReactionProp::Path::fall)
+                reaction.mEndsWhenMoving = true;
             shown = true;
         }
     }
@@ -2944,6 +2947,9 @@ void CreatureReactions::examineInteraction(Creature* creature, bool idle, bool m
 bool CreatureReactions::createProps(RunningReaction& reaction, Creature* creature, const ReactionVariant& variant)
 {
     const ReactionProp& prop = variant.mProp;
+    if(prop.mPath == ReactionProp::Path::fall)
+        return createFallingProps(reaction, creature, prop);
+
     std::string material = PROP_MATERIAL_PREFIX + prop.mSprite;
     if(!Ogre::MaterialManager::getSingleton().resourceExists(material, "Graphics"))
     {
@@ -3028,6 +3034,12 @@ void CreatureReactions::updateProps(RunningReaction& reaction, Creature* creatur
 {
     if(reaction.mPropSetName.empty())
         return;
+
+    if(reaction.mProp.mPath == ReactionProp::Path::fall)
+    {
+        updateFallingProps(reaction);
+        return;
+    }
 
     Ogre::SceneManager* sceneManager = RenderManager::getSingleton().getSceneManager();
     Ogre::SceneNode* creatureNode = creature->getEntityNode();
@@ -3212,12 +3224,143 @@ void CreatureReactions::updateProps(RunningReaction& reaction, Creature* creatur
     }
 }
 
+bool CreatureReactions::createFallingProps(RunningReaction& reaction, Creature* creature, const ReactionProp& prop)
+{
+    if(!Ogre::ResourceGroupManager::getSingleton().resourceExistsInAnyGroup(prop.mSprite))
+    {
+        logMissingOnce("prop model", prop.mSprite);
+        return false;
+    }
+
+    Ogre::Entity* entity = getCreatureEntity(creature);
+    Ogre::SceneNode* creatureNode = creature->getEntityNode();
+    if((entity == nullptr) || (creatureNode == nullptr) || (creatureNode->getParentSceneNode() == nullptr))
+        return false;
+
+    double height = static_cast<double>(entity->getWorldBoundingBox(true).getSize().z);
+    height = std::max(0.3, std::min(6.0, height));
+
+    Ogre::Vector3 forward = creatureNode->getOrientation() * Ogre::Vector3::NEGATIVE_UNIT_Y;
+    forward.z = 0.0f;
+    if(forward.length() > 0.01f)
+        forward.normalise();
+    else
+        forward = Ogre::Vector3::NEGATIVE_UNIT_Y;
+
+    reaction.mProp = prop;
+    reaction.mPropHeight = height;
+    reaction.mPropFallOrigin = creature->getPosition();
+    reaction.mPropFallForward = forward;
+    reaction.mPropFallRight = forward.crossProduct(Ogre::Vector3::UNIT_Z);
+
+    Ogre::SceneManager* sceneManager = RenderManager::getSingleton().getSceneManager();
+    std::string id = Helper::toString(mNextPropId);
+    ++mNextPropId;
+    std::string setName = PROP_NAME_PREFIX + id;
+    std::string nodeName = setName + "_node";
+    Ogre::SceneNode* parent = creatureNode->getParentSceneNode()->createChildSceneNode(nodeName);
+
+    uint32_t nbModels = std::max<uint32_t>(1, std::min<uint32_t>(4, prop.mCount));
+    for(uint32_t i = 0; i < nbModels; ++i)
+    {
+        std::string childName = nodeName + "_" + Helper::toString(i);
+        Ogre::Entity* model = sceneManager->createEntity(childName + "_entity", prop.mSprite);
+        model->setCastShadows(false);
+        model->setQueryFlags(0);
+        Ogre::SceneNode* child = parent->createChildSceneNode(childName);
+        child->attachObject(model);
+        reaction.mPropFallNames.push_back(childName);
+    }
+
+    reaction.mPropSetName = setName;
+    reaction.mPropNodeName = nodeName;
+    updateFallingProps(reaction);
+    return true;
+}
+
+void CreatureReactions::updateFallingProps(RunningReaction& reaction)
+{
+    Ogre::SceneManager* sceneManager = RenderManager::getSingleton().getSceneManager();
+    const ReactionProp& prop = reaction.mProp;
+    const double gravity = 14.0;
+    double height = reaction.mPropHeight;
+    double scale = prop.mSize * height;
+    double seconds = std::max(0.1, prop.mSeconds);
+    double time = reaction.mElapsed;
+
+    // The models drop from the hands (about half the height of the creature) and lie flat on the floor
+    double startHeight = 0.5 * height;
+    double lieHeight = 0.12 * scale;
+    double fallTime = std::sqrt(2.0 * std::max(0.01, startHeight - lieHeight) / gravity);
+    double fallingTime = std::min(time, fallTime);
+    double fallen = fallingTime / fallTime;
+    double currentHeight = std::max(lieHeight, startHeight - 0.5 * gravity * fallingTime * fallingTime);
+    if(time > fallTime)
+    {
+        // A small hop when they hit the floor
+        double since = time - fallTime;
+        currentHeight += 0.04 * height * std::exp(-7.0 * since) * std::fabs(std::sin(16.0 * since));
+    }
+
+    // They disappear slowly in the end
+    double vanish = 1.0;
+    if(seconds - time < 0.5)
+        vanish = std::max(0.01, (seconds - time) / 0.5);
+
+    uint32_t index = 0;
+    for(const std::string& name : reaction.mPropFallNames)
+    {
+        if(!sceneManager->hasSceneNode(name))
+        {
+            ++index;
+            continue;
+        }
+
+        double side = ((index % 2) == 0) ? 1.0 : -1.0;
+        double row = static_cast<double>(index / 2);
+        double sideways = side * (0.22 + 0.18 * fallen) * height;
+        double ahead = (0.08 + 0.1 * fallen + 0.12 * row) * height;
+        Ogre::Vector3 position = reaction.mPropFallOrigin +
+            reaction.mPropFallRight * static_cast<Ogre::Real>(sideways) +
+            reaction.mPropFallForward * static_cast<Ogre::Real>(ahead);
+        position.z += static_cast<Ogre::Real>(currentHeight);
+
+        // Turn over while falling, flat at the end; each model lies in its own direction
+        double yaw = 1.9 * static_cast<double>(index) + ((side > 0.0) ? 0.4 : 2.7);
+        double tumble = (1.0 - fallen) * (4.2 + static_cast<double>(index));
+        Ogre::Quaternion orientation =
+            Ogre::Quaternion(Ogre::Radian(static_cast<Ogre::Real>(yaw)), Ogre::Vector3::UNIT_Z) *
+            Ogre::Quaternion(Ogre::Radian(static_cast<Ogre::Real>(tumble)), Ogre::Vector3::UNIT_X);
+
+        Ogre::SceneNode* node = sceneManager->getSceneNode(name);
+        node->setPosition(position);
+        node->setOrientation(orientation);
+        Ogre::Real nodeScale = static_cast<Ogre::Real>(scale * vanish);
+        node->setScale(nodeScale, nodeScale, nodeScale);
+        ++index;
+    }
+}
+
 void CreatureReactions::removeProps(RunningReaction& reaction)
 {
     if(reaction.mPropSetName.empty())
         return;
 
     Ogre::SceneManager* sceneManager = RenderManager::getSingleton().getSceneManager();
+    for(const std::string& fallName : reaction.mPropFallNames)
+    {
+        std::string entityName = fallName + "_entity";
+        if(sceneManager->hasEntity(entityName))
+        {
+            Ogre::Entity* fallEntity = sceneManager->getEntity(entityName);
+            fallEntity->detachFromParent();
+            sceneManager->destroyEntity(fallEntity);
+        }
+        if(sceneManager->hasSceneNode(fallName))
+            sceneManager->destroySceneNode(fallName);
+    }
+    reaction.mPropFallNames.clear();
+
     if(sceneManager->hasSceneNode(reaction.mPropNodeName))
     {
         Ogre::SceneNode* node = sceneManager->getSceneNode(reaction.mPropNodeName);
