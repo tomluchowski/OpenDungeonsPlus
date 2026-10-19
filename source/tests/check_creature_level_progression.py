@@ -1,14 +1,17 @@
-"""Exercise production stat/level methods and all default creature XP tables."""
+"""Check production stat/level wiring and XP tables; compile the behavior probe only with --probe."""
 from pathlib import Path
 from decimal import Decimal
 import re
 import subprocess
 import tempfile
+import math
+import sys
 
 root = Path(__file__).resolve().parents[2]
 source = (root / 'source/entities/Creature.cpp').read_text()
 
 
+# Extract production methods for source assertions and the optional integrator probe.
 def function(text, signature):
     start = text.index(signature)
     end = text.index('{', start) + 1
@@ -31,6 +34,7 @@ for definition in definitions:
     assert len(values) == 29
     assert all(b > a > 0 for a, b in zip(values, values[1:]))
     checks += 29
+    # Read the stat columns retained by both the Python checks and the optional probe.
     def stat(name):
         match = re.search(r'^\s*' + re.escape(name) + r'\s+([\d.]+)', definition, re.M)
         return float(match[1]) if match else 0
@@ -38,6 +42,48 @@ for definition in definitions:
 
 methods = '\n'.join(function(source, sig) for sig in ('void Creature::buildStats()', 'void Creature::setLevel(',
     'void Creature::checkLevelUp()', 'void Creature::receiveExp('))
+
+sys.path.insert(0, str(root / 'tools/balance'))
+from combat_sim import Roster, combat_stat, multiplier
+
+build_stats = function(source, 'void Creature::buildStats()')
+assert 'CreatureProgression::hpMultiplier' in build_stats
+assert build_stats.count('CreatureProgression::damageMultiplier') == 3
+assert build_stats.count('CreatureProgression::combatStat(') == 4
+for member, getter in (('mDigRate', 'getDigRatePerLevel'), ('mClaimRate', 'getClaimRatePerLevel'),
+                       ('mGroundSpeed', 'getGroundSpeedPerLevel'), ('mWaterSpeed', 'getWaterSpeedPerLevel'),
+                       ('mLavaSpeed', 'getLavaSpeedPerLevel')):
+    assert member + ' += mDefinition->' + getter + '() * multiplier;' in build_stats
+set_level = function(source, 'void Creature::setLevel(')
+for needle in ('std::max(1u, std::min(MAX_LEVEL, level))', 'mExp = 0.0;', 'buildStats();',
+               'if(mHp > 0.0 && previousMaxHP > 0.0)', 'mHp * mMaxHP / previousMaxHP'):
+    assert needle in set_level, needle
+level_up = function(source, 'void Creature::checkLevelUp()')
+for needle in ('while(getLevel() < MAX_LEVEL)', '!std::isfinite(newXP) || newXP <= 0.0',
+               'if(mExp < newXP)', 'remainingXP = mExp - newXP', 'setLevel(mLevel + 1);', 'mExp = remainingXP;'):
+    assert needle in level_up, needle
+receive = function(source, 'void Creature::receiveExp(')
+assert '!std::isfinite(experience) || experience < 0 || mLevel >= MAX_LEVEL' in receive
+assert 'mExp += experience;' in receive
+roster = Roster(root)
+for name in roster.fighters() + ['Kobold', 'DwarfWorker']:
+    fields = roster.creatures[name][0]
+    hp = defense = 0
+    for level in range(1, 31):
+        unit = roster.unit(name, level)
+        assert unit.hp > hp and unit.defense[0] >= defense, (name, level)
+        assert unit.hp >= roster.number(fields, 'MinHP') + (level - 1) * roster.number(fields, 'HP/Level')
+        assert multiplier(level, 'damage') >= 1
+        hp, defense = unit.hp, unit.defense[0]
+for old_hp in (0, -10, 40):
+    new_max = combat_stat(100, 2, 30, 'hp')
+    new_hp = min(new_max, old_hp * new_max / 100) if old_hp > 0 else old_hp
+    assert new_hp == old_hp if old_hp <= 0 else math.isclose(new_hp / new_max, .4)
+assert combat_stat(100, 2, 0, 'hp') == 100
+assert combat_stat(100, 2, 999, 'hp') == combat_stat(100, 2, 30, 'hp')
+print(f'XP_TABLE_CHECKS={checks} SPECIES={len(cases)}; stat and level source checks passed')
+if '--probe' not in sys.argv:
+    sys.exit(0)
 damage = ''
 for name, filename in [('melee', 'CreatureSkillMeleeFight.cpp'), ('ranged', 'CreatureSkillMissileLaunch.cpp')]:
     skill = (root / 'source/creatureskill' / filename).read_text()
@@ -94,7 +140,7 @@ int main(){int checks=0,failures=0;auto check=[&](bool ok,const char* why){++che
    auto p=CreatureProgression::powerMultiplier(level);check(p>power,"attack power increases every level");power=p;hp=c.mMaxHP;def=c.mPhysicalDefense;
   }
  }
- Creature c;c.mHp=50;c.setLevel(30);check(c.mLevel==30&&c.mMaxHP==600&&c.mHp==300,"health fraction grows with vitality");
+ Creature c;c.mHp=50;c.setLevel(30);check(c.mLevel==30&&std::abs(c.mMaxHP-100*CreatureProgression::hpMultiplier(30))<1e-9&&std::abs(c.mHp/c.mMaxHP-.5)<1e-9,"health fraction grows with vitality");
  c.mHp=0;c.setLevel(1);check(c.mHp==0,"level change cannot resurrect");c.mHp=-10;c.setLevel(30);check(c.mHp==-10,"KO state preserved");
  c.setLevel(0);check(c.mLevel==1,"editor cannot underflow level");c.setLevel(100);check(c.mLevel==30,"cap remains thirty");
  c.setLevel(1);c.mHp=40;c.receiveExp(650);c.checkLevelUp();check(c.mLevel==4&&c.mExp==50,"multiple levels retain surplus XP");

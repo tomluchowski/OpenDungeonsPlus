@@ -27,6 +27,7 @@
 class Creature;
 class GameMap;
 
+//! \brief Launches ranged attacks carrying creature ranges alongside deterministic building damage.
 class CreatureSkillMissileLaunch : public CreatureSkill
 {
 public:

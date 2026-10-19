@@ -70,6 +70,7 @@ inline bool readRange(std::istream& is, double& phyMin, double& phyMax,
 }
 
 //! \brief Rolls damage after subtracting each channel defense, sharing one random fraction across channels.
+//! \param rawDamage Optional output receiving pre-defense damage from the same roll.
 inline double roll(const Creature& target, double phyMin, double phyMax,
     double magMin, double magMax, double eleMin, double eleMax, double* rawDamage = nullptr)
 {

@@ -105,18 +105,6 @@ bool CreatureSkillMeleeFight::tryUseFight(GameMap& gameMap, Creature* creature, 
 
     double creatureDamage = 0.0;
     double creatureRawDamage = 0.0;
-    if(attackedObject->getObjectType() == GameEntityType::creature)
-    {
-        double phyMin = mPhyMin, phyMax = mPhyMax;
-        double magMin = mMagMin, magMax = mMagMax;
-        double eleMin = mEleMin, eleMax = mEleMax;
-        CombatDamage::scale(*creature, phyMin, phyMax, magMin, magMax, eleMin, eleMax);
-        creatureDamage = CombatDamage::roll(*static_cast<Creature*>(attackedObject),
-            phyMin, phyMax, magMin, magMax, eleMin, eleMax, &creatureRawDamage) * creature->getModifierStrength();
-        creatureRawDamage *= creature->getModifierStrength();
-        phyAtk = magAtk = eleAtk = 0.0;
-    }
-
     double modifier = creature->getModifierStrength();
     if(modifier != 1.0)
     {
@@ -135,6 +123,17 @@ bool CreatureSkillMeleeFight::tryUseFight(GameMap& gameMap, Creature* creature, 
         missed = !target->rollAttackHit(creature->getAttackRating(), creature->getLevel(), creature->isPossessed());
         if(!missed)
             defence = target->rollMeleeDefence(false);
+        if(!missed && defence == DefenceChance::none)
+        {
+            double phyMin = mPhyMin, phyMax = mPhyMax;
+            double magMin = mMagMin, magMax = mMagMax;
+            double eleMin = mEleMin, eleMax = mEleMax;
+            CombatDamage::scale(*creature, phyMin, phyMax, magMin, magMax, eleMin, eleMax);
+            creatureDamage = CombatDamage::roll(*target,
+                phyMin, phyMax, magMin, magMax, eleMin, eleMax, &creatureRawDamage) * modifier;
+            creatureRawDamage *= modifier;
+        }
+        phyAtk = magAtk = eleAtk = 0.0;
     }
     if(missed || defence != DefenceChance::none)
     {

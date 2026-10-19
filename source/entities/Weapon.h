@@ -26,6 +26,7 @@ class Creature;
 class ODPacket;
 class WeaponDefinition;
 
+//! \brief Defines held equipment damage ranges, defenses, ratings and weapon recovery.
 class Weapon
 {
 public:

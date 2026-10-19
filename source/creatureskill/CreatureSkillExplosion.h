@@ -27,6 +27,7 @@
 class Creature;
 class GameMap;
 
+//! \brief Applies an explosion effect with a configured damage range.
 class CreatureSkillExplosion : public CreatureSkill
 {
 public:

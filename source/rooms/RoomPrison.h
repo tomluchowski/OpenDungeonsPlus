@@ -39,6 +39,7 @@ enum class FencingDirection
 
 enum class TileVisual;
 
+//! \brief Keeps prisoners and applies configured damage ranges during their upkeep.
 class RoomPrison: public FencedRoom
 {
 

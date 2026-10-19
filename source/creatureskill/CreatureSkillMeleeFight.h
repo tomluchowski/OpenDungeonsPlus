@@ -27,6 +27,7 @@
 class Creature;
 class GameMap;
 
+//! \brief Resolves melee attacks with creature ranges and the separate building damage formula.
 class CreatureSkillMeleeFight : public CreatureSkill
 {
 public:

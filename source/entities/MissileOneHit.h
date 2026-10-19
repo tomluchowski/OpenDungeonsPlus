@@ -22,6 +22,7 @@
 
 #include <string>
 #include <iosfwd>
+#include <cstdint>
 
 class Creature;
 class Room;
@@ -29,6 +30,7 @@ class GameMap;
 class Tile;
 class ODPacket;
 
+//! \brief Resolves projectile hits with separate creature ranges and retained building damage.
 class MissileOneHit: public MissileObject
 {
 public:

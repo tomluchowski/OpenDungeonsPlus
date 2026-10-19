@@ -1,5 +1,5 @@
 """Weapon cooldown: every weapon in equipments.cfg names the melee cooldown, the cooldown values are the decided ones,
-the total damage of every creature is unchanged against the base state, and the level formula is in place.
+building damage keeps the base columns, and the level formula is in place.
 
 Static source check (no compiler, no game): the config field, its loader/writer/packet, the choice of the
 weapon value for melee (larger of two, definition value without a weapon), the level formula and the recovery clock.
@@ -50,7 +50,7 @@ def parse_equipments(text):
 
 
 def parse_creatures(text):
-    """Returns name -> dict(weapons=[names], skills={skill name: [fields]})."""
+    """Return held weapons, the configured avoidance and the skill fields."""
     body = text[text.rindex('[CreatureDefinitions]'):]
     result = {}
     for block in re.findall(r'\[Creature\](.*?)\[/Creature\]', body, re.S):
@@ -63,7 +63,9 @@ def parse_creatures(text):
             if line and not line.startswith('#'):
                 fields = line.split()
                 skills[fields[0]] = fields[1:]
-        result[name] = {'weapons': weapons, 'skills': skills}
+        avoidance = re.search(r'^\s+Avoidance\s+(\S+)', block, re.M)
+        result[name] = {'weapons': weapons, 'skills': skills,
+                        'avoidance': avoidance.group(1) if avoidance else 'none'}
     return result
 
 
@@ -96,10 +98,11 @@ DAMAGE_SKILLS = ('Melee', 'MissileLaunch', 'GuidedBolt', 'Grenade')
 
 
 def damage_values(creature, skill):
-    """The six damage numbers of a skill row (base and per level for physical, magical, elemental)."""
+    """Read the six retained building-damage columns before the appended creature range."""
     fields = creature['skills'][skill]
-    # they are the last six numbers, except for the grenade whose blast radius comes last
-    tail = fields[-7:-1] if skill == 'Grenade' else fields[-6:]
+    # Their original offsets stay fixed when creature ranges are appended after the old columns.
+    start = 3 if skill == 'Melee' else 8
+    tail = fields[start:start + 6]
     return [float(v) for v in tail]
 
 
@@ -160,30 +163,29 @@ EXPECTED_COOLDOWN = {
 # values global.cfg had (3 / 0.5 / 15); shields have no parry fields
 WEAK_PARRY = (1.5, 0.25, 7.5)
 GLOBAL_PARRY = (3.0, 0.5, 15.0)
-SHIELD_PARRY = (6.0, 1.0, 25.0)
+SHIELD_BLOCK = (6.0, 1.0, 25.0)
 WEAK_PARRY_WEAPONS = {'KoboldPick': 'Kobold', 'Pickaxe': 'DwarfWorker', 'DefenderWeapon': 'Defender'}
 
 
 def parry_of(creature, equipments, level=1):
-    """Mirror of Creature::rollMeleeDefence: parry chance in percent of the carried weapons (larger chance of two)."""
-    shield = any('shield' in equipments[w]['mesh'].lower() for w in creature['weapons'])
+    """Only a parry creature uses the largest eligible held-weapon parry chance."""
+    if creature.get('avoidance') != 'parry':
+        return 0.0
     chances = []
     for w in creature['weapons']:
         mesh = equipments[w]['mesh'].lower()
         if 'shield' in mesh or 'bow' in mesh or 'staff' in mesh or 'wand' in mesh:
             continue
-        base, per_level, maximum = SHIELD_PARRY if shield else (equipments[w].get('parry') or GLOBAL_PARRY)
+        base, per_level, maximum = equipments[w].get('parry') or GLOBAL_PARRY
         chances.append(max(0.0, min(maximum, base + per_level * level)))
     return max(chances) if chances else 0.0
 
 
 def parry_text(creature, equipments):
-    """Parry base / per level / max of a creature as text, '-' if it carries no parrying weapon."""
+    """Describe weapon parry only for creatures configured to parry."""
     if parry_of(creature, equipments) == 0.0:
         return '-'
-    if any('shield' in equipments[w]['mesh'].lower() for w in creature['weapons']):
-        return 'shield %g/%g/%g' % SHIELD_PARRY
-    best = max(creature['weapons'], key=lambda w: parry_of({'weapons': [w]}, equipments, 10))
+    best = max(creature['weapons'], key=lambda w: parry_of({'weapons': [w], 'avoidance': 'parry'}, equipments, 10))
     return '%g/%g/%g' % (equipments[best].get('parry') or GLOBAL_PARRY)
 
 
@@ -274,18 +276,20 @@ for weapon_name, carrier in WEAK_PARRY_WEAPONS.items():
             assert weapon_name not in level_file.read_text(encoding='utf-8', errors='ignore'), (weapon_name, level_file)
 # The shield values and the fallback values stay in global.cfg unchanged
 global_cfg_text = read('config/global.cfg')
-for key, value in (('ParryBase', '3'), ('ParryPerLevel', '0.5'), ('ParryMax', '15'), ('ParryShieldBase', '6'),
-                   ('ParryShieldPerLevel', '1'), ('ParryShieldMax', '25')):
+for key, value in (('ParryBase', '3'), ('ParryPerLevel', '0.5'), ('ParryMax', '15'), ('ShieldBlockBase', '6'),
+                   ('ShieldBlockPerLevel', '1'), ('ShieldBlockMax', '25')):
     assert re.search(r'^\s+' + key + r'\t' + re.escape(value) + r'\s*$', global_cfg_text, re.M), key
 assert 'ParryBase' in header and 'ParryPerLevel' in header and 'ParryMax' in header and 'Shields have no parry' in header
-# Chances: the three poor weapons parry badly, every other creature that kept its weapons parries as before
+# Only the two configured parry types use weapon parry; other types have no weapon parry.
 for name, creature in creatures.items():
     for level in (1, 10, 30):
         now = parry_of(creature, equipments, level)
-        if any(w in WEAK_PARRY_WEAPONS for w in creature['weapons']):
+        if creature['avoidance'] != 'parry':
+            expected = 0.0
+        elif any(w in WEAK_PARRY_WEAPONS for w in creature['weapons']):
             expected = max(0.0, min(7.5, 1.5 + 0.25 * level))
         elif creature['weapons'] == base_creatures[name]['weapons']:
-            expected = parry_of(creature, base_equipments, level)
+            expected = max(0.0, min(15.0, 3.0 + 0.5 * level))
         else:
             continue
         assert abs(now - expected) < 1e-9, (name, level, now, expected)
@@ -303,12 +307,20 @@ for (name, skill), expected in EXPECTED_COOLDOWN.items():
 for name, creature in creatures.items():
     if creature['weapons'] and 'Melee' in creature['skills']:
         assert int(creature['skills']['Melee'][0]) == cooldown_of(creature, equipments, 'Melee'), name
-# Spells and support skills that are not listed keep the value of the base state
+# Non-damage skills retain timing; approved healing and area ranges replace their old values.
 for name, creature in creatures.items():
     for skill, fields in creature['skills'].items():
         if skill in DAMAGE_SKILLS:
             continue
-        assert fields == base_creatures[name]['skills'][skill], (name, skill)
+        previous = base_creatures[name]['skills'][skill]
+        if skill == 'HealSelf':
+            assert fields[:-1] == previous[:-1], (name, skill)
+            assert abs(float(fields[-1]) - float(previous[-1]) * 2.05) < 1e-9, (name, skill)
+        elif skill in ('Explosion', 'GasCloud', 'HailStorm'):
+            assert fields[:4] == previous[:4], (name, skill)
+            assert len(fields) == len(previous) + 1, (name, skill)
+        else:
+            assert fields == previous, (name, skill)
 
 # ---------------------------------------------------------------- total damage unchanged against the base state
 
@@ -377,10 +389,11 @@ for getter in ('getParryBase', 'getParryPerLevel', 'getParryMax'):
     assert 'ConfigManager::getSingleton().%s()' % getter in body and '< 0.0' in body, getter
     assert 'double %s() const;' % getter in weapon_h, getter
 parry_roll = function_body(read('source/entities/Creature.cpp'),
-                           'DefenceChance::Outcome Creature::rollMeleeDefence() const')
+                           'DefenceChance::Outcome Creature::rollMeleeDefence(bool missile) const')
 for needle in ('parryWeapons[i]->getParryBase()', 'parryWeapons[i]->getParryPerLevel()',
-               'parryWeapons[i]->getParryMax()', 'config.getParryShieldBase()', 'config.getParryShieldPerLevel()',
-               'config.getParryShieldMax()', 'parry = std::max(parry, weaponParry);'):
+               'parryWeapons[i]->getParryMax()', 'config.getShieldBlockBase()', 'config.getShieldBlockPerLevel()',
+               'config.getShieldBlockMax()', 'chance = std::max(chance, DefenceChance::parryChance(',
+               'CreatureDefinition::Avoidance::parry', 'missile && avoidance == CreatureDefinition::Avoidance::parry'):
     assert needle in parry_roll, needle
 assert 'config.getParryBase()' not in parry_roll, 'the weapon values replace the global ones in the roll'
 

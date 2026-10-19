@@ -20,6 +20,7 @@
 
 #include "creatureeffect/CreatureEffect.h"
 
+//! \brief Deals a fresh damage roll on every explosion effect application.
 class CreatureEffectExplosion : public CreatureEffect
 {
 public:

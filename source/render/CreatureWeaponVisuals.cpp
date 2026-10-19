@@ -839,7 +839,7 @@ void noteHitResult(CreatureReactions& reactions, const CosmeticEvent& event)
             break;
         case static_cast<int32_t>(CosmeticHitResult::parried):
         case static_cast<int32_t>(CosmeticHitResult::shieldBlocked):
-            // The server decided that the defender parried: it stops the blow with its weapon, the attacker is thrown back
+            // The server decided that the defender stopped the attack with its weapon or shield; the attacker is thrown back
             sSoftened[event.mObject] = now;
             if(target != nullptr)
                 queueReaction(reactions, target->getName(), "BlowParried", DODGE_DELAY);
