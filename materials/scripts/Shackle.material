@@ -1,0 +1,20 @@
+// Iron cuff with a short chain that falls off a converted prisoner
+import RTSS/PerPixel_SinglePass from "RTShaderSystem.material"
+material Shackle : RTSS/PerPixel_SinglePass
+{
+    technique
+    {
+        pass
+        {
+            ambient 1.0 1.0 1.0 1.0
+            diffuse 1.0 1.0 1.0 1.0
+            specular 0.5 0.5 0.5 1.0 24.0
+            emissive 0.0 0.0 0.0 0.0
+
+            texture_unit
+            {
+                texture ShackleIron.png
+            }
+        }
+    }
+}
