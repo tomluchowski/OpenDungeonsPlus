@@ -63,7 +63,7 @@ protected:
     //! \brief Deals the damage of the missile and, for a shot with a shooter, tells the clients what it did
     void hurt(Tile* tile, GameEntity* entity);
 
-private:
+protected:
     //! Cosmetic only (event hitResult), not saved: who shot, at whom, and whether the shot hurt a creature
     std::string mShooterName;
     std::string mTargetName;
