@@ -56,6 +56,7 @@ public:
     virtual bool tryUseSupport(GameMap& gameMap, Creature* creature) const override
     { return false; }
 
+    //! \brief Launches a combat projectile with the shooter possession state captured before its first hit.
     virtual bool tryUseFight(GameMap& gameMap, Creature* creature, float range,
         GameEntity* attackedObject, Tile* attackedTile, bool ko, bool notifyPlayerIfHit) const override;
 

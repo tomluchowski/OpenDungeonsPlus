@@ -38,7 +38,9 @@ MissileObject::MissileObject(GameMap* gameMap, Seat* seat, const std::string& se
     mEntityTarget(entityTarget),
     mDamageAllies(damageAllies),
     mKoEnemyCreature(koEnemyCreature),
-    mSpeed(speed)
+    mSpeed(speed),
+    mCreatureShot(false),
+    mPossessedShot(false)
 {
     setSeat(seat);
 
@@ -53,7 +55,9 @@ MissileObject::MissileObject(GameMap* gameMap) :
     mEntityTarget(nullptr),
     mDamageAllies(false),
     mKoEnemyCreature(false),
-    mSpeed(1.0)
+    mSpeed(1.0),
+    mCreatureShot(false),
+    mPossessedShot(false)
 {
 }
 
@@ -319,6 +323,8 @@ void MissileObject::exportToStream(std::ostream& os) const
     os << mDamageAllies << "\t";
     os << mKoEnemyCreature << "\t";
     os << mSpeed << "\t";
+    if(mCreatureShot)
+        os << "ShotOrigin\t" << mPossessedShot << "\t";
 }
 
 bool MissileObject::importFromStream(std::istream& is)
@@ -335,6 +341,24 @@ bool MissileObject::importFromStream(std::istream& is)
         return false;
     if(!(is >> mSpeed))
         return false;
+
+    mCreatureShot = false;
+    mPossessedShot = false;
+    is >> std::ws;
+    if(is.eof())
+    {
+        is.clear(is.rdstate() & ~std::ios::eofbit);
+        return true;
+    }
+    if(is.peek() == 'S')
+    {
+        std::string marker;
+        int32_t possessed;
+        if(!(is >> marker >> possessed) || marker != "ShotOrigin" || (possessed != 0 && possessed != 1))
+            return false;
+        mCreatureShot = true;
+        mPossessedShot = possessed != 0;
+    }
 
     return true;
 }

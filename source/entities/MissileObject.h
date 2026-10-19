@@ -41,13 +41,16 @@ ODPacket& operator>>(ODPacket& is, MissileObjectType& rot);
 std::ostream& operator<<(std::ostream& os, const MissileObjectType& rot);
 std::istream& operator>>(std::istream& is, MissileObjectType& rot);
 
+//! \brief Moves a projectile and preserves explicit creature-shot provenance across saves.
 class MissileObject: public RenderedMovableEntity, public GameEntityListener
 {
 public:
     //! If the missile is sent against a building, tileBuildingTarget should contain it. If the tile is reached,
     //! the building will be damaged. If the target is not a building, tileBuildingTarget should be nullptr
+    //! \brief Creates a missile; creature-shot provenance is assigned by the launching skill.
     MissileObject(GameMap* gameMap, Seat* seat, const std::string& senderName, const std::string& meshName,
         const Ogre::Vector3& direction, double speed, GameEntity* entityTarget, bool damageAllies, bool koEnemyCreature);
+    //! \brief Creates a missile with unknown origin for legacy saves and client packets.
     MissileObject(GameMap* gameMap);
 
     virtual ~MissileObject();
@@ -87,6 +90,13 @@ public:
     virtual bool notifyPickedUp(GameEntity* entity) override;
     virtual bool notifyDropped(GameEntity* entity) override;
 
+    //! \brief Records creature origin and possession at launch, independently of later shooter lifetime.
+    void setCreatureShot(bool possessed) { mCreatureShot = true; mPossessedShot = possessed; }
+    //! \brief True only when a creature skill explicitly supplied the saved launch origin.
+    bool isCreatureShot() const { return mCreatureShot; }
+    //! \brief True when the creature was possessed when this projectile was launched.
+    bool isPossessedShot() const { return mCreatureShot && mPossessedShot; }
+
     bool getKoEnemyCreature() const
     { return mKoEnemyCreature; }
 
@@ -101,7 +111,9 @@ protected:
 
     virtual void exportHeadersToStream(std::ostream& os) const override;
     virtual void exportHeadersToPacket(ODPacket& os) const override;
+    //! \brief Saves missile state and optional creature-shot origin before subtype data.
     void exportToStream(std::ostream& os) const override;
+    //! \brief Loads optional shot origin; legacy data without it remains explicitly unknown.
     bool importFromStream(std::istream& is) override;
     void exportToPacket(ODPacket& os, const Seat* seat) const override;
     void importFromPacket(ODPacket& is) override;
@@ -115,6 +127,8 @@ private:
     bool mDamageAllies;
     bool mKoEnemyCreature;
     double mSpeed;
+    bool mCreatureShot;
+    bool mPossessedShot;
 };
 
 #endif // MISSILEOBJECT_H
