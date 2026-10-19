@@ -1,7 +1,8 @@
-"""Exercise production missile creation and visibility ordering without a game."""
+"""Check missile launch/save wiring; --probe exercises creation, visibility and saved origin."""
 from pathlib import Path
 import os
 import subprocess
+import sys
 import tempfile
 
 repo = Path(__file__).resolve().parents[2]
@@ -10,6 +11,7 @@ launch = launch_source.split('bool CreatureSkillMissileLaunch::tryUseFight(', 1)
 entity_source = (repo / 'source/entities/GameEntity.cpp').read_text()
 visibility = entity_source.split('void GameEntity::notifySeatsWithVision(', 1)[1].split('\nvoid GameEntity::addSeatWithVision(', 1)[0]
 origin_source = (repo / 'source/entities/MissileObject.cpp').read_text()
+damage_source = (repo / 'source/entities/CombatDamage.h').read_text()
 
 
 # Extract the actual save/load methods for the integrator's serialization probe.
@@ -48,20 +50,40 @@ struct GameEntity {
 void GameEntity::notifySeatsWithVision(VISIBILITY
 namespace CosmeticEventType {const int missileLaunch=6;}
 struct CosmeticEvent {CosmeticEvent(int){} std::string mSubject,mObject,mText;int mValue=0,mValue2=0;Ogre::Vector3 mPosition;};
-struct Weapon {double getPhysicalDamage(){return 0;}double getMagicalDamage(){return 0;}double getElementDamage(){return 0;}};
+struct Weapon {
+ // Match the production equipment channel range interface used by the shared scaler.
+ double getPhysicalDamage()const{return 0;}
+ // Return the magical maximum for the launch scaler.
+ double getMagicalDamage()const{return 0;}
+ // Return the elemental maximum for the launch scaler.
+ double getElementDamage()const{return 0;}
+ // Return the physical minimum for the launch scaler.
+ double getPhysicalDamageMin()const{return 0;}
+ // Return the magical minimum for the launch scaler.
+ double getMagicalDamageMin()const{return 0;}
+ // Return the elemental minimum for the launch scaler.
+ double getElementDamageMin()const{return 0;}
+};
 // Creature launch state used by the actual skill method.
 struct Creature {
  Tile tile;Seat* seat;Ogre::Vector3 position{2.25f,3.2f,0};bool invalid=false,possessed=false;
  // Report actual possession at the launch boundary.
  bool isPossessed(){return possessed;}
  Tile* getPositionTile(){return invalid?nullptr:&tile;}const Ogre::Vector3& getPosition(){return position;}
- std::string getName(){return "Caster";}int getLevel(){return 1;}Seat* getSeat(){return seat;}
+ std::string getName(){return "Caster";}int getLevel()const{return 1;}Seat* getSeat(){return seat;}
+ // Capture the current strength modifier with the projectile range.
+ double getModifierStrength()const{return 1.0;}
  void fireCosmeticEvent(const CosmeticEvent&,bool){}
- Weapon* getWeaponL(){return nullptr;}Weapon* getWeaponR(){return nullptr;}
+ const Weapon* getWeaponL()const{return nullptr;}const Weapon* getWeaponR()const{return nullptr;}
 };
+namespace CombatDamage { DAMAGE_SCALE }
 // Projectile spy records the launch metadata and visibility order.
 struct MissileOneHit:GameEntity {
  static std::vector<MissileOneHit*> created;int upkeep=0;Ogre::Vector3 direction;double speed;bool creatureShot=false,possessedShot=false;
+ bool rangeSet=false;double physicalMin=0,physicalMax=0,magicalMin=0,magicalMax=0,elementMin=0,elementMax=0,strength=0;
+ // Record the exact creature range passed by the production launch method.
+ void setCreatureDamageRange(double p0,double p1,double m0,double m1,double e0,double e1,double s){
+  rangeSet=true;physicalMin=p0;physicalMax=p1;magicalMin=m0;magicalMax=m1;elementMin=e0;elementMax=e1;strength=s;}
  // Capture provenance before initial upkeep in the production launch method.
  void setCreatureShot(bool possessed){creatureShot=true;possessedShot=possessed;}
  MissileOneHit(GameMap* game,Seat*,const std::string&,const std::string&,const std::string&,const Ogre::Vector3& d,double s,double,double,double,GameEntity*,bool,bool,bool):direction(d),speed(s){map=game;created.push_back(this);}
@@ -75,7 +97,9 @@ std::vector<MissileOneHit*> MissileOneHit::created;
 const Ogre::Real CANNON_MISSILE_HEIGHT=.3f;
 struct CreatureSkillMissileLaunch {
  std::string mMissileMesh,mMissilePartScript="MissileMagic";double mMissileSpeed=3,mPhyAtk=0,mPhyAtkPerLvl=0,mMagAtk=13,mMagAtkPerLvl=.25,mEleAtk=0,mEleAtkPerLvl=0;
+ double mPhyMin=0,mPhyMax=0,mMagMin=13.25,mMagMax=13.25,mEleMin=0,mEleMax=0;
  bool tryUseFight(GameMap&,Creature*,float,GameEntity*,Tile*,bool,bool)const;
+ MissileOneHit* createMissile(GameMap&,Creature*,const Ogre::Vector3&,double,double,double,GameEntity*,bool,bool)const;
 };
 bool CreatureSkillMissileLaunch::tryUseFight(LAUNCH
 
@@ -94,6 +118,7 @@ struct SavedMissile:RenderedMovableEntity {
 };
 ORIGIN_METHODS
 // Run real base-missile serialization with old rows, subtype suffixes and both control modes.
+// allowed-lambda: takes the probe's existing check callback from main
 void checkShotSave(const std::function<void(bool,const char*)>& check){
  for(bool possessed:{false,true}){
   SavedMissile original;original.mCreatureShot=true;original.mPossessedShot=possessed;
@@ -127,6 +152,10 @@ int main(){int checks=0,failures=0;std::function<void(bool,const char*)> check=[
   check(missile->position==Ogre::Vector3(caster.position.x,caster.position.y,.3f),"projectile starts at actual caster XY");
   check(missile->upkeep==1&&missile->speed==3,"first flight upkeep and speed unchanged");
   check(missile->creatureShot&&missile->possessedShot==possessed,"launch captures creature origin and exact possession state");
+  check(missile->rangeSet&&missile->physicalMin==0&&missile->physicalMax==0
+   &&missile->magicalMin==13.25&&missile->magicalMax==13.25
+   &&missile->elementMin==0&&missile->elementMax==0&&missile->strength==1.0,
+   "launch captures scaled creature damage separately from building channels");
   check(map.events.size()==(visible?4:0),"visible humans receive creation and first path in the launch turn");
   if(visible&&map.events.size()==4){
    check(map.events[0].kind=="add"&&map.events[1].kind=="add"&&map.events[2].kind=="path"&&map.events[3].kind=="path","creation precedes movement notification");
@@ -142,6 +171,26 @@ int main(){int checks=0,failures=0;std::function<void(bool,const char*)> check=[
  std::cout<<"CHECKS="<<checks<<" FAILURES="<<failures<<'\n';return failures?1:0;
 }
 '''.replace('VISIBILITY', visibility).replace('LAUNCH', launch).replace('ORIGIN_METHODS', origin_methods)
+damage_scale = 'inline void scale(' + damage_source.split('inline void scale(', 1)[1].split('\n}\n', 1)[0] + '\n}'
+probe = probe.replace('DAMAGE_SCALE', damage_scale)
+
+# Source validation runs without compiling; the optional fixture retains the runtime assertions.
+ordering = ('missile->setCreatureDamageRange(', 'missile->setCreatureShot(', 'missile->addToGameMap();',
+            'missile->setPosition(position);', 'missile->notifySeatsWithVision(', 'missile->doUpkeep();')
+positions = [launch.index(token) for token in ordering]
+assert positions == sorted(positions), 'range and provenance precede visibility and first movement'
+assert 'if(creatureTile == nullptr)' in launch and 'return false;' in launch
+assert 'ShotOrigin' in origin_source and 'mPossessedShot = possessed != 0;' in origin_source
+one_hit = (repo / 'source/entities/MissileOneHit.cpp').read_text()
+assert 'CreatureDamageRange' in one_hit and 'rangePosition = is.tellg()' in one_hit
+assert 'is.seekg(rangePosition)' in one_hit, 'legacy subtype fields are not consumed'
+assert 'mPhysicalDamageMin >> mPhysicalDamageMax' in one_hit
+assert 'mMagicalDamageMin >> mMagicalDamageMax' in one_hit
+assert 'mElementDamageMin >> mElementDamageMax' in one_hit
+if '--probe' not in sys.argv:
+    print('Source checks passed; compiled probe requires --probe')
+    raise SystemExit(0)
+
 prefix = Path(os.environ['CMAKE_PREFIX_PATH'])
 with tempfile.TemporaryDirectory(prefix='odp-missile-launch-') as directory:
     work = Path(directory)
