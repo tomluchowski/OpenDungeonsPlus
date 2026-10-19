@@ -41,8 +41,7 @@ enum class CosmeticEventType : int32_t
     scared = 1,
     //! The creature wanted to work for some time and found no job (the same count that lowers its mood).
     //! mSubject creature, mValue number of turns without a job. Sent for the creatures of the receiving
-    //! keeper and of its allies. The number is reserved and the client already handles it, but the server
-    //! does not send it yet: the count of turns without a job comes with the out of work mood.
+    //! keeper and of its allies.
     impatient = 2,
     //! A treasury just became full. mObject name of the room, mPosition the tile of the last deposit,
     //! mValue gold stored, mValue2 gold capacity.
@@ -69,8 +68,15 @@ enum class CosmeticEventType : int32_t
     //! A chicken of a hatchery hopped away from a hungry creature that came to eat it. mSubject chicken,
     //! mObject the creature, mPosition where the chicken was. The hop itself is the normal chicken movement.
     chickenFlee = 9,
+    //! A room has just changed hands (a takeover by workers or any other change of its owner). Sent once per room
+    //! when the owner changes, never per tile or per worker. mObject name of the room type (the readable
+    //! name), mText name of the room that was lost, mValue seat id of the new owner, mValue2 number of tiles
+    //! (squares) that changed hands, mPosition one tile of the room (the one nearest its middle). Sent to the
+    //! keepers that see a tile of the room and to the old and the new owner. Only ends the dancing of the
+    //! workers that took the room; the game never depends on it.
+    roomTakeover = 14,
     //! A game in a casino ended. mSubject winner creature, mObject loser creature, mPosition where the winner
-    //! stands. Sent to the keepers who see the tile. The numbers 10 to 14 are kept free for kinds of another branch.
+    //! stands. Sent to the keepers who see the tile. The numbers 10 to 13 are kept free for kinds of another branch.
     casinoResult = 15
 };
 

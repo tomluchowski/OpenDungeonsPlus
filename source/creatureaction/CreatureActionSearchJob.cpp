@@ -212,6 +212,7 @@ bool CreatureActionSearchJob::handleSearchJob(Creature& creature, bool forced)
         if((affinity.getLikeness() > 0) && (affinity.getEfficiency() > 0))
         {
             creature.increaseNbTurnsOutOfWork();
+            creature.fireImpatientIfNeeded();
             break;
         }
     }

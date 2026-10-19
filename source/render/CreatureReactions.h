@@ -277,6 +277,11 @@ private:
         std::string mPropSetName;
         std::string mPropNodeName;
         double mPropHeight;
+        //! Prop 'fall': the scene nodes of the falling models and where they started
+        std::vector<std::string> mPropFallNames;
+        Ogre::Vector3 mPropFallOrigin;
+        Ogre::Vector3 mPropFallForward;
+        Ogre::Vector3 mPropFallRight;
 
         //! Icon that starts later in the reaction. Empty once it is shown.
         std::string mLateEmote;
@@ -464,6 +469,9 @@ private:
 
     //! \brief Destroys the sprites and the scene node of the props of a reaction, if it has any
     void removeProps(RunningReaction& reaction);
+    //! \brief Small models that fall off the creature and lie on the floor (shackles of a converted prisoner)
+    bool createFallingProps(RunningReaction& reaction, Creature* creature, const ReactionProp& prop);
+    void updateFallingProps(RunningReaction& reaction);
 
     //! \brief Shows the second icon (and the second effect) of the reaction when it is time
     void updateLate(RunningReaction& reaction, Creature* creature);
