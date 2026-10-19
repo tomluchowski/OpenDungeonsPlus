@@ -16,7 +16,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PRIORITIES = ("death", "combat", "held", "event", "work", "mood", "ambient")
 JOBS = ("Fighter", "Worker")
 MOTIONS = ("hop", "shake", "squash", "spin", "turn", "look", "lookat", "sit", "lie", "startle")
-PROPS = ("juggle", "yoyo", "flip", "stack", "toss", "critter", "balance", "doodle", "shadow", "kick")
+PROPS = ("juggle", "yoyo", "flip", "stack", "toss", "critter", "balance", "doodle", "shadow", "kick", "fall")
 ROOMS = ("Hatchery", "Treasury", "Portal", "Dormitory", "Library", "Workshop", "TrainingHall", "Prison", "Torture",
          "Arena", "Temple", "Casino", "GuardRoom", "Crypt", "DungeonTemple")
 SETTINGS = ("MaxSimultaneous", "MaxCameraDistance", "GroupStaggerMin", "GroupStaggerMax", "DefaultGroup",
@@ -277,6 +277,9 @@ def check_variant(key, words, variant, event, creatures, groups, materials, part
     if key == "Prop":
         if len(words) != 6 or words[1] not in PROPS or not all(is_number(w) for w in words[3:]):
             error("%s: Prop must be '<%s> <sprite> <count> <size> <seconds>'" % (where, "|".join(PROPS)))
+        elif words[1] == "fall":
+            if not os.path.exists(os.path.join(ROOT, "models", words[2])):
+                error("%s: no model %s for the prop" % (where, words[2]))
         elif "CreatureProp_" + words[2] not in materials:
             error("%s: no material CreatureProp_%s" % (where, words[2]))
         elif not os.path.exists(os.path.join(ROOT, "materials", "textures", "CreatureProp%s.png" % words[2])):

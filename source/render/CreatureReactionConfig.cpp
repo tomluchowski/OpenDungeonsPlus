@@ -565,7 +565,7 @@ bool CreatureReactionConfig::loadVariant(std::istream& file, ReactionVariant& va
         }
         else if(words[0] == "Prop")
         {
-            // Prop <juggle|yoyo|flip|stack|toss|critter|balance|doodle|shadow|kick> <sprite> <count> <size> <seconds>
+            // Prop <juggle|yoyo|flip|stack|toss|critter|balance|doodle|shadow|kick|fall> <sprite> <count> <size> <seconds>
             ReactionProp::Path path = ReactionProp::Path::none;
             if(words[1] == "juggle")
                 path = ReactionProp::Path::juggle;
@@ -587,6 +587,8 @@ bool CreatureReactionConfig::loadVariant(std::istream& file, ReactionVariant& va
                 path = ReactionProp::Path::shadow;
             else if(words[1] == "kick")
                 path = ReactionProp::Path::kick;
+            else if(words[1] == "fall")
+                path = ReactionProp::Path::fall;
 
             if((path == ReactionProp::Path::none) || (words.size() < 6))
             {
