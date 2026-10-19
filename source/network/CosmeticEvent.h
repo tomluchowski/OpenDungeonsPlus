@@ -41,8 +41,7 @@ enum class CosmeticEventType : int32_t
     scared = 1,
     //! The creature wanted to work for some time and found no job (the same count that lowers its mood).
     //! mSubject creature, mValue number of turns without a job. Sent for the creatures of the receiving
-    //! keeper and of its allies. The number is reserved and the client already handles it, but the server
-    //! does not send it yet: the count of turns without a job comes with the out of work mood.
+    //! keeper and of its allies.
     impatient = 2,
     //! A treasury just became full. mObject name of the room, mPosition the tile of the last deposit,
     //! mValue gold stored, mValue2 gold capacity.
