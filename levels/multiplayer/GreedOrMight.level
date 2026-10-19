@@ -2359,7 +2359,7 @@ MineNGold	50
     BedMeshName	DragonBed
     BedDim	1	1
     BedPos	1	1	0	-1
-    MinHP	35
+    MinHP	71.75
     HP/Level	10
     Heal/Turn	0.5
     WakefulnessLost/Turn	0
@@ -2394,6 +2394,9 @@ MineNGold	50
     SoundFamilyAttack	Default/Attack
     SoundFamilyDie	Default/Die
     SoundFamilySlap	Default/Slap
+    AttackRating	270
+    DefenseRating	90
+    Avoidance	none
     [/Stats]
     [RoomAffinity]
     [/RoomAffinity]
@@ -2406,8 +2409,8 @@ MineNGold	50
     758	818	880	946	1012	1080	1152	1226	1300	1400
     [/XP]
     [CreatureSkills]
-    # SkillName	CooldownNbTurns	WarmupNbTurns	LevelMin	PhyAtk	PhyAtkPerLvl	MagAtk	MagAtkPerLvl	EleAtk	EleAtkPerLvl
-    Melee	5	2	1	13	1	7	0	0	0
+    # SkillName	CooldownNbTurns	WarmupNbTurns	LevelMin	PhyAtk	PhyAtkPerLvl	MagAtk	MagAtkPerLvl	EleAtk	EleAtkPerLvl	PhyMin	PhyMax	MagMin	MagMax	EleMin	EleMax
+    Melee	5	2	1	13	1	7	0	0	0	19.14	28.7	9.57	14.35	0	0
     [/CreatureSkills]
     [CreatureBehaviours]
     # BehaviourName

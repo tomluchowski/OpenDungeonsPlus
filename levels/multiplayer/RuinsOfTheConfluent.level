@@ -2066,7 +2066,7 @@ NatureMonster	5
     BedMeshName	DragonBed
     BedDim	1	1
     BedPos	1	1	0	-1
-    MinHP	50
+    MinHP	102.5
     HP/Level	6
     Heal/Turn	0.03
     WakefulnessLost/Turn	0.1
@@ -2101,6 +2101,9 @@ NatureMonster	5
     SoundFamilyAttack	Default/Attack
     SoundFamilyDie	Default/Die
     SoundFamilySlap	Default/Slap
+    AttackRating	233
+    DefenseRating	78
+    Avoidance	none
     [/Stats]
     [RoomAffinity]
     TrainingHall	100	1.2
@@ -2145,15 +2148,15 @@ NatureMonster	5
     # SkillName	CooldownNbTurns	WarmupNbTurns	RangeMax	LevelMin	EffectDuration	EffectValue
     Slow	30	1	6	5	10	0.8
     # SkillName	CooldownNbTurns	WarmupNbTurns	LevelMin	EffectDuration	EffectValue
-    HealSelf	35	1	8	5	1
-    # SkillName	CooldownNbTurns	WarmupNbTurns	RangeMax	LevelMin	EffectDuration	EffectValue
-    Explosion	40	2	6	12	1	15
+    HealSelf	35	1	8	5	2.05
+    # SkillName	CooldownNbTurns	WarmupNbTurns	RangeMax	LevelMin	EffectDuration	EffectValue	EffectValueMin
+    Explosion	40	2	6	12	1	30.75	20.5
     # SkillName	CooldownNbTurns	WarmupNbTurns	LevelMin	EffectDuration	PhyDef	MagDef	EleDef
     DefenseSelf	45	2	15	25	3	3	3
     # SkillName	CooldownNbTurns	WarmupNbTurns	LevelMin	EffectDuration	EffectValue
     StrengthSelf	55	2	18	20	1.15
-    # SkillName	CooldownNbTurns	WarmupNbTurns	LevelMin	PhyAtk	PhyAtkPerLvl	MagAtk	MagAtkPerLvl	EleAtk	EleAtkPerLvl
-    Melee	2	1	1	0	0	16	0.31	0	0
+    # SkillName	CooldownNbTurns	WarmupNbTurns	LevelMin	PhyAtk	PhyAtkPerLvl	MagAtk	MagAtkPerLvl	EleAtk	EleAtkPerLvl	PhyMin	PhyMax	MagMin	MagMax	EleMin	EleMax
+    Melee	2	1	1	0	0	16	0.31	0	0	0	0	22.3	33.44	0	0
     [/CreatureSkills]
     [CreatureBehaviours]
     # BehaviourName	WeakCoef
