@@ -111,6 +111,10 @@ public:
     inline Ogre::AnimationState* getAnimationState() const
     { return mAnimationState; }
 
+    //! \brief Name of the animation the entity was last told to play (empty if none yet)
+    inline const std::string& getAnimationStateName() const
+    { return mPrevAnimationState; }
+
     virtual void restoreEntityState() override;
 
     static std::string getMovableGameEntityStreamFormat();

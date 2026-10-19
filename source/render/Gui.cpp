@@ -60,7 +60,7 @@ const float FONT_DESIGN_HEIGHT = 600.0f;
 
 void createHandFeedbackImage()
 {
-    // Original project artwork: the reference's prohibition shape, without copied assets.
+    // Project artwork: a prohibition shape, without copied assets.
     const int size = 64;
     std::vector<unsigned char> pixels(size * size * 4, 0);
     for(int y = 0; y < size; ++y)

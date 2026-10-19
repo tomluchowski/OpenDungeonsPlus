@@ -3308,6 +3308,30 @@ void Creature::fireCosmeticEvent(int32_t type, int32_t value, int32_t value2, bo
     fireCosmeticEvent(event, alliedOnly);
 }
 
+void Creature::fireImpatientIfNeeded()
+{
+    // The game counts a creature as frustrated from the turns its OutOfWork mood starts at. It is told then,
+    // and again each time the mood has grown over its whole range.
+    int32_t turnsMin = 10;
+    int32_t repeat = 40;
+    for(const CreatureMood* mood : getDefinition()->getCreatureMoods())
+    {
+        const CreatureMoodOutOfWork* outOfWork = dynamic_cast<const CreatureMoodOutOfWork*>(mood);
+        if(outOfWork == nullptr)
+            continue;
+
+        turnsMin = outOfWork->getTurnsMin();
+        repeat = std::max(1, outOfWork->getTurnsMax());
+        break;
+    }
+
+    int32_t turns = getNbTurnsOutOfWork();
+    if(turns < turnsMin || ((turns - turnsMin) % repeat) != 0)
+        return;
+
+    fireCosmeticEvent(static_cast<int32_t>(CosmeticEventType::impatient), turns, 0, true);
+}
+
 void Creature::fireArrivalEvent()
 {
     Player* player = getSeat()->getPlayer();

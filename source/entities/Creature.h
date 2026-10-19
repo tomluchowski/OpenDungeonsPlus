@@ -440,6 +440,9 @@ public:
     void fireCosmeticEvent(const CosmeticEvent& event, bool alliedOnly);
     //! \brief Sends a cosmetic event of the given kind with this creature as subject
     void fireCosmeticEvent(int32_t type, int32_t value, int32_t value2, bool alliedOnly);
+    //! \brief The creature found no job again: tells the keeper when it has waited as long as the game
+    //! counts as frustrated (cosmetic only)
+    void fireImpatientIfNeeded();
     //! \brief The creature arrived through a portal: tells the keeper what mood it would have (cosmetic only)
     void fireArrivalEvent();
 

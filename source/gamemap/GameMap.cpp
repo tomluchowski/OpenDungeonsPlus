@@ -212,6 +212,7 @@ GameMap::GameMap(bool isServerGameMap, NodeType nt) :
         everVisitedFlagPool(nullptr),
         mIsServerGameMap(isServerGameMap),
         mNodeType(nt),
+        mGameSpeedPercent(100),
         mLocalPlayer(nullptr),
         mLocalPlayerNick(DEFAULT_NICK),
         mTurnNumber(-1),
@@ -362,6 +363,7 @@ void GameMap::clearAll()
         mTurnNumber = -1;
         resetUniqueNumbers();
         mIsFOWActivated = true;
+        mGameSpeedPercent = 100;
         mTimePayDay = 0;
 
         // We check if the different vectors are empty
