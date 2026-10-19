@@ -2003,6 +2003,15 @@ void RenderManager::setupFogMaterial(Ogre::TexturePtr myTexture)
 
 
 
+//! rief Places a fog surface or cloud instance on its tile. The instance is attached to the tile's own scene
+//! node, which already sits at the tile coordinates, and an instanced entity position is an offset from that
+//! node; any tile position here would be added a second time and move the fog onto other tiles.
+//! \param instance The fog instance attached to the tile's scene node.
+static void rrPlaceFogInstance(Ogre::InstancedEntity* instance)
+{
+    instance->setPosition(Ogre::Vector3::ZERO);
+}
+
 void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, const Player& localPlayer, NodeType nt)
 {
     if (tile.getEntityNode() == nullptr)
@@ -2092,8 +2101,8 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
             tile.setFogOfWarCloud( mInstanceManagerCloud->createInstancedEntity("Fog"));
             tileMeshNode->attachObject(tile.getFogOfWarMesh());
             tileMeshNode->attachObject(tile.getFogOfWarCloud());
-            tile.getFogOfWarMesh()->setPosition(tile.getPosition());
-            tile.getFogOfWarCloud()->setPosition(tile.getPosition());    
+            rrPlaceFogInstance(tile.getFogOfWarMesh());
+            rrPlaceFogInstance(tile.getFogOfWarCloud());
             
             
             
@@ -2124,7 +2133,7 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
             tile.setHasFogOfWar(false);  
             tile.setFogOfWarMesh( (isMarked ? mInstanceManagerMarkedFog : mInstanceManagerDirt)->createInstancedEntity("DirtInstanced"), isMarked);
             tileMeshNode->attachObject(tile.getFogOfWarMesh());
-            tile.getFogOfWarMesh()->setPosition(tile.getPosition());
+            rrPlaceFogInstance(tile.getFogOfWarMesh());
            
             
             
@@ -2147,7 +2156,7 @@ void RenderManager::rrRefreshTile(Tile& tile, GameMap& draggableTileContainer, c
             tile.setFogOfWarMesh((isMarked ? mInstanceManagerMarkedFog : mInstanceManagerDirt)->
                 createInstancedEntity("DirtInstanced"), isMarked);
             tileMeshNode->attachObject(tile.getFogOfWarMesh());
-            tile.getFogOfWarMesh()->setPosition(tile.getPosition());
+            rrPlaceFogInstance(tile.getFogOfWarMesh());
         }
         tile.setFogOfWarMesh(tile.getFogOfWarMesh(), isMarked);
     }
