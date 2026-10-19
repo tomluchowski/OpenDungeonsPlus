@@ -37,7 +37,10 @@ public:
        mPhysicalDefense(0.0),
        mMagicalDefense(0.0),
        mElementDefense(0.0),
-       mCooldownNbTurns(0)
+       mCooldownNbTurns(0),
+       mParryBase(-1.0),
+       mParryPerLevel(-1.0),
+       mParryMax(-1.0)
     {}
 
     Weapon() :
@@ -47,7 +50,10 @@ public:
        mPhysicalDefense(0.0),
        mMagicalDefense(0.0),
        mElementDefense(0.0),
-       mCooldownNbTurns(0)
+       mCooldownNbTurns(0),
+       mParryBase(-1.0),
+       mParryPerLevel(-1.0),
+       mParryMax(-1.0)
     {}
 
     virtual ~Weapon()
@@ -58,11 +64,11 @@ public:
     //! \returns A Weapon if valid, nullptr otherwise.
     static Weapon* load(std::stringstream& defFile);
     //! \brief Reads the stats of one [Equipment] block into the given weapon, including the optional
-    //! CooldownNbTurns field (missing = no weapon cooldown).
+    //! CooldownNbTurns field (missing = no weapon cooldown) and the optional ParryBase, ParryPerLevel and ParryMax fields.
     //! \returns true if the block is valid, false otherwise.
     static bool update(Weapon* weapon, std::stringstream& defFile);
     //! \brief Writes the differences between def1 and def2 in the given file. Note that def1 can be null. In
-    //! this case, every parameters in def2 will be written (CooldownNbTurns only if it is not 0). def2 cannot be null.
+    //! this case, every parameters in def2 will be written (CooldownNbTurns only if it is not 0, the parry values only if they are set). def2 cannot be null.
     static void writeWeaponDiff(const Weapon* def1, const Weapon* def2, std::ofstream& file);
 
     inline const std::string getOgreNamePrefix() const
@@ -98,6 +104,18 @@ public:
     inline uint32_t getCooldownNbTurns() const
     { return mCooldownNbTurns; }
 
+    //! \brief Parry chance in percent of a creature that carries this weapon (without shield), base value.
+    //! A weapon without its own ParryBase in the equipment file uses the global ParryBase.
+    double getParryBase() const;
+
+    //! \brief Parry chance in percent that every creature level adds for this weapon.
+    //! A weapon without its own ParryPerLevel uses the global ParryPerLevel.
+    double getParryPerLevel() const;
+
+    //! \brief Highest parry chance in percent for this weapon.
+    //! A weapon without its own ParryMax uses the global ParryMax.
+    double getParryMax() const;
+
     friend ODPacket& operator <<(ODPacket& os, const Weapon *weapon);
     friend ODPacket& operator >>(ODPacket& is, Weapon *weapon);
 
@@ -114,6 +132,11 @@ private:
     double          mElementDefense;
     //! \brief Melee cooldown in turns when carried (optional CooldownNbTurns field, 0 = none)
     uint32_t        mCooldownNbTurns;
+    //! \brief Parry values in percent of the optional ParryBase / ParryPerLevel / ParryMax fields (negative = not set,
+    //! the global values apply)
+    double          mParryBase;
+    double          mParryPerLevel;
+    double          mParryMax;
 };
 
 #endif // WEAPON_H

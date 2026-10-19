@@ -31,7 +31,7 @@ def function_body(source, signature):
 # ---------------------------------------------------------------- config parsing
 
 def parse_equipments(text):
-    """Returns name -> dict(mesh, damage=(phys, mag, ele), cooldown or None)."""
+    """Returns name -> dict(mesh, damage=(phys, mag, ele), cooldown or None, parry=(base, per level, max) or None)."""
     # the header comment mentions the tags too, so only the part after the opening tag is parsed
     body = text[text.rindex('[EquipmentDefinitions]'):]
     result = {}
@@ -43,6 +43,8 @@ def parse_equipments(text):
             'mesh': stats['MeshName'],
             'damage': (float(stats['PhysicalDamage']), float(stats['MagicalDamage']), float(stats['ElementDamage'])),
             'cooldown': None if cooldown is None else int(cooldown),
+            'parry': None if 'ParryBase' not in stats else
+                     (float(stats['ParryBase']), float(stats['ParryPerLevel']), float(stats['ParryMax'])),
         }
     return result
 
@@ -154,11 +156,43 @@ EXPECTED_COOLDOWN = {
 }
 
 
+# Parry values (percent) per weapon: the three weapons of the unskilled model carriers parry badly, all others keep the
+# values global.cfg had (3 / 0.5 / 15); shields have no parry fields
+WEAK_PARRY = (1.5, 0.25, 7.5)
+GLOBAL_PARRY = (3.0, 0.5, 15.0)
+SHIELD_PARRY = (6.0, 1.0, 25.0)
+WEAK_PARRY_WEAPONS = {'KoboldPick': 'Kobold', 'Pickaxe': 'DwarfWorker', 'DefenderWeapon': 'Defender'}
+
+
+def parry_of(creature, equipments, level=1):
+    """Mirror of Creature::rollMeleeDefence: parry chance in percent of the carried weapons (larger chance of two)."""
+    shield = any('shield' in equipments[w]['mesh'].lower() for w in creature['weapons'])
+    chances = []
+    for w in creature['weapons']:
+        mesh = equipments[w]['mesh'].lower()
+        if 'shield' in mesh or 'bow' in mesh or 'staff' in mesh or 'wand' in mesh:
+            continue
+        base, per_level, maximum = SHIELD_PARRY if shield else (equipments[w].get('parry') or GLOBAL_PARRY)
+        chances.append(max(0.0, min(maximum, base + per_level * level)))
+    return max(chances) if chances else 0.0
+
+
+def parry_text(creature, equipments):
+    """Parry base / per level / max of a creature as text, '-' if it carries no parrying weapon."""
+    if parry_of(creature, equipments) == 0.0:
+        return '-'
+    if any('shield' in equipments[w]['mesh'].lower() for w in creature['weapons']):
+        return 'shield %g/%g/%g' % SHIELD_PARRY
+    best = max(creature['weapons'], key=lambda w: parry_of({'weapons': [w]}, equipments, 10))
+    return '%g/%g/%g' % (equipments[best].get('parry') or GLOBAL_PARRY)
+
+
 def print_table():
-    """Prints the per creature table as markdown."""
+    """Prints the per creature table and the weapons table as markdown."""
     print('| Creature skill | Weapons before -> after | Weapon damage | Skill base damage | Total damage before |'
-          ' Total damage after | Cooldown before | Cooldown after | Cooldown after at level 30 |')
-    print('|---|---|---|---|---|---|---|---|---|')
+          ' Total damage after | Cooldown before | Cooldown after | Cooldown after at level 30 |'
+          ' Parry base/per level/max before -> after |')
+    print('|---|---|---|---|---|---|---|---|---|---|')
     for (name, skill), after in sorted(EXPECTED_COOLDOWN.items()):
         old = base_creatures[name]
         new = creatures[name]
@@ -166,9 +200,19 @@ def print_table():
         base_damage = sum(damage_values(new, skill)[0::2])
         before_total = sum(per_damage_type(old, base_equipments, skill, 1))
         after_total = sum(per_damage_type(new, equipments, skill, 1))
-        print('| %s %s | %s -> %s | %.4g | %.4g | %.4g | %.4g | %g | %g | %.4g |' % (
+        parry = parry_text(old, base_equipments) + ' -> ' + parry_text(new, equipments) if skill == 'Melee' else 'n/a'
+        print('| %s %s | %s -> %s | %.4g | %.4g | %.4g | %.4g | %g | %g | %.4g | %s |' % (
             name, skill, '+'.join(old['weapons']) or '-', '+'.join(new['weapons']) or '-', weapon_damage, base_damage,
-            before_total, after_total, cooldown_of(old, base_equipments, skill), after, cooldown_at_level(after, 30)))
+            before_total, after_total, cooldown_of(old, base_equipments, skill), after, cooldown_at_level(after, 30),
+            parry))
+    print()
+    print('| Weapon | Physical | Magical | Element | Cooldown | Parry base | Parry per level | Parry max |')
+    print('|---|---|---|---|---|---|---|---|')
+    for name in sorted(equipments):
+        item = equipments[name]
+        parry = item['parry'] or ('-', '-', '-')
+        print('| %s | %g | %g | %g | %s | %s | %s | %s |' % (name, item['damage'][0], item['damage'][1],
+              item['damage'][2], item['cooldown'] or '-', parry[0], parry[1], parry[2]))
 
 
 if '--table' in sys.argv:
@@ -212,6 +256,42 @@ for name, item in equipments.items():
         assert name in EXPECTED_MODEL_WEAPONS, name + ' has no mesh but is not a model weapon'
 # The goblin no longer carries the short sword (the knife replaces it)
 assert 'ShortSword' not in creatures['Goblin']['weapons']
+
+# ---------------------------------------------------------------- parry values per weapon
+
+for name, item in equipments.items():
+    if 'shield' in name.lower():
+        assert item['parry'] is None, name + ' is a shield and has no parry fields'
+        continue
+    expected = WEAK_PARRY if name in WEAK_PARRY_WEAPONS else GLOBAL_PARRY
+    assert item['parry'] == expected, (name, item['parry'], expected)
+# The weak values belong to weapons that only one creature carries (and no level file names them)
+for weapon_name, carrier in WEAK_PARRY_WEAPONS.items():
+    carriers = [n for n, c in creatures.items() if weapon_name in c['weapons']]
+    assert carriers == [carrier], (weapon_name, carriers)
+    for level_file in (root / 'levels').rglob('*'):
+        if level_file.is_file() and level_file.suffix in ('.level', '.cfg', '.txt'):
+            assert weapon_name not in level_file.read_text(encoding='utf-8', errors='ignore'), (weapon_name, level_file)
+# The shield values and the fallback values stay in global.cfg unchanged
+global_cfg_text = read('config/global.cfg')
+for key, value in (('ParryBase', '3'), ('ParryPerLevel', '0.5'), ('ParryMax', '15'), ('ParryShieldBase', '6'),
+                   ('ParryShieldPerLevel', '1'), ('ParryShieldMax', '25')):
+    assert re.search(r'^\s+' + key + r'\t' + re.escape(value) + r'\s*$', global_cfg_text, re.M), key
+assert 'ParryBase' in header and 'ParryPerLevel' in header and 'ParryMax' in header and 'Shields have no parry' in header
+# Chances: the three poor weapons parry badly, every other creature that kept its weapons parries as before
+for name, creature in creatures.items():
+    for level in (1, 10, 30):
+        now = parry_of(creature, equipments, level)
+        if any(w in WEAK_PARRY_WEAPONS for w in creature['weapons']):
+            expected = max(0.0, min(7.5, 1.5 + 0.25 * level))
+        elif creature['weapons'] == base_creatures[name]['weapons']:
+            expected = parry_of(creature, base_equipments, level)
+        else:
+            continue
+        assert abs(now - expected) < 1e-9, (name, level, now, expected)
+assert abs(parry_of(creatures['Defender'], equipments, 1) - 1.75) < 1e-9
+assert abs(parry_of(creatures['Defender'], equipments, 30) - 7.5) < 1e-9
+assert abs(parry_of(creatures['Goblin'], equipments, 1) - 3.5) < 1e-9
 
 # ---------------------------------------------------------------- cooldown values per creature skill
 
@@ -281,6 +361,27 @@ out_body = function_body(weapon_cpp, 'ODPacket& operator <<(ODPacket& os, const 
 in_body = function_body(weapon_cpp, 'ODPacket& operator >>(ODPacket& is, Weapon *weapon)')
 assert out_body.index('mElementDefense') < out_body.index('mCooldownNbTurns')
 assert in_body.index('mElementDefense') < in_body.index('mCooldownNbTurns')
+
+# Parry fields: loader, writer, packet, getters with the global fallback, and the roll that uses them
+for field in ('mParryBase', 'mParryPerLevel', 'mParryMax'):
+    assert weapon_h.count(field + '(-1.0)') == 2, 'both constructors mark the parry values as not set'
+for field, key in (('mParryBase', 'ParryBase'), ('mParryPerLevel', 'ParryPerLevel'), ('mParryMax', 'ParryMax')):
+    assert 'if (nextParam == "%s")' % key in weapon_cpp, key
+    assert 'weapon->%s = Helper::toDouble(nextParam);' % field in weapon_cpp, key
+    assert '"    %s\\t"' % key in write_body, key
+    assert out_body.index('mCooldownNbTurns') < out_body.index(field), field
+    assert in_body.index('mCooldownNbTurns') < in_body.index(field), field
+for getter in ('getParryBase', 'getParryPerLevel', 'getParryMax'):
+    body = function_body(weapon_cpp, 'double Weapon::%s() const' % getter)
+    assert 'ConfigManager::getSingleton().%s()' % getter in body and '< 0.0' in body, getter
+    assert 'double %s() const;' % getter in weapon_h, getter
+parry_roll = function_body(read('source/entities/Creature.cpp'),
+                           'DefenceChance::Outcome Creature::rollMeleeDefence() const')
+for needle in ('parryWeapons[i]->getParryBase()', 'parryWeapons[i]->getParryPerLevel()',
+               'parryWeapons[i]->getParryMax()', 'config.getParryShieldBase()', 'config.getParryShieldPerLevel()',
+               'config.getParryShieldMax()', 'parry = std::max(parry, weaponParry);'):
+    assert needle in parry_roll, needle
+assert 'config.getParryBase()' not in parry_roll, 'the weapon values replace the global ones in the roll'
 
 # ---------------------------------------------------------------- choice of the applied cooldown
 

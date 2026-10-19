@@ -23,6 +23,7 @@
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
+#include <algorithm>
 #include <sstream>
 #include <fstream>
 
@@ -154,6 +155,27 @@ bool Weapon::update(Weapon* weapon, std::stringstream& defFile)
                 weapon->mCooldownNbTurns = Helper::toUInt32(nextParam);
                 continue;
             }
+
+            if (nextParam == "ParryBase")
+            {
+                defFile >> nextParam;
+                weapon->mParryBase = Helper::toDouble(nextParam);
+                continue;
+            }
+
+            if (nextParam == "ParryPerLevel")
+            {
+                defFile >> nextParam;
+                weapon->mParryPerLevel = Helper::toDouble(nextParam);
+                continue;
+            }
+
+            if (nextParam == "ParryMax")
+            {
+                defFile >> nextParam;
+                weapon->mParryMax = Helper::toDouble(nextParam);
+                continue;
+            }
         }
     }
 
@@ -209,8 +231,48 @@ void Weapon::writeWeaponDiff(const Weapon* def1, const Weapon* def2, std::ofstre
     if(cooldownRef != def2->mCooldownNbTurns)
         file << "    CooldownNbTurns\t" << def2->mCooldownNbTurns << std::endl;
 
+    // The parry values are optional too: a negative value means "not set" and is only written when it differs
+    const double parryBaseRef = (def1 == nullptr) ? -1.0 : def1->mParryBase;
+    if(parryBaseRef != def2->mParryBase)
+        file << "    ParryBase\t" << def2->mParryBase << std::endl;
+
+    const double parryPerLevelRef = (def1 == nullptr) ? -1.0 : def1->mParryPerLevel;
+    if(parryPerLevelRef != def2->mParryPerLevel)
+        file << "    ParryPerLevel\t" << def2->mParryPerLevel << std::endl;
+
+    const double parryMaxRef = (def1 == nullptr) ? -1.0 : def1->mParryMax;
+    if(parryMaxRef != def2->mParryMax)
+        file << "    ParryMax\t" << def2->mParryMax << std::endl;
+
     file << "    [/Stats]" << std::endl;
     file << "[/Equipment]" << std::endl;
+}
+
+//! \brief Parry base value of this weapon in percent (0 - 100), the global value if the weapon sets none.
+double Weapon::getParryBase() const
+{
+    if(mParryBase < 0.0)
+        return ConfigManager::getSingleton().getParryBase();
+
+    return std::max(0.0, std::min(100.0, mParryBase));
+}
+
+//! \brief Parry value per creature level of this weapon in percent (0 - 10), the global value if the weapon sets none.
+double Weapon::getParryPerLevel() const
+{
+    if(mParryPerLevel < 0.0)
+        return ConfigManager::getSingleton().getParryPerLevel();
+
+    return std::max(0.0, std::min(10.0, mParryPerLevel));
+}
+
+//! \brief Highest parry value of this weapon in percent (0 - 100), the global value if the weapon sets none.
+double Weapon::getParryMax() const
+{
+    if(mParryMax < 0.0)
+        return ConfigManager::getSingleton().getParryMax();
+
+    return std::max(0.0, std::min(100.0, mParryMax));
 }
 
 ODPacket& operator <<(ODPacket& os, const Weapon *weapon)
@@ -225,6 +287,9 @@ ODPacket& operator <<(ODPacket& os, const Weapon *weapon)
     os << weapon->mMagicalDefense;
     os << weapon->mElementDefense;
     os << weapon->mCooldownNbTurns;
+    os << weapon->mParryBase;
+    os << weapon->mParryPerLevel;
+    os << weapon->mParryMax;
     return os;
 }
 
@@ -240,5 +305,8 @@ ODPacket& operator >>(ODPacket& is, Weapon *weapon)
     OD_ASSERT_TRUE(is >> weapon->mMagicalDefense);
     OD_ASSERT_TRUE(is >> weapon->mElementDefense);
     OD_ASSERT_TRUE(is >> weapon->mCooldownNbTurns);
+    OD_ASSERT_TRUE(is >> weapon->mParryBase);
+    OD_ASSERT_TRUE(is >> weapon->mParryPerLevel);
+    OD_ASSERT_TRUE(is >> weapon->mParryMax);
     return is;
 }

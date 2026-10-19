@@ -475,6 +475,8 @@ public:
     //! \brief Server only: rolls whether this creature dodges or parries a melee blow before its damage is
     //! calculated. Only a living, not knocked out creature on the map that nobody holds or drags, and that no
     //! keeper possesses, can defend itself. Gives DefenceChance::none if MeleeDodgeParry is off.
+    //! The parry chance comes from the carried weapon (larger chance with two weapons), or from the global
+    //! shield values when a shield is carried as well.
     DefenceChance::Outcome rollMeleeDefence() const;
     //! \brief The creature arrived through a portal: tells the keeper what mood it would have (cosmetic only)
     void fireArrivalEvent();

@@ -3443,8 +3443,8 @@ DefenceChance::Outcome Creature::rollMeleeDefence() const
         return DefenceChance::none;
 
     // A weapon that strikes parries, a shield makes the parry better; a shield alone does not parry
-    bool hasWeapon = false;
     bool hasShield = false;
+    const Weapon* parryWeapons[2] = {nullptr, nullptr};
     const Weapon* weapons[2] = {getWeaponL(), getWeaponR()};
     for(uint32_t i = 0; i < 2; ++i)
     {
@@ -3456,14 +3456,25 @@ DefenceChance::Outcome Creature::rollMeleeDefence() const
         if(DefenceChance::isShieldMesh(mesh))
             hasShield = true;
         else if(DefenceChance::isParryWeaponMesh(mesh))
-            hasWeapon = true;
+            parryWeapons[i] = weapons[i];
     }
 
     double dodge = DefenceChance::dodgeChance(getLevel(), config.getDodgeBase(), config.getDodgePerLevel(),
         config.getDodgeMax());
-    double parry = DefenceChance::parryChance(getLevel(), hasWeapon, hasShield, config.getParryBase(),
-        config.getParryPerLevel(), config.getParryMax(), config.getParryShieldBase(),
-        config.getParryShieldPerLevel(), config.getParryShieldMax());
+
+    // The parry values belong to the weapon; with two weapons the larger resulting chance counts. The shield
+    // values stay global and replace the weapon values when a shield is carried as well.
+    double parry = 0.0;
+    for(uint32_t i = 0; i < 2; ++i)
+    {
+        if(parryWeapons[i] == nullptr)
+            continue;
+
+        double weaponParry = DefenceChance::parryChance(getLevel(), true, hasShield, parryWeapons[i]->getParryBase(),
+            parryWeapons[i]->getParryPerLevel(), parryWeapons[i]->getParryMax(), config.getParryShieldBase(),
+            config.getParryShieldPerLevel(), config.getParryShieldMax());
+        parry = std::max(parry, weaponParry);
+    }
 
     // Dodging is rolled first, parrying only if the creature did not dodge. The server draws the dice.
     double dodgeRoll = Random::Double(0.0, 100.0);
