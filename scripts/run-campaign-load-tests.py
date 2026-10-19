@@ -50,8 +50,9 @@ def game_is_running(executable):
     result = subprocess.run(['tasklist', '/FI', 'IMAGENAME eq ' + executable.name,
                              '/FO', 'CSV', '/NH'], stdin=subprocess.DEVNULL,
                             capture_output=True, timeout=30, check=True)
-    # tasklist writes console-codepage bytes (e.g. a non-ASCII thousands separator in the
-    # memory column); decode UTF-8 first, then the OEM codepage, never fail on odd bytes.
+    # tasklist writes console-codepage bytes (e.g. the umlaut of the localized "no tasks"
+    # message when the game is not running); decode UTF-8 first, then the OEM codepage,
+    # never fail on odd bytes.
     try:
         output = result.stdout.decode('utf-8')
     except UnicodeDecodeError:
