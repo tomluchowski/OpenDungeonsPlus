@@ -132,6 +132,13 @@ equipments = parse_equipments(read('config/equipments.cfg'))
 creatures = parse_creatures(read('config/creatures.cfg'))
 base_equipments = parse_equipments(read_base('config/equipments.cfg'))
 base_creatures = parse_creatures(read_base('config/creatures.cfg'))
+# The Champion definition does not exist in the comparison state of this branch. Fixed values of the state
+# the Champion was added in (no weapon, Explosion and Melee rows), never read from the current code.
+base_creatures['Champion'] = {
+    'weapons': [],
+    'skills': {'Explosion': ['40', '2', '6', '1', '1', '15'], 'Melee': ['2', '1', '1', '40', '0', '0', '0', '0', '0']},
+    'avoidance': 'none',
+}
 
 # ---------------------------------------------------------------- the decided values
 
