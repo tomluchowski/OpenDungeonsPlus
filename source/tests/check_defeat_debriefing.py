@@ -113,6 +113,7 @@ struct Subscriber
     }
 };
 }
+//! \brief Models visibility and events needed by the real defeat-screen handlers.
 struct Window
 {
     bool visible = true;bool alwaysOnTop = false;std::string text;std::string name;
@@ -122,6 +123,8 @@ struct Window
     std::function<bool()> onClick;
     void hide() {visible = false;}
     void show() {visible = true;}
+    //! \brief Reports the mock window visibility used by the real input guard.
+    bool isVisible() const {return visible;}
     void setProperty(const std::string& key, const std::string& value) {props[key] = value;}
     void setAlwaysOnTop(bool value) {alwaysOnTop = value;}
     void addChild(Window* child) {children.push_back(child);}
