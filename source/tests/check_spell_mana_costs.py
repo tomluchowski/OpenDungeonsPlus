@@ -2,7 +2,9 @@
 
 Summon worker costs 1,400 per step, Call to war 9,200, Heal 5,400 and Eye of evil
 4,600, all without recharge. The worker price grows by one base price per worker
-above the four the heart supplies."""
+above the four the heart supplies. The creature spells use the same own scale
+(prices in 50 mana steps): Explosion 4,600, Haste 2,200, Defense 2,650, Slow 1,800,
+Strength 2,300 and Weak 2,150, each with its own recharge turns."""
 from pathlib import Path
 import re
 import subprocess
@@ -19,7 +21,16 @@ expected = {
     "CallToWarPrice": "9200", "CallToWarCooldown": "0",
     "CreatureHealPrice": "5400", "CreatureHealCooldown": "0",
     "EyeEvilPrice": "4600", "EyeEvilCooldown": "0",
+    "CreatureHastePrice": "2200", "CreatureHasteCooldown": "13",
+    "CreatureSlowPrice": "1800", "CreatureSlowCooldown": "11",
+    "CreatureDefensePrice": "2650", "CreatureDefenseCooldown": "17",
+    "CreatureStrengthPrice": "2300", "CreatureStrengthCooldown": "22",
+    "CreatureWeakPrice": "2150", "CreatureWeakCooldown": "18",
+    "CreatureExplosionPrice": "4600", "CreatureExplosionCooldown": "15",
 }
+for key, value in values.items():
+    if key.endswith("Price") or key == "SummonWorkerBasePrice":
+        assert int(value) % 50 == 0, f"{key} is not a multiple of the 50 mana step"
 for key, value in expected.items():
     assert values.get(key) == value, f"{key} is {values.get(key)}, expected {value}"
 assert "SummonWorkerNbFree" not in config, "the free-worker key is gone"
