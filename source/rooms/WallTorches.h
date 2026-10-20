@@ -19,6 +19,8 @@
 #define WALLTORCHES_H
 
 #include <cstdint>
+#include <map>
+#include <utility>
 #include <vector>
 
 //! \brief A torch that hangs on a reinforced wall tile. The server computes the torches (see
@@ -112,6 +114,12 @@ public:
     //! The result is appended to out in the order of placement.
     static void compute(int32_t sizeX, int32_t sizeY, const std::vector<WallTorchTileInfo>& tiles,
         const WallTorchPlacement& placement, std::vector<WallTorch>& out);
+
+    //! \brief True if one of the torches (keyed by getKey, as GameMap::getWallTorches) lies within radius tiles of one
+    //! of the given tiles. Torches of every owner count. Only the rows of the box around the tiles are looked at, not
+    //! the whole list.
+    static bool hasTorchWithin(const std::map<uint32_t, WallTorch>& torches, int32_t sizeX,
+        const std::vector<std::pair<int32_t, int32_t> >& tiles, double radius);
 };
 
 #endif // WALLTORCHES_H

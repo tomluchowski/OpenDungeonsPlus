@@ -18,6 +18,7 @@
 #include "rooms/WallTorches.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <utility>
 
@@ -328,4 +329,45 @@ void WallTorches::compute(int32_t sizeX, int32_t sizeY, const std::vector<WallTo
     WallTorchPlacer placer(sizeX, sizeY, tiles, safePlacement, out);
     placer.placeRooms();
     placer.placeCorridors();
+}
+
+bool WallTorches::hasTorchWithin(const std::map<uint32_t, WallTorch>& torches, int32_t sizeX,
+    const std::vector<std::pair<int32_t, int32_t> >& tiles, double radius)
+{
+    if(tiles.empty() || (sizeX <= 0) || torches.empty())
+        return false;
+
+    int32_t minX = tiles[0].first;
+    int32_t maxX = tiles[0].first;
+    int32_t minY = tiles[0].second;
+    int32_t maxY = tiles[0].second;
+    for(const std::pair<int32_t, int32_t>& tile : tiles)
+    {
+        minX = std::min(minX, tile.first);
+        maxX = std::max(maxX, tile.first);
+        minY = std::min(minY, tile.second);
+        maxY = std::max(maxY, tile.second);
+    }
+
+    int32_t reach = static_cast<int32_t>(std::ceil(radius));
+    minX = std::max(minX - reach, 0);
+    maxX = std::min(maxX + reach, sizeX - 1);
+    minY = std::max(minY - reach, 0);
+    double radiusSquared = radius * radius;
+    for(int32_t y = minY; y <= maxY + reach; ++y)
+    {
+        std::map<uint32_t, WallTorch>::const_iterator it = torches.lower_bound(getKey(minX, y, 0, sizeX));
+        std::map<uint32_t, WallTorch>::const_iterator end = torches.upper_bound(getKey(maxX, y, NB_DIRECTIONS - 1, sizeX));
+        for(; it != end; ++it)
+        {
+            for(const std::pair<int32_t, int32_t>& tile : tiles)
+            {
+                double dx = static_cast<double>(it->second.mX - tile.first);
+                double dy = static_cast<double>(it->second.mY - tile.second);
+                if((dx * dx + dy * dy) <= radiusSquared)
+                    return true;
+            }
+        }
+    }
+    return false;
 }

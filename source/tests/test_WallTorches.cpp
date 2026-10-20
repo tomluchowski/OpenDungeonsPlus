@@ -330,3 +330,44 @@ BOOST_AUTO_TEST_CASE(test_Lifetime)
     BOOST_CHECK_EQUAL(countDir(torches, 0), 0u);
     BOOST_CHECK_EQUAL(torches.size(), 3u);
 }
+
+// A tile counts as lit when a torch of any owner is within the radius; the row ends of the map are not neighbours.
+BOOST_AUTO_TEST_CASE(test_LitByTorchInRange)
+{
+    const int32_t sizeX = MAP_SIZE;
+    std::map<uint32_t, WallTorch> torches;
+    std::vector<std::pair<int32_t, int32_t> > hatchery;
+    hatchery.push_back(std::pair<int32_t, int32_t>(7, 8));
+    hatchery.push_back(std::pair<int32_t, int32_t>(8, 8));
+
+    // No torch: not lit
+    BOOST_CHECK(!WallTorches::hasTorchWithin(torches, sizeX, hatchery, 8.0));
+
+    // A torch of another owner at (7,4), four tiles from the hatchery tile (7,8): lit with a radius of 8, not with 3.9
+    WallTorch torch;
+    torch.mX = 7;
+    torch.mY = 4;
+    torch.mDir = 0;
+    torch.mSeatId = 2;
+    torches[WallTorches::getKey(torch.mX, torch.mY, torch.mDir, sizeX)] = torch;
+    BOOST_CHECK(WallTorches::hasTorchWithin(torches, sizeX, hatchery, 8.0));
+    BOOST_CHECK(WallTorches::hasTorchWithin(torches, sizeX, hatchery, 4.0));
+    BOOST_CHECK(!WallTorches::hasTorchWithin(torches, sizeX, hatchery, 3.9));
+
+    // Far away: not lit
+    std::vector<std::pair<int32_t, int32_t> > farAway;
+    farAway.push_back(std::pair<int32_t, int32_t>(20, 20));
+    BOOST_CHECK(!WallTorches::hasTorchWithin(torches, sizeX, farAway, 8.0));
+
+    // The end of one row of the map and the start of the next row are not neighbours
+    WallTorch edge;
+    edge.mX = 0;
+    edge.mY = 6;
+    edge.mDir = 2;
+    edge.mSeatId = 2;
+    std::map<uint32_t, WallTorch> edgeTorches;
+    edgeTorches[WallTorches::getKey(edge.mX, edge.mY, edge.mDir, sizeX)] = edge;
+    std::vector<std::pair<int32_t, int32_t> > otherEnd;
+    otherEnd.push_back(std::pair<int32_t, int32_t>(MAP_SIZE - 1, 5));
+    BOOST_CHECK(!WallTorches::hasTorchWithin(edgeTorches, sizeX, otherEnd, 8.0));
+}
