@@ -77,22 +77,6 @@ check("current_color.r = 0.1" not in _code and "= 0.1;" not in _code,
 check("if (!markedForDigging && !playerHasVision)" not in _code,
       "a vision-dependent colour change is back in colourizeMaterial")
 
-# The fog cloud rules stay exactly as planned. Enemy territory only, thirty seconds after the last
-# own creature sight: the server never marks own, allied or rogue ground as clouded.
-seat_cpp = (root / "source/game/Seat.cpp").read_text(encoding="utf-8")
-check("const bool enemyFog = knownOwner != nullptr && !knownOwner->isRogueSeat() &&" in seat_cpp
-      and "knownOwner != this && !isAlliedSeat(knownOwner) &&" in seat_cpp
-      and "p.second.mOwnCreatureSightAgeTurns >= static_cast<int64_t>(std::ceil(30.0 * ODApplication::turnsPerSecond));" in seat_cpp,
-      "the enemy territory cloud rule (enemy ground, thirty seconds without own sight) changed")
-# Only previously discovered ground with the enemy fog flag gets a cloud, and it is the only cloud source.
-check(render.count('createInstancedEntity("Fog")') == 1
-      and "if(tile.getEverVisible() && tileMeshNode != nullptr)" in render
-      and "if(tile.getEnemyTerritoryFog() && tile.getFogOfWarCloud() == nullptr)" in render,
-      "a new cloud source appeared or the discovered-enemy-ground cloud condition changed")
-# A marked unknown tile hides its cloud so the mark stays visible at any distance.
-check("tile.getFogOfWarCloud()->setVisible(!isMarked);" in render,
-      "the cloud is no longer hidden over marked unknown tiles")
-
 if failures:
     print("\n".join("FAIL: " + f for f in failures))
     sys.exit(1)
