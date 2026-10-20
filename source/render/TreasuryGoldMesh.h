@@ -72,7 +72,7 @@ void updateDentedPile(Ogre::ManualObject* object, const std::string& meshName, f
 //! the name unchanged (not a classic stack name, or the detail is off).
 std::string pileNameForClassicStack(const std::string& meshName, float x, float y);
 
-//! \brief The piles drawn on this client, by tile, so creatures can be drawn on the gold surface.
+//! \brief The piles drawn on this client, by tile, so objects can stand in the gold and effects can find the piles.
 //! Names that are not pile names, and every pile while the detail is off, are ignored.
 //! The room (any pointer identifying it, may be null) lets effects share a budget per room.
 //! Returns the level this tile had when it was last registered (-1 when it never was, or the pile is
