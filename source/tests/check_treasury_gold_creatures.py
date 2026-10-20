@@ -39,6 +39,7 @@ credits = read('CREDITS')
 assert 'TreasuryCoins.particle' in credits and 'CoinStep*.ogg' in credits
 for number in (1, 2, 3):
     assert (repo / ('sounds/Spatial/Rooms/Treasury/CoinStep/CoinStep%d.ogg' % number)).exists()
+assert (repo / 'tools/treasury-gold/generate_coin_step.py').exists()
 
 probe = r"""
 #include "render/TreasuryCreatureRules.h"
