@@ -1,0 +1,429 @@
+{
+  "settings": {
+    "min": 3,
+    "max": 9,
+    "factor": "0.6516666667",
+    "hatch": 2,
+    "grow": 4
+  },
+  "turns": 84000,
+  "rows": [
+    {
+      "layout": "3x3-one",
+      "demand": 2,
+      "seed": 99,
+      "old": 1346,
+      "new": 1346,
+      "diff": 0.0
+    },
+    {
+      "layout": "3x3-one",
+      "demand": 5,
+      "seed": 99,
+      "old": 2510,
+      "new": 2510,
+      "diff": 0.0
+    },
+    {
+      "layout": "3x3-one",
+      "demand": 10,
+      "seed": 99,
+      "old": 3497,
+      "new": 3497,
+      "diff": 0.0
+    },
+    {
+      "layout": "3x3-one",
+      "demand": 20,
+      "seed": 99,
+      "old": 4429,
+      "new": 4429,
+      "diff": 0.0
+    },
+    {
+      "layout": "3x3-one",
+      "demand": 2,
+      "seed": 3,
+      "old": 1346,
+      "new": 1346,
+      "diff": 0.0
+    },
+    {
+      "layout": "3x3-one",
+      "demand": 5,
+      "seed": 3,
+      "old": 2510,
+      "new": 2510,
+      "diff": 0.0
+    },
+    {
+      "layout": "3x3-one",
+      "demand": 10,
+      "seed": 3,
+      "old": 3497,
+      "new": 3497,
+      "diff": 0.0
+    },
+    {
+      "layout": "3x3-one",
+      "demand": 20,
+      "seed": 3,
+      "old": 4429,
+      "new": 4429,
+      "diff": 0.0
+    },
+    {
+      "layout": "3x3-one",
+      "demand": 2,
+      "seed": 777,
+      "old": 1346,
+      "new": 1346,
+      "diff": 0.0
+    },
+    {
+      "layout": "3x3-one",
+      "demand": 5,
+      "seed": 777,
+      "old": 2510,
+      "new": 2510,
+      "diff": 0.0
+    },
+    {
+      "layout": "3x3-one",
+      "demand": 10,
+      "seed": 777,
+      "old": 3497,
+      "new": 3497,
+      "diff": 0.0
+    },
+    {
+      "layout": "3x3-one",
+      "demand": 20,
+      "seed": 777,
+      "old": 4429,
+      "new": 4429,
+      "diff": 0.0
+    },
+    {
+      "layout": "6x6-two",
+      "demand": 2,
+      "seed": 99,
+      "old": 1651,
+      "new": 1668,
+      "diff": 1.029678982434888
+    },
+    {
+      "layout": "6x6-two",
+      "demand": 5,
+      "seed": 99,
+      "old": 3804,
+      "new": 3917,
+      "diff": 2.9705573080967405
+    },
+    {
+      "layout": "6x6-two",
+      "demand": 10,
+      "seed": 99,
+      "old": 6194,
+      "new": 6370,
+      "diff": 2.841459476913142
+    },
+    {
+      "layout": "6x6-two",
+      "demand": 20,
+      "seed": 99,
+      "old": 8681,
+      "new": 8540,
+      "diff": -1.6242368390738393
+    },
+    {
+      "layout": "6x6-two",
+      "demand": 2,
+      "seed": 3,
+      "old": 1651,
+      "new": 1666,
+      "diff": 0.9085402786190188
+    },
+    {
+      "layout": "6x6-two",
+      "demand": 5,
+      "seed": 3,
+      "old": 3804,
+      "new": 3905,
+      "diff": 2.655099894847529
+    },
+    {
+      "layout": "6x6-two",
+      "demand": 10,
+      "seed": 3,
+      "old": 6194,
+      "new": 6380,
+      "diff": 3.0029060381013886
+    },
+    {
+      "layout": "6x6-two",
+      "demand": 20,
+      "seed": 3,
+      "old": 8681,
+      "new": 8529,
+      "diff": -1.7509503513420113
+    },
+    {
+      "layout": "6x6-two",
+      "demand": 2,
+      "seed": 777,
+      "old": 1651,
+      "new": 1667,
+      "diff": 0.9691096305269533
+    },
+    {
+      "layout": "6x6-two",
+      "demand": 5,
+      "seed": 777,
+      "old": 3804,
+      "new": 3905,
+      "diff": 2.655099894847529
+    },
+    {
+      "layout": "6x6-two",
+      "demand": 10,
+      "seed": 777,
+      "old": 6194,
+      "new": 6381,
+      "diff": 3.0190506942202133
+    },
+    {
+      "layout": "6x6-two",
+      "demand": 20,
+      "seed": 777,
+      "old": 8681,
+      "new": 8517,
+      "diff": -1.8891832738163805
+    },
+    {
+      "layout": "6x6-four",
+      "demand": 2,
+      "seed": 99,
+      "old": 1693,
+      "new": 1693,
+      "diff": 0.0
+    },
+    {
+      "layout": "6x6-four",
+      "demand": 5,
+      "seed": 99,
+      "old": 4261,
+      "new": 4272,
+      "diff": 0.2581553625909411
+    },
+    {
+      "layout": "6x6-four",
+      "demand": 10,
+      "seed": 99,
+      "old": 8244,
+      "new": 8319,
+      "diff": 0.9097525473071325
+    },
+    {
+      "layout": "6x6-four",
+      "demand": 20,
+      "seed": 99,
+      "old": 14641,
+      "new": 14283,
+      "diff": -2.445188170206953
+    },
+    {
+      "layout": "6x6-four",
+      "demand": 2,
+      "seed": 3,
+      "old": 1693,
+      "new": 1693,
+      "diff": 0.0
+    },
+    {
+      "layout": "6x6-four",
+      "demand": 5,
+      "seed": 3,
+      "old": 4261,
+      "new": 4273,
+      "diff": 0.28162403191739027
+    },
+    {
+      "layout": "6x6-four",
+      "demand": 10,
+      "seed": 3,
+      "old": 8244,
+      "new": 8344,
+      "diff": 1.21300339640951
+    },
+    {
+      "layout": "6x6-four",
+      "demand": 20,
+      "seed": 3,
+      "old": 14641,
+      "new": 14260,
+      "diff": -2.6022812649409195
+    },
+    {
+      "layout": "6x6-four",
+      "demand": 2,
+      "seed": 777,
+      "old": 1693,
+      "new": 1693,
+      "diff": 0.0
+    },
+    {
+      "layout": "6x6-four",
+      "demand": 5,
+      "seed": 777,
+      "old": 4261,
+      "new": 4272,
+      "diff": 0.2581553625909411
+    },
+    {
+      "layout": "6x6-four",
+      "demand": 10,
+      "seed": 777,
+      "old": 8244,
+      "new": 8346,
+      "diff": 1.2372634643377
+    },
+    {
+      "layout": "6x6-four",
+      "demand": 20,
+      "seed": 777,
+      "old": 14641,
+      "new": 14277,
+      "diff": -2.486168977528857
+    },
+    {
+      "layout": "12x12-eight",
+      "demand": 2,
+      "seed": 99,
+      "old": 1693,
+      "new": 1693,
+      "diff": 0.0
+    },
+    {
+      "layout": "12x12-eight",
+      "demand": 5,
+      "seed": 99,
+      "old": 4276,
+      "new": 4276,
+      "diff": 0.0
+    },
+    {
+      "layout": "12x12-eight",
+      "demand": 10,
+      "seed": 99,
+      "old": 8482,
+      "new": 8482,
+      "diff": 0.0
+    },
+    {
+      "layout": "12x12-eight",
+      "demand": 20,
+      "seed": 99,
+      "old": 16829,
+      "new": 16828,
+      "diff": -0.005942123715015747
+    },
+    {
+      "layout": "12x12-eight",
+      "demand": 2,
+      "seed": 3,
+      "old": 1693,
+      "new": 1693,
+      "diff": 0.0
+    },
+    {
+      "layout": "12x12-eight",
+      "demand": 5,
+      "seed": 3,
+      "old": 4276,
+      "new": 4276,
+      "diff": 0.0
+    },
+    {
+      "layout": "12x12-eight",
+      "demand": 10,
+      "seed": 3,
+      "old": 8482,
+      "new": 8482,
+      "diff": 0.0
+    },
+    {
+      "layout": "12x12-eight",
+      "demand": 20,
+      "seed": 3,
+      "old": 16829,
+      "new": 16812,
+      "diff": -0.1010161031552677
+    },
+    {
+      "layout": "12x12-eight",
+      "demand": 2,
+      "seed": 777,
+      "old": 1693,
+      "new": 1693,
+      "diff": 0.0
+    },
+    {
+      "layout": "12x12-eight",
+      "demand": 5,
+      "seed": 777,
+      "old": 4276,
+      "new": 4276,
+      "diff": 0.0
+    },
+    {
+      "layout": "12x12-eight",
+      "demand": 10,
+      "seed": 777,
+      "old": 8482,
+      "new": 8482,
+      "diff": 0.0
+    },
+    {
+      "layout": "12x12-eight",
+      "demand": 20,
+      "seed": 777,
+      "old": 16829,
+      "new": 16831,
+      "diff": 0.011884247430031494
+    }
+  ],
+  "source_sha256": {
+    "source/rooms/RoomHatchery.cpp#RoomHatchery::getCycleSettings": "fb75a87bbd0f3c0b42e78d22cdf1b9d524633d84be3bcad86c5707fa60b414e4",
+    "source/rooms/RoomHatchery.cpp#RoomHatchery::releasePendingEggs": "52ae6ee360193487cfd4add35551619c31764b3c0bf576394101addc1fdfd469",
+    "source/rooms/RoomHatchery.cpp#RoomHatchery::nestWalkTurns": "d7e5913e0ab120556b424b5fa6d7db52ca41e0688f9748edddc70ceeb171f3ce",
+    "source/rooms/RoomHatchery.cpp#RoomHatchery::updateNestTrips": "7e678aa57cfb4e3bcf1de512b95a56a987b95563b02a505c1a1387f838516aa6",
+    "source/rooms/RoomHatchery.cpp#RoomHatchery::doUpkeep": "2efb2bbf9c0665bf4439391641dc67cc10fe1466b2558fb5f21d3883779bfe41",
+    "source/rooms/HatcheryCycle.cpp#HatcheryCycle::layInterval": "ca165734693abb3448916015ffd63b8caf3bfc40e2eb8dac2bd02f95cea305b3",
+    "source/rooms/HatcheryNestField.h": "5c9f8208adadd99fb9f7831d1120124f0e600a870d372da30ff60c1a50dcc049",
+    "source/entities/ChickenEntity.h#virtual double getMoveSpeed": "9c68c83aa5b496df5e00b5891b3bdebe04ef636a647d69044bf56b5c26cde2ad"
+  },
+  "accepted_exceptions": [
+    {
+      "layout": "6x6-two",
+      "demand": 10,
+      "seed": 3,
+      "old": 6194,
+      "new": 6380,
+      "diff": 3.0029060381013886,
+      "acceptance": "akzeptiert von Mario 2026-10-08",
+      "documented_percent": "3.002906"
+    },
+    {
+      "layout": "6x6-two",
+      "demand": 10,
+      "seed": 777,
+      "old": 6194,
+      "new": 6381,
+      "diff": 3.0190506942202133,
+      "acceptance": "akzeptiert von Mario 2026-10-08",
+      "documented_percent": "3.019051"
+    }
+  ],
+  "evidence": "Recorded finite collision-grid/roaming/nominal-clock simulation, not C++ execution or universal layout guarantee"
+}
