@@ -26,27 +26,64 @@ particle_system RoomAmbTorchBracket
     }
 }
 
-// The flame on the torch head: one billboard that grows upward, the game makes it flicker
+// Short-lived tongues rise from a small volume, turn and fade; the game also flickers the light.
 particle_system RoomAmbTorchFlame
 {
     material        RoomAmbFlame
     point_rendering false
-    particle_width  0.2
-    particle_height 0.3
+    particle_width  0.12
+    particle_height 0.22
     cull_each       false
-    quota           1
+    quota           24
     billboard_type  point
     billboard_origin bottom_center
 
+    emitter Box
+    {
+        angle               14
+        colour_range_start  1.0 0.65 0.3 0.7
+        colour_range_end    1.0 0.95 0.65 0.9
+        emission_rate       24
+        time_to_live_min    0.28
+        time_to_live_max    0.55
+        direction           0 0 1
+        velocity_min        0.3
+        velocity_max        0.55
+        position            0 0 0
+        width               0.1
+        height              0.08
+        depth               0.025
+    }
+
     emitter Point
     {
-        angle               0
-        colour              1.0 1.0 1.0 0.95
-        emission_rate       2
-        time_to_live        100000
+        angle               6
+        colour              1.0 0.95 0.8 0.7
+        emission_rate       12
+        time_to_live        0.2
         direction           0 0 1
-        velocity            0
+        velocity            0.18
         position            0 0 0
+    }
+
+    affector Rotator
+    {
+        rotation_range_start       -8
+        rotation_range_end         8
+        rotation_speed_range_start -20
+        rotation_speed_range_end   20
+    }
+
+    affector Scaler
+    {
+        rate    -0.12
+    }
+
+    affector ColourFader
+    {
+        green   -0.8
+        blue    -1.4
+        alpha   -1.7
     }
 }
 
