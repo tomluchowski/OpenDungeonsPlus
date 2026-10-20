@@ -69,6 +69,8 @@ public:
     Ogre::Vector3 getGroundOffset(Ogre::Real height) const;
     Ogre::Camera* mActiveCamera;
     Ogre::SceneNode* mActiveCameraNode;
+    bool mZoomAnimating = false;
+    Ogre::Real mZoomDragDistance = 0.0f;
 };
 @@RESET@@
 @@TARGET@@
