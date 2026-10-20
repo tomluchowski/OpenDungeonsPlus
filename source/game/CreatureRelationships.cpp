@@ -1255,7 +1255,7 @@ bool readRelationshipCreatureStates(std::istream& is, std::vector<RelationshipCr
         state.mBrawlOpponent = fields[STATE_FIELD_BRAWL_OPPONENT];
         state.mBrawlTurnsLeft = std::max<int64_t>(0, brawlTurns);
         // Older saves have no captor fields
-        for(size_t i = 6; i < fields.size() && (state.mCaptors.size() < RelationshipCreatureState::MAX_CAPTORS); ++i)
+        for(size_t i = STATE_FIELD_COUNT; i < fields.size() && (state.mCaptors.size() < RelationshipCreatureState::MAX_CAPTORS); ++i)
         {
             if(!fields[i].empty())
                 state.mCaptors.push_back(fields[i]);
