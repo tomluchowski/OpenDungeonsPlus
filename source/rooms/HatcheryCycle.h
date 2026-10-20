@@ -24,13 +24,13 @@
 //! \brief Timings and limits of the chicken life cycle of a hatchery, in game turns.
 struct HatcheryCycleSettings
 {
-    //! \brief Sets the built-in default timings and limits of the chicken life cycle.
+    //! \brief Sets cycle defaults, including 5/30/60-second life stages at the normal turn rate.
     HatcheryCycleSettings() :
         mLayMin(3),
         mLayMax(7),
         mLayFactor(1.021),
-        mHatchTurns(2),
-        mGrowTurns(4),
+        mHatchTurns(42),
+        mGrowTurns(84),
         mCoopWait(15),
         mTilesPerChicken(1),
         mCareLightPercent(10),
@@ -39,15 +39,15 @@ struct HatcheryCycleSettings
         mCoopBatch(0),
         mFightTurns(14),
         mFightApproachTurns(40),
-        mLayShowTurns(2)
+        mLayShowTurns(7)
     {}
 
     //! Turns between two eggs of one hen (random value in [mLayMin, mLayMax], multiplied by mLayFactor).
     uint32_t mLayMin;
     uint32_t mLayMax;
-    //! Factor on the laying times. It balances the cycle against the spawning before it (the parity test of the unit
-    //! tests): 1.021 makes the edible chickens per minute equal to the old ones within 3 percent. The care bonus and
-    //! the research multiply it, the times stay whole turns (the fraction is rounded up or down by chance).
+    //! Factor on the laying times. Historical short-cycle parity is tested with its original timing preset;
+    //! the longer life stages intentionally change production. The care bonus and the research multiply this factor;
+    //! times stay whole turns (the fraction is rounded up or down by chance).
     double mLayFactor;
     //! Turns an egg needs to hatch, once the hatchery has a rooster.
     uint32_t mHatchTurns;

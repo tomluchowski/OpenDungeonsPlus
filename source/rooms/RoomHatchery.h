@@ -159,6 +159,7 @@ private:
     //! Hens with a planned egg immediately walk to the reserved nest and show the complete randomized laying
     //! pose after arriving. A hen that is gone loses an egg that is not
     //! laid yet, an egg whose laying pose started still appears.
+    //! \brief Guides hens to nests and times their complete laying poses after arrival.
     void updateNestTrips(const std::vector<ChickenEntity*>& hens, const HatcheryCycleSettings& settings);
     //! Lets a hen or a rooster come out of a coop. Returns false if no coop has a free place.
     bool spawnFromCoop(ChickenKind kind, const HatcheryCycleSettings& settings, uint32_t count = 1);

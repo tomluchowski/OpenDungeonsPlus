@@ -1280,13 +1280,17 @@ void RoomHatchery::doUpkeep()
 
         // No nest reservation yet: keep waiting and retry on the next upkeep.
     }
+    // Newly laid eggs and newly hatched chicks start aging on the following upkeep.
+    const size_t eggsBeforeLaying = eggs.size();
+    const size_t chicksBeforeHatching = chicks.size();
     releasePendingEggs(layingSettings, eggs);
 
     // Eggs hatch while there is a rooster and no enemy stands on that egg's tile
     if(HatcheryCycle::canHatch(counts, false))
     {
-        for(ChickenEntity* egg : eggs)
+        for(size_t index = 0; index < eggsBeforeLaying; ++index)
         {
+            ChickenEntity* egg = eggs[index];
             if(isEnemyOnEggTile(*egg, enemies))
                 continue;
 
@@ -1317,8 +1321,9 @@ void RoomHatchery::doUpkeep()
     }
 
     // Chicks grow up
-    for(ChickenEntity* chick : chicks)
+    for(size_t index = 0; index < chicksBeforeHatching; ++index)
     {
+        ChickenEntity* chick = chicks[index];
         if(chick->getStageDuration() == 0)
             chick->setStageDuration(HatcheryCycle::stageDuration(settings.mGrowTurns, Random::Uint(0, 999999)));
         if(chick->incrementAge() < chick->getStageDuration())

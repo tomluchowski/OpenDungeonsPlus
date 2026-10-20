@@ -463,7 +463,16 @@ BOOST_AUTO_TEST_CASE(test_LateEgg)
     }
 }
 
-//! Balance parity: with the default values the number of edible chickens per minute has to stay the one of the
+//! \brief Keeps the approved five-, thirty- and sixty-second life stages in the fallback settings.
+BOOST_AUTO_TEST_CASE(test_DefaultLifeStageDurations)
+{
+    const HatcheryCycleSettings settings;
+    BOOST_CHECK_EQUAL(settings.mLayShowTurns, 7U);
+    BOOST_CHECK_EQUAL(settings.mHatchTurns, 42U);
+    BOOST_CHECK_EQUAL(settings.mGrowTurns, 84U);
+}
+
+//! Balance parity: with the historical short-cycle values the number of edible chickens per minute stays the one of the
 //! spawning before the life cycle, for the same hatchery size and the same demand: within 3 percent of the old
 //! number, in every case below that has no care bonus (the bonuses of a claimed, lit, calm hatchery are printed but
 //! not limited, they speed the hatchery up on purpose). The egg appears when the laying timer of the hen runs out: the
@@ -474,10 +483,14 @@ BOOST_AUTO_TEST_CASE(test_LateEgg)
 //! spawning. A Python port of the model (the same generators and order) gives the worst deviation per case without
 //! bonus: 2.44 percent (no walk, ways of 0 to 6 or 0 to 60 turns, no free nest), 2.80 (enemies trample, 5 percent of
 //! the turns, 30 percent per egg). With the bonuses (light 10, calm 15) it is 7.0 percent, which is intended.
-// Historical fits-or-floor model only; required nest waiting and actual-arrival parity must be checked separately.
+//! \brief Checks only the historical fits-or-floor preset; actual nest-wait production is a separate model.
 BOOST_AUTO_TEST_CASE(test_BalanceParity)
 {
     HatcheryCycleSettings settings;
+    // Preserve this historical model's original preset; current production uses intentionally longer life stages.
+    settings.mHatchTurns = 2;
+    settings.mGrowTurns = 4;
+    settings.mLayShowTurns = 2;
     const uint32_t nbTurns = 84000; // about 1000 minutes with 1.4 turns per second
     const uint32_t demands[] = {2, 5, 10, 20};
     const uint32_t coops[] = {1, 2, 4, 8};

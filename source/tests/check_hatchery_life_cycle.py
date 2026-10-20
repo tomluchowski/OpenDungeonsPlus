@@ -13,6 +13,7 @@ notif = (root / 'source/network/ServerNotification.h').read_text()
 config = (root / 'config/rooms.cfg').read_text()
 
 
+# Return the selected production function for focused wiring assertions.
 def body(text, start):
     i = text.index(start)
     return text[i:text.index('\n}\n', i)]
@@ -322,3 +323,43 @@ for nominal in (1, 7, 42, 84):
     assert min(durations) * 100 >= nominal * 80 and max(durations) * 100 <= nominal * 120
     assert durations == set(range(low, high + 1))
 print('room-only capacity, immediate nest dispatch, persisted jitter and adult mating source contracts passed')
+
+
+# Reject same-turn incubation and growth, including mutations that age the appended animals.
+def check_stage_boundaries(text):
+    upkeep = body(text, 'void RoomHatchery::doUpkeep')
+    laying = upkeep.index('releasePendingEggs(layingSettings, eggs);')
+    assert upkeep.index('const size_t eggsBeforeLaying = eggs.size();') < laying
+    assert upkeep.index('const size_t chicksBeforeHatching = chicks.size();') < laying
+    assert 'index < eggsBeforeLaying;' in upkeep
+    assert 'ChickenEntity* egg = eggs[index];' in upkeep
+    assert 'index < chicksBeforeHatching;' in upkeep
+    assert 'ChickenEntity* chick = chicks[index];' in upkeep
+    assert 'chicks.push_back(egg);' in upkeep
+
+
+check_stage_boundaries(room_cpp)
+for original, replacement in (('index < eggsBeforeLaying;', 'index < eggs.size();'),
+                              ('index < chicksBeforeHatching;', 'index < chicks.size();')):
+    try:
+        check_stage_boundaries(room_cpp.replace(original, replacement))
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError('Same-turn aging mutation was not detected')
+print('hatchery life-stage boundaries and two negative controls passed')
+
+# Check approved durations against the actual server clock and the fallback settings.
+import re
+application = (root / 'source/ODApplication.cpp').read_text()
+turn_rate = float(re.search(r'double ODApplication::turnsPerSecond = ([0-9.]+);', application).group(1))
+defaults = (root / 'source/rooms/HatcheryCycle.h').read_text()
+for key, member, seconds in (('HatcheryLayShowTurns', 'mLayShowTurns', 5),
+                             ('HatcheryHatchTurns', 'mHatchTurns', 30),
+                             ('HatcheryGrowTurns', 'mGrowTurns', 60)):
+    turns = int(re.search(r'^\s*' + key + r'\s+(\d+)\s*$', config, re.MULTILINE).group(1))
+    fallback = int(re.search(member + r'\((\d+)\)', defaults).group(1))
+    assert turns == fallback and abs(turns / turn_rate - seconds) < 1e-9
+    for speed in (0.5, 1.0, 2.0):
+        assert abs(turns / (turn_rate * speed) - seconds / speed) < 1e-9
+print('approved 5/30/60-second stages, fallback defaults and game speed checked')
