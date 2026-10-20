@@ -24,9 +24,9 @@ void main (void)
     texelColor = texture(decalmap, outputColor.a > 0.0 ? FragPos.xy : out_UV0.st).rgb;
     // The fog is flat and unlit on purpose: shading it would show the relief of the unexplored
     // tiles below it. It shows the same earth texture and the same colour as explored earth
-    // without torch light (DirtTile.frag with no local lights: ambient term, then the colour
-    // grade), so unexplored and explored earth only differ where torches shine.
-    texelColor = enhanceDungeonColour(ambientLightColour.rgb * texelColor);
+    // without torch light (DirtTile.frag with no local lights: the ambient term), so unexplored and
+    // explored earth only differ where torches shine.
+    texelColor = ambientLightColour.rgb * texelColor;
     // Blend the player's mark over this same neutral fog surface.
     texelColor = mix(texelColor, outputColor.rgb, outputColor.a);
     color = vec4(texelColor, 1.0);

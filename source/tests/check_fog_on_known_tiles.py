@@ -4,7 +4,7 @@ Known tiles (seen at least once) show their real mesh. Fog surfaces, dig-mark su
 exist for a tile when its state asks for them:
   - the neutral earth surface or its marked variant only on a tile that was never seen,
   - the marked variant only while the local player has the tile marked,
-  - the cloud only on a seen tile of enemy territory that is currently fogged,
+  - the cloud only together with the surface of a tile that was never seen,
   - all of them are removed again as soon as the tile state no longer asks for them.
 Every fog instance is also placed at zero offset from the tile's own scene node, which already sits at the
 tile coordinates: a tile position there is added a second time and moves the fog onto other tiles, which
@@ -51,7 +51,7 @@ for match in re.finditer(r'createInstancedEntity\("DirtInstanced"\)', refresh):
     branch = before[max(before.rfind("else if"), before.rfind("\n        if ")):]
     check("!tile.getEverVisible()" in branch or "wasMarked != isMarked" in branch,
           "a fog surface is created outside the never-seen branch at offset " + str(match.start()))
-switch = between(refresh, "const bool wasMarked", "// Only previously discovered enemy territory")
+switch = between(refresh, "const bool wasMarked", "// We rescale and set the orientation")
 check("tile.getHasFogOfWar()" in refresh[refresh.index("if(tile.getHasFogOfWar() && tile.getFogOfWarMesh() != nullptr)"):],
       "the mark switch must only touch tiles that still carry the fog surface")
 check("isMarked" in switch and "mInstanceManagerMarkedFog" in switch,
@@ -63,16 +63,12 @@ for needle in ["destroyInstancedEntity(tile.getFogOfWarMesh())", "destroyInstanc
                "tile.setFogOfWarMesh(nullptr", "tile.setFogOfWarCloud(nullptr)", "tile.setHasFogOfWar(false)"]:
     check(needle in reveal, "revealing a tile does not clean up: missing " + needle)
 
-# 4. The cloud exists only on seen tiles with the enemy fog state and goes away with that state.
-cloud = refresh[refresh.index("// Only previously discovered enemy territory"):]
-cloud = cloud[:cloud.index("// We rescale and set the orientation")]
-check("if(tile.getEverVisible() && tileMeshNode != nullptr)" in cloud, "cloud creation must require a seen tile")
-check("if(tile.getEnemyTerritoryFog() && tile.getFogOfWarCloud() == nullptr)" in cloud,
-      "cloud creation must require the enemy fog state")
-check("else if(!tile.getEnemyTerritoryFog() && tile.getFogOfWarCloud() != nullptr)" in cloud,
-      "the cloud must be removed when the enemy fog state ends")
+# 4. The cloud is created together with the fog surface of a never-seen tile and nowhere else.
 check(refresh.count('createInstancedEntity("Fog")') == 1, "the cloud must have exactly one creation site")
 check(render.count('createInstancedEntity("Fog")') == 1, "the cloud is created somewhere outside the tile refresh")
+never_seen = refresh[refresh.index("else if ( !tile.getEverVisible() && !tile.getHasFogOfWar())"):]
+never_seen = never_seen[:never_seen.index("tile.setHasFogOfWar(true)")]
+check('createInstancedEntity("Fog")' in never_seen, "the cloud must be created in the never-seen branch")
 destroy = between(render, "void RenderManager::rrDestroyTile(", "\n}\n")
 check("destroyInstancedEntity(tile.getFogOfWarMesh())" in destroy and "destroyInstancedEntity(tile.getFogOfWarCloud())" in destroy,
       "destroying a tile must remove its fog instances")

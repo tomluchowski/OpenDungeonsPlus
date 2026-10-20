@@ -48,7 +48,7 @@ check("normalmap" not in _fog_mat.lower() and "normal.png" not in _fog_mat.lower
       "fog material still references a normal map")
 
 # Unexplored earth looks like explored earth without torch light: the same texture and the same
-# brightness (ambient term, then the colour grade), never a darkening factor of its own.
+# brightness (ambient term), never a darkening factor of its own.
 def decal_texture(material_text, name):
     block = material_text[material_text.index("material " + name):]
     return re.search(r"texture_unit decalmap\s*\{\s*texture (\S+)", block).group(1)
@@ -61,10 +61,10 @@ fog_main = re.sub(r"//.*", "", frag.split("void main")[1])
 check(decal_texture(fog_material, "DirtInstanced") == decal_texture(dirt_material, "Dirt"),
       "fog earth must use the same texture as explored earth")
 check(not re.search(r"\*\s*0?\.\d+\s*;", fog_main), "fog earth must not be darkened by a constant factor")
-check("enhanceDungeonColour(ambientLightColour.rgb * texelColor)" in fog_main,
-      "fog earth must be the explored earth ambient term with the same colour grade")
+check("texelColor = ambientLightColour.rgb * texelColor;" in fog_main,
+      "fog earth must be the explored earth ambient term")
 check("getLocalLighting(FragPos, Normal, cameraPosition.xyz, shadow.r) + ambientLightColour.rgb;" in dirt_frag
-      and "color = vec4(enhanceDungeonColour(result)" in dirt_frag,
+      and "color = vec4(result.xyz,  1.0);" in dirt_frag,
       "explored earth lighting changed: update the fog earth to match")
 
 # Discovered tiles out of sight are never darkened: the colourized clone of a tile material must not
