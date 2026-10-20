@@ -438,28 +438,52 @@ Name                                   Author                  License          
 Name                                   Author                  License                 Source URL
 ------------------------------------------------------------------------------------------------------------------------
 Spatial/Creatures/Default/Attack/
--> SwordBlock*.ogg                     Svenskmand              CC-BY-SA 3.0
+-> SwordBlock*.ogg                     Svenskmand              CC-BY-SA 3.0                  own recordings of a former OpenDungeons member, no public source
 Spatial/Creatures/Default/Die/
 -> Die*.ogg                            remaxim                 CC-BY-SA 3.0            http://opengameart.org/content/2-male-death-voices
 Spatial/Creatures/Default/Dig/
--> Digging*.ogg                        Svenskmand              CC-BY-SA 3.0
+-> Digging*.ogg                        Svenskmand              CC-BY-SA 3.0                  own recordings of a former OpenDungeons member, no public source
 Spatial/Creatures/Default/Drop/
 -> falling1.ogg                        remaxim                 CC-BY-SA 3.0            http://opengameart.org/content/falling-body
 Spatial/Creatures/Default/Pickup/
 -> inventory*.ogg                      artisticdude            CC-BY-SA 3.0            http://opengameart.org/content/inventory-sound-effects
 Spatial/Creatures/Default/Slap/
 -> zombie-*.ogg                        artisticdude            CC0                     http://opengameart.org/content/zombies-sound-pack
+Spatial/Creatures/Worker/CoinJingle/
+-> CoinJingle01.ogg                    Amarikah                CC0                     https://opengameart.org/content/sack-of-gold
+-> CoinJingle02.ogg                    StarNinjas              CC0                     https://opengameart.org/content/12-coin-sound-effects
+Spatial/Creatures/Worker/Cheer/
+-> Cheer01.ogg                         SkyRae (2DPIXX)         CC0                     https://opengameart.org/content/female-warrior-cheer
+-> Cheer02.ogg                         Gregor Quendel          CC-BY 4.0               https://opengameart.org/content/free-crowd-cheering-sounds
+Spatial/Creatures/Worker/DigDirt/
+-> DigDirt01.ogg                       themightyglider         CC0                     https://opengameart.org/content/shovel-sound
+-> DigDirt02.ogg                       rubberduck              CC0                     https://opengameart.org/content/25-cc0-mud-sfx
+Spatial/Creatures/Worker/DigGem/
+-> DigGem01.ogg                        Muldoonsamuel55         CC0                     https://commons.wikimedia.org/wiki/File:GLASS_BELL_TAPPING_SOUND.wav
+-> DigGem02.ogg                        Marble Toast            CC0                     https://commons.wikimedia.org/wiki/File:Ticking_glass.ogg
+Spatial/Creatures/Worker/DigGold/
+-> DigGold01.ogg                       blacklodgegames (MedicineStorm) CC0                     https://opengameart.org/content/27-metal-audio-samples-sfx
+-> DigGold02.ogg                       blacklodgegames (MedicineStorm) CC0                     https://opengameart.org/content/27-metal-audio-samples-sfx
+Spatial/Creatures/Worker/DigRock/
+-> DigRock01.ogg                       spookymodem             CC-BY 3.0               https://opengameart.org/content/mining-pick
+-> DigRock02.ogg                       themightyglider         CC0                     https://opengameart.org/content/breaking-rock
+Spatial/Creatures/Worker/Knock/
+-> Knock01.ogg                         Asud12                  CC0                     https://commons.wikimedia.org/wiki/File:Knock_on_door.wav
+-> Knock02.ogg                         Mx. Granger             CC0                     https://commons.wikimedia.org/wiki/File:Door_knocker_audio.ogg
+Spatial/Creatures/Worker/Stomp/
+-> Stomp01.ogg                         MentalSanityOff (uploaded by qubodup) CC0                     https://opengameart.org/content/jump-landing-sound
+-> Stomp02.ogg                         GboxMikeFozzy           CC0                     https://opengameart.org/content/footsteps-0
 Spatial/Creatures/Keeper/Workers\Die/
 -> Die*.ogg                            remaxim                 CC-BY-SA 3.0            http://opengameart.org/content/2-male-death-voices
 
 Spatial/Game/BuildRoom/
 -> default_build_room.ogg              remaxim                 CC-BY-SA 3.0, GPLv3+    http://opengameart.org/content/falling-body
 Spatial/Game/BuildTrap/
--> default_build_trap.ogg              Svenskmand              CC-BY-SA 3.0
+-> default_build_trap.ogg              Svenskmand              CC-BY-SA 3.0                  own recordings of a former OpenDungeons member, no public source
 Spatial/Game/ClaimTile/
--> Claim01.ogg                         Svenskmand              CC-BY-SA 3.0
+-> Claim01.ogg                         Svenskmand              CC-BY-SA 3.0                  own recordings of a former OpenDungeons member, no public source
 Spatial/Game/RocksFalling/
--> RocksFalling*.ogg                   Svenskmand              CC-BY-SA 3.0
+-> RocksFalling*.ogg                   Svenskmand              CC-BY-SA 3.0                  own recordings of a former OpenDungeons member, no public source
 
 Spatial/Rooms/Hatchery/Cluck/
 -> Cluck*.ogg                          OD Team                 GPLv3+                  Synthesised by tools/gen_room_effects_sound.py from sine waves (script generated, original work, not AI generated)
@@ -469,17 +493,13 @@ Spatial/Rooms/Hatchery/RoosterCrow/
 
 Spatial/Rooms/Treasury/DepositGold/
 -> DepositGold*.ogg                    jalastram               CC-BY 3.0               http://opengameart.org/content/coins-sounds
+Spatial/Rooms/Treasury/CoinStep/
+-> CoinStep*.ogg                       StarNinjas              CC0                     https://opengameart.org/content/12-coin-sound-effects (Real recordings of coins in the hand (coin.5.ogg, coin.11.ogg, coin.9.ogg, one per file); cut, faded, mono, volume adjusted)
 
-Spatial/Spells/Defense/
--> healspell*.ogg                      DoKashiteru             CC-BY-SA 3.0            http://opengameart.org/content/3-heal-spells
-Spatial/Spells/Haste/
--> healspell*.ogg                      DoKashiteru             CC-BY-SA 3.0            http://opengameart.org/content/3-heal-spells
 Spatial/Spells/Heal/
 -> healspell*.ogg                      DoKashiteru             CC-BY-SA 3.0            http://opengameart.org/content/3-heal-spells
-Spatial/Spells/Slow/
--> healspell*.ogg                      DoKashiteru             CC-BY-SA 3.0            http://opengameart.org/content/3-heal-spells
 Spatial/Traps/Cannon/Fire/
--> cannon_firing.ogg                   Iwan Gabovith           CC0                     http://opengameart.org/content/synthesized-explosion
+-> cannon_firing.ogg                rubberduck                CC0                     https://opengameart.org/content/25-cc0-bang-firework-sfx (cannon_01.ogg, converted to mono Ogg Vorbis; not AI generated)
 
 Relative/Default/Interface/Click/
 -> click.ogg                           Allacrost               GPL 2.0+
@@ -543,6 +563,19 @@ sounds/Spatial/Spells/GoldImpact/FxGoldImpact01.ogg                             
 sounds/Spatial/Spells/HealImpact/FxHealImpact01.ogg                                   Valera N. Trubin  CC-BY 4.0              https://commons.wikimedia.org/wiki/File:The_sound_of_a_singing_bowl.wav (Real recording of a singing bowl; cut, faded, mono, volume adjusted)
 sounds/Spatial/Spells/HasteImpact/FxHasteImpact01.ogg                                 qubodup       CC0                    https://opengameart.org/content/swish-bamboo-stick-weapon-swhoshes (Real recording (swosh-06, bamboo stick swung in the air); cut, faded, mono, volume adjusted)
 sounds/Spatial/Spells/PossessEnd/FxPossessEnd01.ogg                        qubodup                 CC0             https://opengameart.org/content/ghost-monster-voice-moaning-growling (real recording "qubodup-GhostMoan05"; cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/Boost/FxBoost01.ogg                                             qubodup       CC0                    https://opengameart.org/content/swish-bamboo-stick-weapon-swhoshes (Real recording (swosh-31, bamboo stick swung in the air); cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/Curse/FxCurse01.ogg                                             rubberduck    CC0                    https://opengameart.org/content/80-cc0-creature-sfx (Real recording of a voice (monster_04); cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/Dark/FxDark01.ogg                                               rubberduck    CC0                    https://opengameart.org/content/80-cc0-creature-sfx (Real recordings of a voice (monster_07 mixed with breath); cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/Defense/FxDefense01.ogg                                         rubberduck    CC0                    https://opengameart.org/content/80-cc0-rpg-sfx and https://opengameart.org/content/100-cc0-metal-and-wood-sfx (Real recordings of metal (metal_02, metal_hit_04 and metal_sheet_03 in sequence); cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/Explosion/FxExplosion01.ogg                                     rubberduck    CC0                    https://opengameart.org/content/25-cc0-bang-firework-sfx (Real recording (bang_03); cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/Fire/FxFire01.ogg                                               qubodup, StarNinjas  CC0                    https://opengameart.org/content/swish-bamboo-stick-weapon-swhoshes and https://opengameart.org/content/fireplace-sound-loop (Real recordings: swosh-38 mixed with a fireplace crackle section; cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/Gold/FxGold01.ogg                                               StarNinjas    CC0                    https://opengameart.org/content/12-coin-sound-effects (Real recording of coins in the hand (coin.1, coin.4 and coin.8 in sequence); cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/Haste/FxHaste01.ogg                                             qubodup       CC0                    https://opengameart.org/content/swish-bamboo-stick-weapon-swhoshes (Real recording (swosh-35, bamboo stick swung in the air); cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/Lightning/FxLightning01.ogg                          themightyglider         CC0             https://opengameart.org/content/electric-buzz (real recording "buzz_0.ogg; page states it derives from an account-only recording"; cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/Rally/FxRally01.ogg                                  Alon-De-Lon             CC0             https://commons.wikimedia.org/wiki/File:Hunting_horn_tone.ogg (real recording "Hunting horn tone"; cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/Slow/FxSlow01.ogg                                    rubberduck              CC0             https://opengameart.org/content/25-cc0-mud-sfx (real recording "mud_19; noises made in mud"; cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/Summon/FxSummon01.ogg                                rubberduck              CC0             https://opengameart.org/content/100-cc0-sfx (real recording "gong_02"; cut, faded, mono, volume adjusted)
+sounds/Spatial/Spells/Tremor/FxTremor01.ogg                                StarNinjas              CC0             https://opengameart.org/content/cave-in (real recording "cave_in; lentils poured into a pot"; cut, faded, mono, volume adjusted)
 
 =============================================================
 ==  Trap and door sounds: sounds/Spatial/Traps, Doors      ==
