@@ -162,6 +162,9 @@ GameMap::GameMap(bool isServerGameMap, NodeType nt) :
         everVisitedFlagPool(nullptr),
         mIsServerGameMap(isServerGameMap),
         mNodeType(nt),
+        mGoldDensityPercent(SKIRMISH_PERCENT_DEFAULT),
+        mManaRegenerationPercent(SKIRMISH_PERCENT_DEFAULT),
+        mMaxCreaturesSetting(0),
         mLocalPlayer(nullptr),
         mLocalPlayerNick(DEFAULT_NICK),
         mTurnNumber(-1),
@@ -308,6 +311,12 @@ void GameMap::clearAll()
 
         clearAiManager();
 
+        mGoldDensityPercent = SKIRMISH_PERCENT_DEFAULT;
+        mManaRegenerationPercent = SKIRMISH_PERCENT_DEFAULT;
+        mMaxCreaturesSetting = 0;
+        mCreatureClassLimits.clear();
+        mSkirmishSkillStates.clear();
+        mSkirmishSkillStatesLevel.clear();
         mLocalPlayerNick = DEFAULT_NICK;
         mTurnNumber = -1;
         resetUniqueNumbers();
@@ -1284,7 +1293,7 @@ unsigned long int GameMap::doMiscUpkeep(double timeSinceLastTurn)
         }
         else
         {
-            seat->mManaDelta = 50 + seat->getNumClaimedTiles();
+            seat->mManaDelta = (50 + seat->getNumClaimedTiles()) * mManaRegenerationPercent / 100;
             seat->mMana += seat->mManaDelta;
             double maxMana = ConfigManager::getSingleton().getMaxManaPerSeat();
             if (seat->mMana > maxMana)
@@ -3069,6 +3078,8 @@ const TileSetValue& GameMap::getMeshForTile(const Tile* tile)
 uint32_t GameMap::getMaxNumberCreatures(Seat* seat) const
 {
     uint32_t nbCreatures = ConfigManager::getSingleton().getMaxCreaturesPerSeatDefault();
+    if(mMaxCreaturesSetting > 0)
+        nbCreatures = mMaxCreaturesSetting;
 
     std::vector<const Room*> portals = getRoomsByTypeAndSeat(RoomType::portal, seat);
     for(const Room* room : portals)
@@ -3078,6 +3089,89 @@ uint32_t GameMap::getMaxNumberCreatures(Seat* seat) const
     }
 
     return std::min(nbCreatures, ConfigManager::getSingleton().getMaxCreaturesPerSeatAbsolute());
+}
+
+void GameMap::setSkirmishSettings(uint32_t goldDensityPercent, uint32_t manaRegenerationPercent,
+    uint32_t maxCreaturesSetting)
+{
+    mGoldDensityPercent = std::min<uint32_t>(std::max<uint32_t>(goldDensityPercent, SKIRMISH_PERCENT_MIN), SKIRMISH_PERCENT_MAX);
+    mManaRegenerationPercent = std::min<uint32_t>(std::max<uint32_t>(manaRegenerationPercent, SKIRMISH_PERCENT_MIN), SKIRMISH_PERCENT_MAX);
+    mMaxCreaturesSetting = std::min<uint32_t>(maxCreaturesSetting, ConfigManager::getSingleton().getMaxCreaturesPerSeatAbsolute());
+}
+
+uint32_t GameMap::getCreatureClassLimit(const std::string& className) const
+{
+    std::map<std::string, uint32_t>::const_iterator it = mCreatureClassLimits.find(className);
+    if(it == mCreatureClassLimits.end())
+        return SKIRMISH_CREATURE_LIMIT_NONE;
+
+    return it->second;
+}
+
+void GameMap::setCreatureClassLimit(const std::string& className, uint32_t limit)
+{
+    if(limit >= SKIRMISH_CREATURE_LIMIT_NONE)
+        mCreatureClassLimits.erase(className);
+    else
+        mCreatureClassLimits[className] = limit;
+}
+
+const std::vector<GameMap::SkirmishItemState>& GameMap::getSkirmishSkillStates()
+{
+    if(!mSkirmishSkillStates.empty())
+        return mSkirmishSkillStates;
+
+    mSkirmishSkillStates.assign(static_cast<uint32_t>(SkillType::countSkill), SkirmishItemState::needsResearch);
+    // The level gives the choices shown first. They are read from the first seat that is configured
+    for(Seat* seat : mSeats)
+    {
+        if(seat->isRogueSeat())
+            continue;
+
+        for(SkillType skillType : seat->getSkillNotAllowed())
+            mSkirmishSkillStates[static_cast<uint32_t>(skillType)] = SkirmishItemState::notAvailable;
+        for(SkillType skillType : seat->getSkillDone())
+            mSkirmishSkillStates[static_cast<uint32_t>(skillType)] = SkirmishItemState::availableAtStart;
+
+        break;
+    }
+    mSkirmishSkillStatesLevel = mSkirmishSkillStates;
+    return mSkirmishSkillStates;
+}
+
+void GameMap::setSkirmishSkillState(SkillType type, SkirmishItemState state)
+{
+    if(type == SkillType::nullSkillType || type >= SkillType::countSkill)
+        return;
+    if(state == SkirmishItemState::unchosen)
+        return;
+
+    getSkirmishSkillStates();
+    mSkirmishSkillStates[static_cast<uint32_t>(type)] = state;
+}
+
+void GameMap::applySkirmishSkillStates()
+{
+    if(mSkirmishSkillStates.empty())
+        return;
+
+    for(Seat* seat : mSeats)
+    {
+        if(seat->isRogueSeat())
+            continue;
+
+        // Index 0 is nullSkillType, it is no skill
+        for(uint32_t i = 1; i < static_cast<uint32_t>(SkillType::countSkill); ++i)
+        {
+            // What the host did not change stays as the level defines it for each seat
+            if(mSkirmishSkillStates[i] == mSkirmishSkillStatesLevel[i])
+                continue;
+
+            seat->setSkillAvailability(static_cast<SkillType>(i),
+                mSkirmishSkillStates[i] != SkirmishItemState::notAvailable,
+                mSkirmishSkillStates[i] == SkirmishItemState::availableAtStart);
+        }
+    }
 }
 
 void GameMap::playerSelects(std::vector<GameEntity*>& entities, int tileX1, int tileY1, int tileX2,

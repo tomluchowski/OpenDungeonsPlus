@@ -193,7 +193,8 @@ public:
 
     void setDraggableMapSize(int x, int y);
     
-    //! \brief Returns the next fighter creature class to spawn.
+    //! \brief Returns the next fighter creature class to spawn. Classes that reached the limit set in the
+    //! skirmish game settings are skipped.
     const CreatureDefinition* getNextFighterClassToSpawn(const GameMap& gameMap, const ConfigManager& configManager );
 
     //! \brief Returns the first (default) worker class definition.
@@ -254,6 +255,11 @@ public:
     //! \brief Returns true if the given SkillType is already done for this player. False
     //! otherwise
     bool isSkillDone(SkillType type) const;
+
+    //! \brief Sets how a skill is available before the game starts (skirmish Game Settings).
+    //! Not allowed skills cannot be researched, done skills are available from the start and
+    //! the others have to be researched.
+    void setSkillAvailability(SkillType type, bool allowed, bool done);
 
     //! \brief Called when the skill entity reaches its destination. From there, the
     //! skilled thing is available
