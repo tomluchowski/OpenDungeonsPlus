@@ -2111,6 +2111,11 @@ void RenderManager::rrAddOutliner(Creature* creature)
             Ogre::Pass* myPass1 = myOutliner->getTechnique(myOutliner->getNumTechniques() - 1)->createPass();
             OD_LOG_INF("the number of passes is " + Helper::toString(myOutliner->getTechnique(myOutliner->getNumTechniques() - 1)->getNumPasses()));
             myOutliner->getTechnique(myOutliner->getNumTechniques() - 1)->getPass( myOutliner->getTechnique(myOutliner->getNumTechniques() - 1)->getNumPasses()-1)->setDepthBias(-4, -32);
+            // Only draw the back faces of the enlarged copy so it stays behind the creature and
+            // shows just around its silhouette. With its front faces drawn, only the depth bias
+            // kept it behind, and how far that pushes depends on the GPU's depth buffer: on some
+            // machines it painted over everything facing the camera (e.g. the Wyvern's armour).
+            myPass1->setCullingMode(Ogre::CULL_ANTICLOCKWISE);
         
             Ogre::HighLevelGpuProgramManager& mgr =  Ogre::HighLevelGpuProgramManager::getSingleton();
             Ogre::HighLevelGpuProgramPtr vertex_program;
