@@ -83,7 +83,11 @@ Ogre::TexturePtr createCreaturePortrait(const std::string& meshName, const std::
                 Ogre::GpuProgramParametersSharedPtr parameters = pass->getFragmentProgramParameters();
                 if(parameters->hasNamedParameters() &&
                     parameters->getConstantDefinitions().map.count("shadowingEnabled") != 0)
-                    parameters->setNamedConstant("shadowingEnabled", false);
+                {
+                    // A GLSL bool, which Ogre only accepts through the uint array setter
+                    const Ogre::uint shadowingEnabled = 0;
+                    parameters->setNamedConstant("shadowingEnabled", &shadowingEnabled, 1, 1);
+                }
             }
         }
         subEntity->setMaterial(material);

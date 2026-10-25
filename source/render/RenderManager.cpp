@@ -222,7 +222,13 @@ void RenderManager::setDynamicShadowsEnabled(bool enabled)
                 {
                     const Ogre::GpuNamedConstants& constants = parameters->getConstantDefinitions();
                     if(constants.map.find("shadowingEnabled") != constants.map.end())
-                        parameters->setNamedConstant("shadowingEnabled", enabled);
+                    {
+                        // shadowingEnabled is a GLSL bool. Ogre's single-value int and uint
+                        // setters reject bool constants; the uint array setter is the one its
+                        // own material scripts use for them.
+                        const Ogre::uint shadowingEnabled = enabled ? 1 : 0;
+                        parameters->setNamedConstant("shadowingEnabled", &shadowingEnabled, 1, 1);
+                    }
                 }
             }
         }
