@@ -57,11 +57,7 @@ ChildOverlay::ChildOverlay(const Ogre::String& fontName, Ogre::Real charHeight,
     mStackWithPrevious(stackWithPrevious),
     mCenterCaption(false)
 {
-#if defined(OGRE_VERSION) && OGRE_VERSION < 0x10A00
-    if (mFont.isNull())
-#else
     if (!mFont)
-#endif
     {
         OD_LOG_ERR("fontName=" + fontName);
         return;

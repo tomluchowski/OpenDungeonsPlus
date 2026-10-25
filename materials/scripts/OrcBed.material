@@ -9,10 +9,15 @@ material OrcBed : RTSS/NormalMapping_MultiPass
         pass lighting
         {
             // Override the normal map.
-            rtshader_system
+            texture_unit
             {
-                lighting_stage normal_map OrcBedNormal.png object_space 
+                texture OrcBedNormal.png
+                rtshader_system
+                {
+                    normal_map object_space
+                }
             }
+
         }
 
         pass decal

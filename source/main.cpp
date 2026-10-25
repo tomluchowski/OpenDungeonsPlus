@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <clocale>
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -48,6 +49,10 @@ INT WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR strCmdLine, INT)
 int main(int argc, char** argv)
 #endif
 {
+    // Force C numeric locale so CEGUI's scanf/printf based property parsing
+    // (UDim/URect/etc.) uses '.' as decimal separator regardless of system locale.
+    std::setlocale(LC_NUMERIC, "C");
+
     // To log segfaults
     StackTracePrint trace("crash.log");
 

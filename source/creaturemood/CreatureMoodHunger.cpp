@@ -17,6 +17,8 @@
 
 #include "creaturemood/CreatureMoodHunger.h"
 
+#include <iostream>
+
 #include "creaturemood/CreatureMoodManager.h"
 #include "entities/Creature.h"
 

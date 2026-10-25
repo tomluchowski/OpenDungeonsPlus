@@ -2,7 +2,10 @@
 
 <GUILayout version="4" >
     <Window type="OD/FrameWindow" name="SkillTreeWindow" >
-        <Property name="Area" value="{{0.5,-305},{0.5,-196},{0.5,305},{0.5,196}}" />
+        <!-- The three skill columns and the button bar need a 610x380 client
+             area; the OD/FrameWindow frame is 36px per side plus a 27px
+             titlebar, so the window itself must be 690x450. -->
+        <Property name="Area" value="{{0.5,-345},{0.5,-225},{0.5,345},{0.5,225}}" />
         <Property name="Text" value="Skill Tree" />
         <Property name="SizingEnabled" value="False" />
         <Window type="OD/StaticImage" name="Skills" >

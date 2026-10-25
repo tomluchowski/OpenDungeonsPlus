@@ -1,10 +1,14 @@
 [Graphics]
-FileSystem=@CMAKE_INSTALL_PREFIX@/share/OGRE/Media/RTShaderLib
-FileSystem=@CMAKE_INSTALL_PREFIX@/share/OGRE/Media/RTShaderLib/GLSL
-FileSystem=@CMAKE_INSTALL_PREFIX@/share/OGRE/Media/RTShaderLib/HLSL
-FileSystem=@CMAKE_INSTALL_PREFIX@/share/OGRE/Media/RTShaderLib/HLSL_Cg
-FileSystem=@CMAKE_INSTALL_PREFIX@/share/OGRE/Media/RTShaderLib/materials
-FileSystem=@CMAKE_INSTALL_PREFIX@/share/OGRE/Media/RTShaderLib/../Main
+# Our hand-written .vert/.frag live in the Graphics group and #include
+# OgreUnifiedShader.h plus the RTShaderLib FFPLib_*/SGXLib_* sources. Ogre resolves
+# those includes within the *same* resource group, so Main must be here.
+# RTShaderLib is deliberately listed ONLY here: adding it to [OgreInternal] as well
+# makes RTSSamplers.material parse twice and Ogre then throws
+# "Sampler 'Ogre/ShadowSampler' already exists" during startup.
+# Likewise, Media/Main must NOT also be in [OgreInternal] because Shadow.material
+# defines shared_params OgreFroxels which would be created twice.
+FileSystem=@RTSHADER_DIR@
+FileSystem=@OGRE_MEDIA_DIR@/Main
 FileSystem=materials/scripts
 FileSystem=materials/scripts/Creatures
 FileSystem=materials/textures

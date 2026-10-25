@@ -9,10 +9,15 @@ material WeaponShield2 : RTSS/NormalMapping_MultiPass
         pass lighting
         {
             // Override the normal map.
-            rtshader_system
+            texture_unit
             {
-                lighting_stage normal_map WeaponShield2Normal.png object_space 
+                texture WeaponShield2Normal.png
+                rtshader_system
+                {
+                    normal_map object_space
+                }
             }
+
         }
 
         pass decal
