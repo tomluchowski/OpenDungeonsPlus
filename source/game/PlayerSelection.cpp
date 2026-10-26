@@ -55,6 +55,7 @@ void PlayerSelection::setNewSpellType(SpellType newSpellType)
         
     case SpellType::summonWorker:
     case SpellType::eyeEvil:
+    case SpellType::softenRock:
     case SpellType::callToWar:
     case SpellType::creatureExplosion:
         mInputManager.mCreatureTypeForOutliner = SelectionEntityWanted::none;
