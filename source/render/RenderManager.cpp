@@ -1240,6 +1240,26 @@ void RenderManager::rrDestroyTile(Tile& tile, NodeType nt)
         mSceneManager->destroySceneNode(customMeshNode);
     }
 
+    // The bridge is drawn by rrRefreshTile() on a node of its own, under the tile node. Left
+    // behind, it outlives the tile node and keeps its name: the next tile created at the same
+    // place (the next level played, or a game loaded, in the same session) finds an entity by
+    // that name, takes it as already shown, and the bridge stays hanging from a node that is
+    // no longer in the scene.
+    const std::string bridgeMeshName = tileName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_bridgeMesh";
+    const std::string bridgeMeshNodeName = bridgeMeshName + (static_cast<bool>(nt) ?  "" : "_dtc" ) + "_node";
+    if(mSceneManager->hasSceneNode(bridgeMeshNodeName))
+    {
+        Ogre::SceneNode* bridgeMeshNode = mSceneManager->getSceneNode(bridgeMeshNodeName);
+        if(mSceneManager->hasEntity(bridgeMeshName))
+        {
+            Ogre::Entity* ent = mSceneManager->getEntity(bridgeMeshName);
+            bridgeMeshNode->detachObject(ent);
+            mSceneManager->destroyEntity(ent);
+        }
+        tile.getEntityNode()->removeChild(bridgeMeshNode);
+        mSceneManager->destroySceneNode(bridgeMeshNode);
+    }
+
     mSceneManager->destroySceneNode(tile.getEntityNode());
     tile.setParentSceneNode(nullptr);
     tile.setEntityNode(nullptr);
