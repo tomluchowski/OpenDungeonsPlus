@@ -96,6 +96,9 @@ public:
 
     void setWalkDirection(const Ogre::Vector3& direction);
 
+    inline const Ogre::Vector3& getWalkDirection() const
+    { return mWalkDirection; }
+
     virtual void setPosition(const Ogre::Vector3& v, GameMap *gameMap = nullptr ) override;
 
     inline void setAnimationState(Ogre::AnimationState* animationState)

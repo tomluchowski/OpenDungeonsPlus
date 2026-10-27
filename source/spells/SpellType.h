@@ -36,6 +36,7 @@ enum class SpellType
     creatureStrength,
     creatureWeak,
     eyeEvil,
+    possessCreature,
     nbSpells     // Must be the last in this enum
 };
 

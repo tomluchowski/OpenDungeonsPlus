@@ -35,6 +35,7 @@
 #include "network/ODClient.h"
 #include "network/ODServer.h"
 #include "render/Gui.h"
+#include "render/CreatureOverlayStatus.h"
 #include "render/CreaturePanel.h"
 #include "render/ODFrameListener.h"
 #include "render/RenderManager.h"
@@ -74,6 +75,25 @@ const std::string TEXT_SEAT_TEAM_ID_PREFIX = "TextSeatTeam";
 
 //! Width of the screen border that scrolls the camera, as a fraction of the screen size
 const double AUTOSCROLL_EDGE_RATIO = 0.02;
+
+//! The text boxes shown while a creature is possessed
+const std::string POSSESSION_CROSSHAIR_TEXT = "possessionCrosshair";
+const std::string POSSESSION_INFO_TEXT = "possessionInfo";
+//! How much the view of a possessed creature turns for each pixel the mouse moves, in radians
+const Ogre::Real POSSESSION_MOUSE_SENSITIVITY = 0.004f;
+//! How fast the left and right arrow keys turn the view of a possessed creature, in radians per second
+const Ogre::Real POSSESSION_KEY_TURN_SPEED = 2.0f;
+//! How far up or down a possessed creature can look, in radians
+const Ogre::Real POSSESSION_PITCH_MAX = 1.3f;
+//! Half the size of the square of tiles shown around a possessed creature
+const Ogre::Real POSSESSION_VIEW_HALF_SIZE = 16.0f;
+//! How close to a wall a possessed creature can get, so that the camera at its eyes stays out of it
+const Ogre::Real POSSESSION_CREATURE_RADIUS = 0.25f;
+//! How often the position of a possessed creature is sent to the server, in seconds
+const Ogre::Real POSSESSION_MOVE_PERIOD = 0.15f;
+//! How often a possessed creature is asked to act while the mouse button is held, in seconds.
+//! The server lets it act once per turn.
+const Ogre::Real POSSESSION_ACTION_PERIOD = 0.3f;
 
 //! Returns the autoscroll strength for one screen axis: 0 away from the border, growing linearly
 //! to 1 on the outermost pixel. minimumEdge selects the left/top border instead of the right/bottom one.
@@ -297,6 +317,10 @@ GameMode::GameMode(ModeManager *modeManager):
 
 GameMode::~GameMode()
 {
+    // The camera, the mouse capture and the pointer would otherwise stay as possession left
+    // them, for the menus and the next game
+    stopPossession(std::string());
+
     CEGUI::ToggleButton* checkBox =
         dynamic_cast<CEGUI::ToggleButton*>(
             mRootWindow->getChild(
@@ -380,6 +404,17 @@ void GameMode::activate()
 
 bool GameMode::mouseMoved(const OIS::MouseEvent &arg)
 {
+    // While a creature is possessed, the mouse turns its head. The pointer is hidden, so it is
+    // not passed to the GUI: it would show tooltips, and clicks, for buttons nobody can see.
+    if(!mPossessedCreatureName.empty())
+    {
+        mPreviousMousePosition = toSFMLMouseMove(arg);
+        mPossessionYaw -= static_cast<Ogre::Real>(arg.state.X.rel) * POSSESSION_MOUSE_SENSITIVITY;
+        mPossessionPitch -= static_cast<Ogre::Real>(arg.state.Y.rel) * POSSESSION_MOUSE_SENSITIVITY;
+        mPossessionPitch = std::max(-POSSESSION_PITCH_MAX, std::min(POSSESSION_PITCH_MAX, mPossessionPitch));
+        return true;
+    }
+
     AbstractApplicationMode::mouseMoved(arg);
 
     auto mouseEvent = toSFMLMouseMove(arg);
@@ -549,6 +584,17 @@ bool GameMode::isMouseWheelOnCEGUIWindow()
 
 bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
 {
+    // The left button makes a possessed creature act for as long as it is held
+    if(!mPossessedCreatureName.empty())
+    {
+        if(id == OIS::MB_Left)
+        {
+            mPossessionActionHeld = true;
+            mPossessionActionTimer = 0.0;
+        }
+        return true;
+    }
+
     InputManager& inputManager = mModeManager->getInputManager();
 
     CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonDown(
@@ -756,6 +802,13 @@ bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
 
 bool GameMode::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
 {
+    if(!mPossessedCreatureName.empty())
+    {
+        if(id == OIS::MB_Left)
+            mPossessionActionHeld = false;
+        return true;
+    }
+
     CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonUp(Gui::convertButton(id));
 
     InputManager& inputManager = mModeManager->getInputManager();
@@ -822,6 +875,28 @@ bool GameMode::keyPressed(const OIS::KeyEvent& arg)
 bool GameMode::keyPressedNormal(const OIS::KeyEvent &arg)
 {
     ODFrameListener& frameListener = ODFrameListener::getSingleton();
+
+    if(!mPossessedCreatureName.empty())
+    {
+        switch (arg.key)
+        {
+        case OIS::KC_ESCAPE:
+            leavePossession();
+            return true;
+
+        // Chatting, screenshots and the debug information work as usual
+        case OIS::KC_RETURN:
+        case OIS::KC_NUMPADENTER:
+        case OIS::KC_SYSRQ:
+        case OIS::KC_F11:
+            break;
+
+        // The keys held are read at each frame to walk the creature (see updatePossession()).
+        // The other keys move the RTS camera or open windows that need the mouse pointer.
+        default:
+            return true;
+        }
+    }
 
     switch (arg.key)
     {
@@ -1166,8 +1241,10 @@ void GameMode::updateCreatureIndicatorAlt(OIS::KeyCode key, bool pressed)
     if(pressed && !wasDown)
     {
         mCreatureIndicatorsVisible = !mCreatureIndicatorsVisible;
-        RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap,
-            mCreatureIndicatorsVisible);
+        // The indicators stay hidden while a creature is possessed, and come back as toggled
+        if(mPossessedCreatureName.empty())
+            RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap,
+                mCreatureIndicatorsVisible);
     }
 }
 
@@ -1180,6 +1257,9 @@ void GameMode::onFrameStarted(const Ogre::FrameEvent& evt)
         updateCreatureIndicatorAlt(OIS::KC_RMENU, false);
 
     GameEditorModeBase::onFrameStarted(evt);
+
+    if(!mPossessedCreatureName.empty())
+        updatePossession(evt.timeSinceLastFrame);
 
     refreshGuiSkill();
     refreshSpellButtonCoolDowns();
@@ -2092,4 +2172,270 @@ void GameMode::buildPlayerSettingsWindow()
     }
 
     getModeManager().getGui().registerWindowHierarchy(tmpWin);
+}
+
+void GameMode::startPossession(const std::string& creatureName)
+{
+    if(!mPossessedCreatureName.empty())
+        stopPossession(std::string());
+
+    Creature* creature = mGameMap->getCreature(creatureName);
+    if(creature == nullptr)
+    {
+        // The server thinks we possess a creature we do not know about: give it back rather
+        // than leave it standing still
+        OD_LOG_ERR("creatureName=" + creatureName);
+        ODClient::getSingleton().queueClientNotification(new ClientNotification(ClientNotificationType::askPossessionExit));
+        return;
+    }
+
+    mPossessedCreatureName = creatureName;
+
+    // Nothing stays selected: the mouse steers the creature now
+    mPlayerSelection.setCurrentAction(SelectedAction::none);
+    unselectAllTiles();
+    TextRenderer::getSingleton().setText(ODApplication::POINTER_INFO_STRING, "");
+    InputManager& inputManager = mModeManager->getInputManager();
+    if(inputManager.mHighlightedCreature != nullptr)
+    {
+        inputManager.mHighlightedCreature->normalizeAmbient();
+        inputManager.mHighlightedCreature = nullptr;
+    }
+    inputManager.mLMouseDown = false;
+    inputManager.mRMouseDown = false;
+    inputManager.mMMouseDown = false;
+    directionKeyPressed = false;
+    mPossessionActionHeld = false;
+    mPossessionMoveTimer = 0.0;
+    const Ogre::Vector3& position = creature->getPosition();
+    mPossessionLastSentPosition = Ogre::Vector2(position.x, position.y);
+
+    // The creature looks where it was going
+    const Ogre::Vector3& walkDirection = creature->getWalkDirection();
+    if(walkDirection.isZeroLength())
+        mPossessionYaw = 0.0;
+    else
+        mPossessionYaw = std::atan2(-walkDirection.x, walkDirection.y);
+    mPossessionPitch = 0.0;
+
+    // The eyes are near the top of the model. The model itself is hidden, as the camera is
+    // inside it.
+    mPossessionEyeHeight = 0.5;
+    Ogre::SceneNode* node = creature->getEntityNode();
+    if(node != nullptr)
+    {
+        const Ogre::AxisAlignedBox& box = node->_getWorldAABB();
+        if(box.isFinite())
+            mPossessionEyeHeight = std::max(static_cast<Ogre::Real>(0.3), (box.getMaximum().z - position.z) * 0.85f);
+
+        node->setVisible(false);
+    }
+    if(creature->getOverlayStatus() != nullptr)
+        creature->getOverlayStatus()->setSuppressed(true);
+
+    // Neither the keeper hand nor the indicators over the creatures belong in the creature's
+    // view: the indicators would show through the walls
+    RenderManager::getSingleton().rrSetHandHiddenForPossession(true);
+    RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap, false);
+
+    ODFrameListener::getSingleton().getCameraManager()->startFirstPerson();
+    // The mouse turns the head, so it must not be able to leave the window
+    inputManager.setForceMouseGrab(true);
+    CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().hide();
+
+    Ogre::RenderWindow* window = ODFrameListener::getSingleton().getRenderWindow();
+    Ogre::Real width = static_cast<Ogre::Real>(window->getWidth());
+    Ogre::Real height = static_cast<Ogre::Real>(window->getHeight());
+    TextRenderer& textRenderer = TextRenderer::getSingleton();
+    textRenderer.addTextBox(POSSESSION_CROSSHAIR_TEXT, "+", width / 2 - 5, height / 2 - 10, 20, 20, Ogre::ColourValue::White);
+    // Below the event messages, which are written at the top of the screen
+    textRenderer.addTextBox(POSSESSION_INFO_TEXT, "", 20, 140, 600, 60, Ogre::ColourValue::White);
+    refreshPossessionText(*creature);
+
+    updatePossession(0.0);
+}
+
+void GameMode::stopPossession(const std::string& reason)
+{
+    if(mPossessedCreatureName.empty())
+        return;
+
+    Creature* creature = getPossessedCreature();
+    mPossessedCreatureName.clear();
+    mPossessionActionHeld = false;
+
+    CameraManager* cameraManager = ODFrameListener::getSingleton().getCameraManager();
+    cameraManager->stopFirstPerson();
+    if(creature != nullptr)
+    {
+        if(creature->getEntityNode() != nullptr)
+            creature->getEntityNode()->setVisible(true);
+        if(creature->getOverlayStatus() != nullptr)
+            creature->getOverlayStatus()->setSuppressed(false);
+
+        // The RTS camera comes back over the place the creature was left at
+        const Ogre::Vector3& position = creature->getPosition();
+        cameraManager->flyTo(Ogre::Vector3(position.x, position.y, 0.0));
+    }
+
+    clearTileCullingFocus();
+    RenderManager::getSingleton().rrSetHandHiddenForPossession(false);
+    RenderManager::getSingleton().rrSetCreaturesTextOverlay(*mGameMap, mCreatureIndicatorsVisible);
+    mModeManager->getInputManager().setForceMouseGrab(false);
+    CEGUI::System::getSingleton().getDefaultGUIContext().getMouseCursor().show();
+
+    TextRenderer& textRenderer = TextRenderer::getSingleton();
+    textRenderer.removeTextBox(POSSESSION_CROSSHAIR_TEXT);
+    textRenderer.removeTextBox(POSSESSION_INFO_TEXT);
+
+    if(!reason.empty())
+    {
+        EventMessage* event = new EventMessage("Possession ended: " + reason, EventShortNoticeType::genericGameInfo);
+        receiveEventShortNotice(event);
+    }
+}
+
+void GameMode::leavePossession()
+{
+    // The view is given back at once. The server answers that the possession ended, which has
+    // nothing left to do by then.
+    ODClient::getSingleton().queueClientNotification(new ClientNotification(ClientNotificationType::askPossessionExit));
+    stopPossession(std::string());
+}
+
+void GameMode::correctPossessionPosition(const Ogre::Vector2& position)
+{
+    Creature* creature = getPossessedCreature();
+    if(creature == nullptr)
+        return;
+
+    creature->setPosition(Ogre::Vector3(position.x, position.y, creature->getPosition().z));
+    mPossessionLastSentPosition = position;
+}
+
+Creature* GameMode::getPossessedCreature() const
+{
+    if(mPossessedCreatureName.empty())
+        return nullptr;
+
+    return mGameMap->getCreature(mPossessedCreatureName);
+}
+
+bool GameMode::canPossessedCreatureStandAt(Creature& creature, const Ogre::Vector2& point) const
+{
+    // The creature takes some room around its centre, so that the camera at its eyes cannot
+    // go into a wall
+    for(int corner = 0; corner < 4; ++corner)
+    {
+        Ogre::Real x = point.x + ((corner % 2 == 0) ? -POSSESSION_CREATURE_RADIUS : POSSESSION_CREATURE_RADIUS);
+        Ogre::Real y = point.y + ((corner / 2 == 0) ? -POSSESSION_CREATURE_RADIUS : POSSESSION_CREATURE_RADIUS);
+        Tile* tile = mGameMap->getTile(Helper::round(x), Helper::round(y));
+        if(tile == nullptr)
+            return false;
+
+        // A client tells a wall from the way it looks. It gives the ground speed to creatures
+        // standing in one, as positions can lag behind the server, so walls are checked apart.
+        if(tile->isFullTile())
+            return false;
+
+        if(!creature.canGoThroughTile(tile))
+            return false;
+    }
+
+    return true;
+}
+
+void GameMode::updatePossession(Ogre::Real timeSinceLastFrame)
+{
+    Creature* creature = getPossessedCreature();
+    if(creature == nullptr)
+    {
+        // The creature went out of this client's map
+        leavePossession();
+        return;
+    }
+
+    Keyboard* keyboard = getKeyboard();
+    if(keyboard->isKeyDown(OIS::KC_LEFT))
+        mPossessionYaw += POSSESSION_KEY_TURN_SPEED * timeSinceLastFrame;
+    if(keyboard->isKeyDown(OIS::KC_RIGHT))
+        mPossessionYaw -= POSSESSION_KEY_TURN_SPEED * timeSinceLastFrame;
+
+    Ogre::Vector2 forward(-std::sin(mPossessionYaw), std::cos(mPossessionYaw));
+    Ogre::Vector2 right(std::cos(mPossessionYaw), std::sin(mPossessionYaw));
+    Ogre::Vector2 direction = Ogre::Vector2::ZERO;
+    if(keyboard->isKeyDown(OIS::KC_W) || keyboard->isKeyDown(OIS::KC_UP))
+        direction += forward;
+    if(keyboard->isKeyDown(OIS::KC_S) || keyboard->isKeyDown(OIS::KC_DOWN))
+        direction -= forward;
+    if(keyboard->isKeyDown(OIS::KC_D))
+        direction += right;
+    if(keyboard->isKeyDown(OIS::KC_A))
+        direction -= right;
+
+    const Ogre::Vector3& position3 = creature->getPosition();
+    Ogre::Vector2 position(position3.x, position3.y);
+    if(!direction.isZeroLength() && (timeSinceLastFrame > 0.0))
+    {
+        // The client moves the creature at once, at the speed the server walks it, and sends
+        // the server where it got to. Against a wall, it slides along it.
+        direction.normalise();
+        Ogre::Real distance = static_cast<Ogre::Real>(creature->getMoveSpeed() * ODApplication::turnsPerSecond) * timeSinceLastFrame;
+        Ogre::Vector2 step = direction * distance;
+        Ogre::Vector2 newPosition = position;
+        if(canPossessedCreatureStandAt(*creature, Ogre::Vector2(newPosition.x + step.x, newPosition.y)))
+            newPosition.x += step.x;
+        if(canPossessedCreatureStandAt(*creature, Ogre::Vector2(newPosition.x, newPosition.y + step.y)))
+            newPosition.y += step.y;
+
+        if(newPosition != position)
+        {
+            creature->setPosition(Ogre::Vector3(newPosition.x, newPosition.y, position3.z));
+            position = newPosition;
+        }
+    }
+
+    ODFrameListener::getSingleton().getCameraManager()->setFirstPersonView(
+        Ogre::Vector3(position.x, position.y, position3.z + mPossessionEyeHeight), mPossessionYaw, mPossessionPitch);
+    // The tiles shown are those the creature could see from where it stands
+    setTileCullingFocus(position, POSSESSION_VIEW_HALF_SIZE);
+
+    mPossessionMoveTimer -= timeSinceLastFrame;
+    if((mPossessionMoveTimer <= 0.0) && (position.squaredDistance(mPossessionLastSentPosition) > 0.0001f))
+    {
+        ClientNotification* clientNotification = new ClientNotification(ClientNotificationType::askPossessionMove);
+        clientNotification->mPacket << position;
+        ODClient::getSingleton().queueClientNotification(clientNotification);
+        mPossessionLastSentPosition = position;
+        mPossessionMoveTimer = POSSESSION_MOVE_PERIOD;
+    }
+
+    if(mPossessionActionHeld)
+    {
+        mPossessionActionTimer -= timeSinceLastFrame;
+        if(mPossessionActionTimer <= 0.0)
+        {
+            ClientNotification* clientNotification = new ClientNotification(ClientNotificationType::askPossessionAction);
+            float yaw = static_cast<float>(mPossessionYaw);
+            clientNotification->mPacket << yaw;
+            ODClient::getSingleton().queueClientNotification(clientNotification);
+            mPossessionActionTimer = POSSESSION_ACTION_PERIOD;
+        }
+    }
+
+    refreshPossessionText(*creature);
+}
+
+void GameMode::refreshPossessionText(Creature& creature)
+{
+    std::string text = creature.getDefinition()->getClassName() + " - HP "
+        + Helper::toString(static_cast<int32_t>(creature.getHP())) + "/"
+        + Helper::toString(static_cast<int32_t>(creature.getMaxHp()))
+        + " - Mana " + Helper::toString(static_cast<int32_t>(mGameMap->getLocalPlayer()->getSeat()->getMana()));
+    if(creature.getDefinition()->isWorker())
+        text += "\nWASD: walk  Mouse: look  Left button: fight, dig and claim  Esc: leave";
+    else
+        text += "\nWASD: walk  Mouse: look  Left button: fight  Esc: leave";
+
+    TextRenderer::getSingleton().setText(POSSESSION_INFO_TEXT, text);
 }

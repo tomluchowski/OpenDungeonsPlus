@@ -17,6 +17,8 @@
 
 #include "entities/Creature.h"
 
+#include "ODApplication.h"
+
 #include "creatureaction/CreatureAction.h"
 #include "creatureaction/CreatureActionClaimGroundTile.h"
 #include "creatureaction/CreatureActionClaimWallTile.h"
@@ -74,6 +76,7 @@
 #include "network/ServerNotification.h"
 #include "render/CreatureOverlayStatus.h"
 #include "render/RenderManager.h"
+#include "rooms/Room.h"
 #include "rooms/RoomCrypt.h"
 #include "rooms/RoomDormitory.h"
 #include "rooms/RoomPrison.h"
@@ -362,6 +365,10 @@ void Creature::addToGameMap(GameMap* gameMap)
 
 void Creature::removeFromGameMap(GameMap* gameMap)
 {
+    // The player would otherwise keep pointing at a creature about to be deleted
+    if(getIsOnServerMap())
+        stopPossession("it left the dungeon");
+
     fireEntityRemoveFromGameMap();
     removeEntityFromPositionTile();
     getGameMap()->removeCreature(this);
@@ -837,6 +844,15 @@ void Creature::dropCarriedEquipment()
 
 void Creature::doUpkeep()
 {
+    // A creature that is picked up, knocked out, imprisoned, killed or turned against its keeper
+    // cannot stay possessed
+    if(mPossessor != nullptr)
+    {
+        std::string reason = getPossessionEndReason();
+        if(!reason.empty())
+            stopPossession(reason);
+    }
+
     // If the creature is in jail, we check if it is still standing on it (if not picked up). If
     // not, it is free
     if((mSeatPrison != nullptr) &&
@@ -1110,6 +1126,13 @@ void Creature::doUpkeep()
 
         if(skillData.mWarmup > 0)
             isWarmUp = true;
+    }
+
+    // A possessed creature does nothing on its own: it walks and acts when its keeper asks it to
+    if(mPossessor != nullptr)
+    {
+        doPossessedUpkeep();
+        return;
     }
 
     // If a warmup is active, we do nothing
@@ -1613,6 +1636,10 @@ void Creature::engageAlliedNaturalEnemy(Creature& attackerCreature)
 
     // If we are already fighting, do nothing
     if(isActionInList(CreatureActionType::fight))
+        return;
+
+    // A possessed creature fights whom its keeper chooses
+    if(mPossessor != nullptr)
         return;
 
     // When fighting a natural enemy, we always fight to death
@@ -2320,7 +2347,8 @@ double Creature::takeDamage(GameEntity* attacker, double absoluteDamage, double 
         }
     }
 
-    if(shouldFlee)
+    // A possessed worker goes where its keeper walks it, not away from the fight
+    if(shouldFlee && (mPossessor == nullptr))
     {
         flee();
         return damageDone;
@@ -2447,6 +2475,8 @@ void Creature::pickup()
 
     if(!getIsOnServerMap())
         return;
+
+    stopPossession("it was picked up");
 
     if(getHasVisualDebuggingEntities())
         computeVisualDebugEntities();
@@ -3663,4 +3693,358 @@ void Creature::normalizeAmbient()
 
     RenderManager::getSingleton().rrNormalizeAmbient(this);
 
+}
+
+bool Creature::canBePossessed() const
+{
+    if(!getIsOnMap())
+        return false;
+
+    if(!isAlive())
+        return false;
+
+    if(isKo())
+        return false;
+
+    if(mSeatPrison != nullptr)
+        return false;
+
+    if(mPossessor != nullptr)
+        return false;
+
+    return true;
+}
+
+void Creature::startPossession(Player& player)
+{
+    OD_LOG_INF("creature=" + getName() + " possessed by seatId=" + Helper::toString(player.getSeat()->getId()));
+    mPossessor = &player;
+    mPossessionLastActionTurn = -1;
+    player.setPossessedCreature(this);
+
+    // Whatever the creature was doing, it stops: from now on it only does what its keeper asks.
+    // Clearing the actions also puts down what it was carrying.
+    clearActionQueue();
+    clearDestinations(EntityAnimation::idle_anim, true, true);
+    parkingBit = false;
+    parkedBit = false;
+    if(mDiggingEffect != nullptr)
+    {
+        removeCreatureEffect(mDiggingEffect);
+        mDiggingEffect = nullptr;
+    }
+
+    if(!player.getIsHuman())
+        return;
+
+    ServerNotification* serverNotification = new ServerNotification(
+        ServerNotificationType::possessionStarted, &player);
+    serverNotification->mPacket << getName();
+    ODServer::getSingleton().queueServerNotification(serverNotification);
+}
+
+void Creature::stopPossession(const std::string& reason)
+{
+    if(mPossessor == nullptr)
+        return;
+
+    Player* player = mPossessor;
+    mPossessor = nullptr;
+    player->setPossessedCreature(nullptr);
+    OD_LOG_INF("creature=" + getName() + " no longer possessed: " + reason);
+
+    // The creature goes back to deciding what to do by itself, from scratch
+    clearActionQueue();
+    if(getIsOnMap() && isAlive())
+        clearDestinations(EntityAnimation::idle_anim, true, true);
+
+    if(!player->getIsHuman())
+        return;
+
+    ServerNotification* serverNotification = new ServerNotification(
+        ServerNotificationType::possessionEnded, player);
+    serverNotification->mPacket << getName() << reason;
+    ODServer::getSingleton().queueServerNotification(serverNotification);
+}
+
+std::string Creature::getPossessionEndReason() const
+{
+    if(!getIsOnMap())
+        return "it was picked up";
+
+    if(!isAlive())
+        return "it died";
+
+    if(isKo())
+        return "it was knocked out";
+
+    if(mSeatPrison != nullptr)
+        return "it was imprisoned";
+
+    if(getSeat() != mPossessor->getSeat())
+        return "it left your side";
+
+    return std::string();
+}
+
+void Creature::doPossessedUpkeep()
+{
+    // The creature may have turned rogue earlier in this upkeep
+    std::string reason = getPossessionEndReason();
+    if(!reason.empty())
+    {
+        stopPossession(reason);
+        return;
+    }
+
+    int32_t manaPerTurn = ConfigManager::getSingleton().getSpellConfigInt32("PossessCreatureManaPerTurn");
+    if(!getSeat()->takeMana(manaPerTurn))
+    {
+        stopPossession("you ran out of mana");
+        return;
+    }
+
+    Tile* myTile = getPositionTile();
+    if(myTile == nullptr)
+    {
+        OD_LOG_ERR("creature=" + getName() + ", position=" + Helper::toString(getPosition()));
+        return;
+    }
+
+    // Walking over gold picks it up, as much as the creature can carry
+    int32_t maxGoldCarryable = getDefinition()->getMaxGoldCarryable();
+    for(GameEntity* entity : myTile->getEntitiesInTile())
+    {
+        if(mGoldCarried >= maxGoldCarryable)
+            break;
+
+        if(entity->getObjectType() != GameEntityType::treasuryObject)
+            continue;
+
+        TreasuryObject* treasuryObject = static_cast<TreasuryObject*>(entity);
+        mGoldCarried += treasuryObject->stealGold(*this, maxGoldCarryable - mGoldCarried);
+    }
+
+    // and walking into one of the keeper's rooms that stores gold leaves it there
+    Room* room = myTile->getCoveringRoom();
+    if((mGoldCarried > 0) && (room != nullptr) && (room->getSeat() == getSeat()))
+        mGoldCarried -= room->depositGold(mGoldCarried, myTile);
+}
+
+bool Creature::possessedMoveTo(const Ogre::Vector2& dest)
+{
+    if((mPossessor == nullptr) || !getIsOnMap() || !isAlive())
+        return false;
+
+    const Ogre::Vector3& position = getPosition();
+    Ogre::Vector2 start(position.x, position.y);
+    Ogre::Vector2 path = dest - start;
+    Ogre::Real length = path.length();
+
+    // The client runs ahead of the server by the network delay and up to a turn of walking, as
+    // the server only moves creatures at each turn. Anything farther is not a walk.
+    Ogre::Real maxLength = static_cast<Ogre::Real>(getMoveSpeed() * ODApplication::turnsPerSecond * 2.0 + 1.0);
+    if(length > maxLength)
+        return false;
+
+    // Creatures go straight from a point of their walk path to the next, so every tile on the way
+    // has to be one this creature can walk on
+    int32_t nbSteps = static_cast<int32_t>(length / 0.1f) + 1;
+    for(int32_t step = 1; step <= nbSteps; ++step)
+    {
+        Ogre::Vector2 point = start + path * (static_cast<Ogre::Real>(step) / static_cast<Ogre::Real>(nbSteps));
+        Tile* tile = getGameMap()->getTile(Helper::round(point.x), Helper::round(point.y));
+        if(tile == nullptr)
+            return false;
+
+        if(tile->isFullTile())
+            return false;
+
+        if(!canGoThroughTile(tile))
+            return false;
+    }
+
+    std::vector<Ogre::Vector2> walkPath;
+    walkPath.push_back(dest);
+    setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, walkPath, false);
+    return true;
+}
+
+void Creature::possessedAct(Ogre::Real yaw)
+{
+    if((mPossessor == nullptr) || !getIsOnMap() || !isAlive())
+        return;
+
+    int64_t turn = getGameMap()->getTurnNumber();
+    if(turn == mPossessionLastActionTurn)
+        return;
+
+    Ogre::Vector2 facing(-std::sin(yaw), std::cos(yaw));
+    if(!isWarmup() && possessedAttack(facing))
+    {
+        mPossessionLastActionTurn = turn;
+        return;
+    }
+
+    if(possessedWork(facing))
+        mPossessionLastActionTurn = turn;
+}
+
+bool Creature::possessedAttack(const Ogre::Vector2& facing)
+{
+    Tile* myTile = getPositionTile();
+    if(myTile == nullptr)
+        return false;
+
+    const Ogre::Vector3& position = getPosition();
+    GameEntity* bestEntity = nullptr;
+    Tile* bestTile = nullptr;
+    CreatureSkillData* bestSkillData = nullptr;
+    int bestDist = -1;
+    // The enemies seen at the beginning of the turn may have been removed since, so they are
+    // looked up again
+    std::vector<GameEntity*> enemies = getVisibleEnemyObjects();
+    for(GameEntity* entity : enemies)
+    {
+        // The skill ready to use that reaches the farthest
+        double rangeMax = 0.0;
+        CreatureSkillData* skillData = nullptr;
+        for(CreatureSkillData& skillDataTmp : mSkillData)
+        {
+            if(skillDataTmp.mCooldown > 0)
+                continue;
+
+            if(!skillDataTmp.mSkill->canBeUsedBy(this))
+                continue;
+
+            double range = skillDataTmp.mSkill->getRangeMax(this, entity);
+            if(range <= rangeMax)
+                continue;
+
+            rangeMax = range;
+            skillData = &skillDataTmp;
+        }
+
+        if(skillData == nullptr)
+            continue;
+
+        for(Tile* tile : entity->getCoveredTiles())
+        {
+            int dist = Pathfinding::squaredDistanceTile(*tile, *myTile);
+            if(dist > rangeMax * rangeMax)
+                continue;
+
+            if(dist > 0)
+            {
+                // The target has to be in front of the creature: roughly under the crosshair, or
+                // anywhere in front when it is right next to it
+                Ogre::Vector2 toTarget(static_cast<Ogre::Real>(tile->getX()) - position.x,
+                    static_cast<Ogre::Real>(tile->getY()) - position.y);
+                toTarget.normalise();
+                Ogre::Real minCos = (dist <= 2) ? 0.0f : 0.7f;
+                if(toTarget.dotProduct(facing) < minCos)
+                    continue;
+            }
+
+            if((bestDist != -1) && (dist >= bestDist))
+                continue;
+
+            bestDist = dist;
+            bestEntity = entity;
+            bestTile = tile;
+            bestSkillData = skillData;
+        }
+    }
+
+    if(bestEntity == nullptr)
+        return false;
+
+    useAttack(*bestSkillData, *bestEntity, *bestTile, getSeat()->getKoCreatures(), true);
+    return true;
+}
+
+bool Creature::possessedWork(const Ogre::Vector2& facing)
+{
+    if((mDigRate <= 0.0) && (mClaimRate <= 0.0))
+        return false;
+
+    Tile* myTile = getPositionTile();
+    if(myTile == nullptr)
+        return false;
+
+    // The wall in front is the neighbour the creature faces the most
+    Tile* tileFront = nullptr;
+    Ogre::Real bestCos = 0.7f;
+    for(Tile* tile : myTile->getAllNeighbors())
+    {
+        Ogre::Vector2 direction(static_cast<Ogre::Real>(tile->getX() - myTile->getX()),
+            static_cast<Ogre::Real>(tile->getY() - myTile->getY()));
+        direction.normalise();
+        Ogre::Real cosAngle = direction.dotProduct(facing);
+        if(cosAngle < bestCos)
+            continue;
+
+        bestCos = cosAngle;
+        tileFront = tile;
+    }
+
+    if((tileFront != nullptr) && tileFront->isFullTile())
+    {
+        const Ogre::Vector3& position = getPosition();
+        Ogre::Vector3 walkDirection(static_cast<Ogre::Real>(tileFront->getX()) - position.x,
+            static_cast<Ogre::Real>(tileFront->getY()) - position.y, 0);
+        walkDirection.normalise();
+
+        // A possessed worker digs what it faces, without the tile having to be marked first
+        if((mDigRate > 0.0) && tileFront->isDiggable(getSeat()))
+        {
+            setAnimationState(EntityAnimation::dig_anim, false, walkDirection, true);
+            TileType tileType = tileFront->getType();
+            double amountDug = tileFront->digOut(mDigRate);
+            if(amountDug <= 0.0)
+                return false;
+
+            receiveExp(1.5 * mDigRate / 20.0);
+            // Like any worker, it keeps the gold it digs until it walks into a treasury. Unlike
+            // one, it keeps all of it rather than dropping what it cannot carry: its keeper
+            // decides where it goes.
+            double digCoef = 0.0;
+            if(tileType == TileType::gold)
+                digCoef = ConfigManager::getSingleton().getDigCoefGold();
+            else if(tileType == TileType::gem)
+                digCoef = ConfigManager::getSingleton().getDigCoefGem();
+
+            int32_t gold = static_cast<int32_t>(digCoef * amountDug);
+            if(gold > 0)
+            {
+                addGoldCarried(gold);
+                getSeat()->addGoldMined(gold);
+                receiveExp(mDigRate / 20.0);
+            }
+
+            if(tileFront->getFullness() <= 0.0)
+                receiveExp(2.5);
+
+            fireCreatureSound(CreatureSound::Dig);
+            return true;
+        }
+
+        if((mClaimRate > 0.0) && myTile->isClaimedForSeat(getSeat()) && tileFront->isWallClaimable(getSeat()))
+        {
+            setAnimationState(EntityAnimation::claim_anim, false, walkDirection, true);
+            tileFront->claimForSeat(getSeat(), mClaimRate);
+            receiveExp(1.5 * mClaimRate / 20.0);
+            return true;
+        }
+    }
+
+    if((mClaimRate > 0.0) && myTile->isGroundClaimable(getSeat()))
+    {
+        setAnimationState(EntityAnimation::claim_anim, false, Ogre::Vector3::ZERO, true);
+        myTile->claimForSeat(getSeat(), mClaimRate);
+        receiveExp(1.5 * (mClaimRate / (0.35 + 0.05 * getLevel())));
+        return true;
+    }
+
+    return false;
 }

@@ -206,11 +206,36 @@ void GameEditorModeBase::onFrameStarted(const Ogre::FrameEvent& evt)
     if(mMainCullingManager != nullptr)
     {
         Ogre::Camera* cam = ODFrameListener::getSingleton().getCameraManager()->getActiveCamera();
-        mMainCullingManager->computeIntersectionPoints(cam, mCameraTilesIntersections);
+        if(mHasTileCullingFocus)
+        {
+            // In the order computeIntersectionPoints() gives the corners of an RTS view
+            const Ogre::Vector2& c = mTileCullingFocusCenter;
+            Ogre::Real h = mTileCullingFocusHalfSize;
+            mCameraTilesIntersections[0] = Ogre::Vector3(c.x + h, c.y + h, 0.0);
+            mCameraTilesIntersections[1] = Ogre::Vector3(c.x - h, c.y + h, 0.0);
+            mCameraTilesIntersections[2] = Ogre::Vector3(c.x - h, c.y - h, 0.0);
+            mCameraTilesIntersections[3] = Ogre::Vector3(c.x + h, c.y - h, 0.0);
+        }
+        else
+        {
+            mMainCullingManager->computeIntersectionPoints(cam, mCameraTilesIntersections);
+        }
         mMainCullingManager->update(cam, mCameraTilesIntersections);
     }
     if(mMiniMap != nullptr)
         mMiniMap->update(evt.timeSinceLastFrame, mCameraTilesIntersections);
+}
+
+void GameEditorModeBase::setTileCullingFocus(const Ogre::Vector2& center, Ogre::Real halfSize)
+{
+    mHasTileCullingFocus = true;
+    mTileCullingFocusCenter = center;
+    mTileCullingFocusHalfSize = halfSize;
+}
+
+void GameEditorModeBase::clearTileCullingFocus()
+{
+    mHasTileCullingFocus = false;
 }
 
 void GameEditorModeBase::receiveChat(const ChatMessage& chat)

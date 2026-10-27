@@ -58,6 +58,9 @@ const Ogre::Real DEFAULT_X_AXIS_VIEW = 25.0;
 
 const Ogre::String BACKGROUND_RECT_NAME = "BackgroundRect";
 
+//! \brief The scene node the camera hangs from while a creature is possessed
+const Ogre::String FIRST_PERSON_NODE_NAME = "FirstPerson_node";
+
 CameraManager::CameraManager(Ogre::SceneManager* sceneManager, GameMap* gm, Ogre::RenderWindow* renderWindow) :
     mCircleMode(false),
     mCatmullSplineMode(false),
@@ -269,12 +272,67 @@ void CameraManager::setRenderWindow(Ogre::RenderWindow* renderWindow)
 
 const Ogre::Vector3& CameraManager::getActiveCameraPosition() const
 {
+    // The sounds are heard from where the camera is
+    if(mIsFirstPerson)
+        return mSceneManager->getSceneNode(FIRST_PERSON_NODE_NAME)->getPosition();
+
     return getActiveCameraNode()->getPosition();
 }
 
 const Ogre::Quaternion& CameraManager::getActiveCameraOrientation() const
 {
+    if(mIsFirstPerson)
+        return mSceneManager->getSceneNode(FIRST_PERSON_NODE_NAME)->getOrientation();
+
     return getActiveCameraNode()->getOrientation();
+}
+
+void CameraManager::startFirstPerson()
+{
+    if(mIsFirstPerson)
+        return;
+
+    Ogre::SceneNode* node;
+    if(mSceneManager->hasSceneNode(FIRST_PERSON_NODE_NAME))
+        node = mSceneManager->getSceneNode(FIRST_PERSON_NODE_NAME);
+    else
+        node = mSceneManager->getRootSceneNode()->createChildSceneNode(FIRST_PERSON_NODE_NAME);
+
+    // Whatever the RTS camera was doing stops: it will be found as it was left
+    mTranslateVector = Ogre::Vector3::ZERO;
+    mTranslateVectorAccel = Ogre::Vector3::ZERO;
+    mRotateLocalVector = Ogre::Vector3::ZERO;
+    mZChange = 0.0;
+    mSwivelDegrees = 0.0;
+    mCameraIsFlying = false;
+    mCameraIsRotating = false;
+
+    mActiveCamera->detachFromParent();
+    node->attachObject(mActiveCamera);
+    mIsFirstPerson = true;
+}
+
+void CameraManager::stopFirstPerson()
+{
+    if(!mIsFirstPerson)
+        return;
+
+    mActiveCamera->detachFromParent();
+    mSceneManager->getSceneNode("RTS_node2")->attachObject(mActiveCamera);
+    mIsFirstPerson = false;
+}
+
+void CameraManager::setFirstPersonView(const Ogre::Vector3& position, Ogre::Real yaw, Ogre::Real pitch)
+{
+    if(!mIsFirstPerson)
+        return;
+
+    // A camera looks along its -Z axis. Turning it a quarter around X makes it look along +Y,
+    // with +Z up, then pitch tilts it up or down and yaw turns it around the vertical axis.
+    Ogre::SceneNode* node = mSceneManager->getSceneNode(FIRST_PERSON_NODE_NAME);
+    node->setPosition(position);
+    node->setOrientation(Ogre::Quaternion(Ogre::Radian(yaw), Ogre::Vector3::UNIT_Z)
+        * Ogre::Quaternion(Ogre::Radian(Ogre::Math::HALF_PI + pitch), Ogre::Vector3::UNIT_X));
 }
 
 Ogre::SceneNode* CameraManager::setActiveCameraNode(const Ogre::String& ss)
@@ -300,6 +358,10 @@ void CameraManager::setActiveCamera(const Ogre::String& ss)
 
 void CameraManager::updateCameraFrameTime(const Ogre::Real frameTime)
 {
+    // The first person camera is placed by the possession, not by the RTS controls
+    if(mIsFirstPerson)
+        return;
+
     if (!isCameraMovingAtAll())
         return;
 
@@ -636,6 +698,9 @@ void CameraManager::flyTo(const Ogre::Vector3& destination)
 
 void CameraManager::onMiniMapClick(Ogre::Vector2 cc)
 {
+    if(mIsFirstPerson)
+        return;
+
     flyTo(Ogre::Vector3(cc.x, cc.y, 0.0));
 }
 

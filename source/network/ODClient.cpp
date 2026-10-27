@@ -627,6 +627,14 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
                 break;
             }
 
+            // The creature the local player possesses is walked by this client, ahead of the
+            // server: following the server would pull it back to where the server has it
+            if((frameListener->getModeManager()->getCurrentModeType() == ModeManager::GAME) &&
+               (static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode())->getPossessedCreatureName() == objName))
+            {
+                break;
+            }
+
             std::vector<Ogre::Vector2> path;
                         
             while(nbDest > 0)
@@ -735,6 +743,44 @@ bool ODClient::processMessage(ServerNotificationType cmd, ODPacket& packetReceiv
             OD_ASSERT_TRUE(packetReceived >> goalsString);
 
             refreshMainUI(goalsString);
+            break;
+        }
+
+        case ServerNotificationType::possessionStarted:
+        {
+            std::string creatureName;
+            OD_ASSERT_TRUE(packetReceived >> creatureName);
+            if(frameListener->getModeManager()->getCurrentModeType() == ModeManager::GAME)
+                static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode())->startPossession(creatureName);
+            break;
+        }
+
+        case ServerNotificationType::possessionEnded:
+        {
+            std::string creatureName;
+            std::string reason;
+            OD_ASSERT_TRUE(packetReceived >> creatureName >> reason);
+            if(frameListener->getModeManager()->getCurrentModeType() != ModeManager::GAME)
+                break;
+
+            // The player may have left this creature and taken another one since
+            GameMode* gameMode = static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode());
+            if(gameMode->getPossessedCreatureName() == creatureName)
+                gameMode->stopPossession(reason);
+            break;
+        }
+
+        case ServerNotificationType::possessionCorrection:
+        {
+            std::string creatureName;
+            Ogre::Vector2 position;
+            OD_ASSERT_TRUE(packetReceived >> creatureName >> position);
+            if(frameListener->getModeManager()->getCurrentModeType() != ModeManager::GAME)
+                break;
+
+            GameMode* gameMode = static_cast<GameMode*>(frameListener->getModeManager()->getCurrentMode());
+            if(gameMode->getPossessedCreatureName() == creatureName)
+                gameMode->correctPossessionPosition(position);
             break;
         }
 

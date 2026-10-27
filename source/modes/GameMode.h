@@ -27,6 +27,7 @@
 
 #include "utils/ConfigManager.h"
 #include <CEGUI/EventArgs.h>
+#include <OgreVector.h>
 #include <memory>
 
 namespace CEGUI
@@ -204,6 +205,21 @@ class GameMode final : public GameEditorModeBase, public InputCommand
     void refreshSpellCooldownText();
 
     Creature* getClosestCreature(Tile*);
+
+    //! \brief Called when the server says that the local player now possesses the given
+    //! creature: the camera goes to its eyes and the keyboard and mouse steer it.
+    void startPossession(const std::string& creatureName);
+
+    //! \brief Gives the RTS view back. The reason, if any, is shown to the player.
+    void stopPossession(const std::string& reason);
+
+    //! \brief Called when the server did not follow where the possessed creature was walked:
+    //! it is put back where the server has it.
+    void correctPossessionPosition(const Ogre::Vector2& position);
+
+    //! \brief The creature the local player possesses, empty if none
+    inline const std::string& getPossessedCreatureName() const
+    { return mPossessedCreatureName; }
     
 protected:
     bool onClickYesQuitMenu(const CEGUI::EventArgs& /*arg*/);
@@ -317,6 +333,40 @@ private:
     bool mIndicatorLeftAltDown = false;
     //! \brief Whether the right Alt key is currently held, as far as the indicator toggle knows
     bool mIndicatorRightAltDown = false;
+
+    //! \brief See getPossessedCreatureName()
+    std::string mPossessedCreatureName;
+    //! \brief Where the possessed creature looks: yaw in radians, 0 looking along +Y and growing
+    //! counterclockwise, and pitch in radians, positive looking up
+    Ogre::Real mPossessionYaw = 0.0;
+    Ogre::Real mPossessionPitch = 0.0;
+    //! \brief How high above the ground the creature's eyes are
+    Ogre::Real mPossessionEyeHeight = 0.0;
+    //! \brief Time left before the position of the possessed creature is sent again
+    Ogre::Real mPossessionMoveTimer = 0.0;
+    //! \brief The last position of the possessed creature sent to the server
+    Ogre::Vector2 mPossessionLastSentPosition = Ogre::Vector2::ZERO;
+    //! \brief Whether the left mouse button is held: the creature keeps acting while it is
+    bool mPossessionActionHeld = false;
+    //! \brief Time left before the next action is asked for while the button is held
+    Ogre::Real mPossessionActionTimer = 0.0;
+
+    //! \brief Called at each frame while a creature is possessed. Walks it according to the
+    //! keys held, places the camera and keeps the server informed.
+    void updatePossession(Ogre::Real timeSinceLastFrame);
+
+    //! \brief Leaves the possessed creature at the player's request
+    void leavePossession();
+
+    //! \brief The creature the local player possesses, nullptr if none or if it is no longer
+    //! known on this client
+    Creature* getPossessedCreature() const;
+
+    //! \brief Whether the possessed creature can stand at the given point
+    bool canPossessedCreatureStandAt(Creature& creature, const Ogre::Vector2& point) const;
+
+    //! \brief Writes the text shown while a creature is possessed
+    void refreshPossessionText(Creature& creature);
 };
 
 #endif // GAMEMODE_H
