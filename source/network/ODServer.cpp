@@ -1594,6 +1594,52 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             break;
         }
 
+        case ClientNotificationType::askPossessionMove:
+        {
+            Ogre::Vector2 dest;
+            OD_ASSERT_TRUE(packetReceived >> dest);
+            Player* player = clientSocket->getPlayer();
+            Creature* creature = player->getPossessedCreature();
+            // The possession may have ended while the message was on its way
+            if(creature == nullptr)
+                break;
+
+            if(creature->possessedMoveTo(dest))
+                break;
+
+            // The client walked the creature where it cannot go from where the server has it:
+            // it is put back there
+            ServerNotification notif(ServerNotificationType::possessionCorrection, player);
+            const Ogre::Vector3& position = creature->getPosition();
+            notif.mPacket << creature->getName() << Ogre::Vector2(position.x, position.y);
+            sendAsyncMsg(notif);
+            break;
+        }
+
+        case ClientNotificationType::askPossessionAction:
+        {
+            float yaw;
+            OD_ASSERT_TRUE(packetReceived >> yaw);
+            Player* player = clientSocket->getPlayer();
+            Creature* creature = player->getPossessedCreature();
+            if(creature == nullptr)
+                break;
+
+            creature->possessedAct(yaw);
+            break;
+        }
+
+        case ClientNotificationType::askPossessionExit:
+        {
+            Player* player = clientSocket->getPlayer();
+            Creature* creature = player->getPossessedCreature();
+            if(creature == nullptr)
+                break;
+
+            creature->stopPossession("you left it");
+            break;
+        }
+
         case ClientNotificationType::askSellTrapTiles:
         {
             Player* player = clientSocket->getPlayer();

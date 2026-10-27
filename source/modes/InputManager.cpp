@@ -156,7 +156,7 @@ void InputManager::refreshSettings()
 {
     // Called before capturing input, never from inside an OIS callback.
     ConfigManager& config = ConfigManager::getSingleton();
-    const bool mouseGrab = config.getInputValue(Config::MOUSE_GRAB, "No", false) == "Yes";
+    const bool mouseGrab = mForceMouseGrab || (config.getInputValue(Config::MOUSE_GRAB, "No", false) == "Yes");
     const bool keyboardGrab = config.getInputValue(Config::KEYBOARD_GRAB, "No", false) == "Yes";
     if(mouseGrab == mMouseGrab && keyboardGrab == mKeyboardGrab)
         return;

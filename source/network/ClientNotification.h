@@ -82,7 +82,14 @@ enum class ClientNotificationType
     editorSetPortalWaveData,
 
     // Append new messages to preserve existing network and replay identifiers.
-    changeNick
+    changeNick,
+
+    //! \brief The player walks the creature they possess to a point (x, y), facing yaw
+    askPossessionMove,
+    //! \brief The player acts with the creature they possess (attack, dig, claim), facing yaw
+    askPossessionAction,
+    //! \brief The player leaves the creature they possess
+    askPossessionExit
 };
 
 ODPacket& operator<<(ODPacket& os, const ClientNotificationType& nt);

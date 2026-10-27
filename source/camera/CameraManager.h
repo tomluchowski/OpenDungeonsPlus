@@ -178,6 +178,19 @@ public:
         mYHCS.addNode(YNode);
     }
 
+    //! \brief Moves the camera to a first person node, for the possession spell. The RTS camera
+    //! node is left where it is, so stopFirstPerson() gives back the view the player had.
+    //! While the camera is in first person, the RTS movements do nothing.
+    void startFirstPerson();
+    void stopFirstPerson();
+
+    inline bool isFirstPerson() const
+    { return mIsFirstPerson; }
+
+    //! \brief Places the first person camera at position, looking towards yaw (in radians, 0
+    //! looking along +Y and growing counterclockwise) and pitch (in radians, positive looking up).
+    void setFirstPersonView(const Ogre::Vector3& position, Ogre::Real yaw, Ogre::Real pitch);
+
     //! \brief Makes the RTS camera use the corresponding default viewpoint.
     void setDefaultView();
     void setDefaultIsometricView();
@@ -275,6 +288,9 @@ private:
     //! \brief User-tunable multiplier on the keyboard/autoscroll pan speed
     //! (1.0 keeps the historic speed). Set from the settings window.
     Ogre::Real mPanSpeedFactor;
+
+    //! \brief Whether the camera is on the first person node, see startFirstPerson()
+    bool mIsFirstPerson = false;
 };
 
 #endif // CAMERAMANAGER_H_
