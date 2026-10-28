@@ -43,6 +43,10 @@ public:
     //! what the tiles look like) as well as on the server map.
     static bool canSoftenTile(const GameMap* gameMap, const Tile* tile, const Seat* seat);
 
+    //! \brief Why the given seat cannot soften the given tile, to tell the player, or an empty
+    //! string if it can.
+    static std::string getRefusalReason(const GameMap* gameMap, const Tile* tile, const Seat* seat);
+
     static const SpellType mSpellType;
 };
 

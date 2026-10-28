@@ -70,17 +70,22 @@ static SpellRegister reg(new SpellSoftenRockFactory);
 
 bool SpellSoftenRock::canSoftenTile(const GameMap* gameMap, const Tile* tile, const Seat* seat)
 {
+    return getRefusalReason(gameMap, tile, seat).empty();
+}
+
+std::string SpellSoftenRock::getRefusalReason(const GameMap* gameMap, const Tile* tile, const Seat* seat)
+{
     // The client only knows what its tiles look like, so this is decided from the tile visual
     // on both sides. Only a full rock wall is undiggable: rock ground can already be walked on.
     if(tile->getTileVisual() != TileVisual::rockFull)
-        return false;
+        return "point at a rock wall";
 
     // The rock around the map holds everything in. Opening it would let creatures walk to the
     // edge of the world.
     if((tile->getX() <= 0) || (tile->getY() <= 0) ||
        (tile->getX() >= gameMap->getMapSizeX() - 1) || (tile->getY() >= gameMap->getMapSizeY() - 1))
     {
-        return false;
+        return "the rock around the map cannot be softened";
     }
 
     // The rock has to touch the caster's territory, the way a worker can only claim a wall next
@@ -93,10 +98,10 @@ bool SpellSoftenRock::canSoftenTile(const GameMap* gameMap, const Tile* tile, co
         if(!neighbor->isClaimedForSeat(seat))
             continue;
 
-        return true;
+        return std::string();
     }
 
-    return false;
+    return "the rock must touch ground you have claimed";
 }
 
 void SpellSoftenRock::checkSpellCast(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand)
@@ -104,18 +109,23 @@ void SpellSoftenRock::checkSpellCast(GameMap* gameMap, const InputManager& input
     Player* player = gameMap->getLocalPlayer();
     int32_t pricePerTile = ConfigManager::getSingleton().getSpellConfigInt32("SoftenRockPrice");
     int32_t playerMana = static_cast<int32_t>(player->getSeat()->getMana());
+    // Most rock does not qualify, so the player is told why the wall pointed at cannot be
+    // softened rather than seeing nothing happen
+    Tile* tilePointed = gameMap->getTile(inputManager.mXPos, inputManager.mYPos);
+    std::string refusalReason;
+    if(tilePointed != nullptr)
+        refusalReason = getRefusalReason(gameMap, tilePointed, player->getSeat());
+
     if(inputManager.mCommandState == InputCommandState::infoOnly)
     {
-        if(playerMana < pricePerTile)
-        {
-            std::string txt = formatCastSpell(SpellType::softenRock, pricePerTile);
+        std::string txt = formatCastSpell(SpellType::softenRock, pricePerTile);
+        if(!refusalReason.empty())
+            inputCommand.displayText(Ogre::ColourValue::Red, txt + ": " + refusalReason);
+        else if(playerMana < pricePerTile)
             inputCommand.displayText(Ogre::ColourValue::Red, txt);
-        }
         else
-        {
-            std::string txt = formatCastSpell(SpellType::softenRock, pricePerTile);
             inputCommand.displayText(Ogre::ColourValue::White, txt);
-        }
+
         inputCommand.selectSquaredTiles(inputManager.mXPos, inputManager.mYPos, inputManager.mXPos,
             inputManager.mYPos);
         return;
@@ -143,7 +153,10 @@ void SpellSoftenRock::checkSpellCast(GameMap* gameMap, const InputManager& input
     if(inputManager.mCommandState == InputCommandState::building)
     {
         std::string txt = formatCastSpell(SpellType::softenRock, priceTotal);
-        inputCommand.displayText(Ogre::ColourValue::White, txt);
+        if(tiles.empty() && !refusalReason.empty())
+            inputCommand.displayText(Ogre::ColourValue::Red, txt + ": " + refusalReason);
+        else
+            inputCommand.displayText(Ogre::ColourValue::White, txt);
         inputCommand.selectTiles(tiles);
         return;
     }
