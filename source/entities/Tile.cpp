@@ -2003,21 +2003,6 @@ void Tile::computeVisibleTiles()
     }
 }
 
-bool Tile::softenRock()
-{
-    if((getType() != TileType::rock) || (getFullness() <= 0.0))
-    {
-        OD_LOG_ERR("Cannot soften tile=" + Tile::displayAsString(this) + ", visual=" + tileVisualToString(getTileVisual()));
-        return false;
-    }
-
-    setType(TileType::dirt);
-    computeTileVisual();
-    setDirtyForAllSeats();
-    fireTileSound(TileSound::Digged);
-    return true;
-}
-
 void Tile::setDirtyForAllSeats()
 {
     if(!getIsOnServerMap())

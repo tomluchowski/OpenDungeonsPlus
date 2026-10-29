@@ -192,13 +192,13 @@
                 <Property name="ProgressImage" value="OpenDungeonsSkin/SelectionBrush" />
             </Window>
         </Window>
-        <Window type="OD/GameTabButton" name="SpellSoftenRockButton" >
+        <Window type="OD/GameTabButton" name="SpellBreakWallButton" >
             <Property name="Area" value="{{0,300},{0,10},{0,340},{0,50}}" />
-            <Property name="NormalImage" value="OpenDungeonsIcons/SpellSoftenRockButton" />
+            <Property name="NormalImage" value="OpenDungeonsIcons/SpellBreakWallButton" />
             <Property name="TooltipText" value="Turns rock into earth that workers can dig. Target: rock walls next to claimed ground" />
             <Property name="InheritsAlpha" value="False" />
             <Property name="Visible" value="False" />
-            <Window type="OD/ProgressBar" name="SpellSoftenRockButtonProgressBar" >
+            <Window type="OD/ProgressBar" name="SpellBreakWallButtonProgressBar" >
                 <Property name="Area" value="{{0,0},{0,0},{1,0},{1,0}}" />
                 <Property name="InheritsTooltipText" value="True" />
                 <Property name="CurrentProgress" value="0.0" />

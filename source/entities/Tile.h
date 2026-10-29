@@ -348,10 +348,6 @@ public:
     void unclaimTile();
     double digOut(double digRate);
 
-    //! \brief Turns a rock wall into an earth wall of the same fullness, which workers can dig.
-    //! Returns false, changing nothing, when the tile is not a rock wall.
-    bool softenRock();
-
     inline Building* getCoveringBuilding() const
     { return mCoveringBuilding; }
 

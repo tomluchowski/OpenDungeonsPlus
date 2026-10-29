@@ -15,7 +15,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "spells/SpellSoftenRock.h"
+#include "spells/SpellBreakWall.h"
 
 #include "entities/Tile.h"
 #include "game/Player.h"
@@ -30,95 +30,82 @@
 #include "utils/Helper.h"
 #include "utils/LogManager.h"
 
-const std::string SpellSoftenRockName = "softenRock";
-const std::string SpellSoftenRockNameDisplay = "Soften rock";
-const std::string SpellSoftenRockCooldownKey = "SoftenRockCooldown";
-const SpellType SpellSoftenRock::mSpellType = SpellType::softenRock;
+const std::string SpellBreakWallName = "breakWall";
+const std::string SpellBreakWallNameDisplay = "Break wall";
+const std::string SpellBreakWallCooldownKey = "BreakWallCooldown";
+const SpellType SpellBreakWall::mSpellType = SpellType::breakWall;
 
 namespace
 {
-class SpellSoftenRockFactory : public SpellFactory
+class SpellBreakWallFactory : public SpellFactory
 {
     SpellType getSpellType() const override
-    { return SpellSoftenRock::mSpellType; }
+    { return SpellBreakWall::mSpellType; }
 
     const std::string& getName() const override
-    { return SpellSoftenRockName; }
+    { return SpellBreakWallName; }
 
     const std::string& getCooldownKey() const override
-    { return SpellSoftenRockCooldownKey; }
+    { return SpellBreakWallCooldownKey; }
 
     const std::string& getNameReadable() const override
-    { return SpellSoftenRockNameDisplay; }
+    { return SpellBreakWallNameDisplay; }
 
     virtual void checkSpellCast(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand) const override
-    { SpellSoftenRock::checkSpellCast(gameMap, inputManager, inputCommand); }
+    { SpellBreakWall::checkSpellCast(gameMap, inputManager, inputCommand); }
 
     virtual bool castSpell(GameMap* gameMap, Player* player, ODPacket& packet) const override
-    { return SpellSoftenRock::castSpell(gameMap, player, packet); }
+    { return SpellBreakWall::castSpell(gameMap, player, packet); }
 
     Spell* getSpellFromStream(GameMap* gameMap, std::istream &is) const override
-    { return SpellSoftenRock::getSpellFromStream(gameMap, is); }
+    { return SpellBreakWall::getSpellFromStream(gameMap, is); }
 
     Spell* getSpellFromPacket(GameMap* gameMap, ODPacket &is) const override
-    { return SpellSoftenRock::getSpellFromPacket(gameMap, is); }
+    { return SpellBreakWall::getSpellFromPacket(gameMap, is); }
 };
 
 // Register the factory
-static SpellRegister reg(new SpellSoftenRockFactory);
+static SpellRegister reg(new SpellBreakWallFactory);
 }
 
-bool SpellSoftenRock::canSoftenTile(const GameMap* gameMap, const Tile* tile, const Seat* seat)
+bool SpellBreakWall::canBreakTile(Tile* tile, Seat* seat)
 {
-    return getRefusalReason(gameMap, tile, seat).empty();
+    return getRefusalReason(tile, seat).empty();
 }
 
-std::string SpellSoftenRock::getRefusalReason(const GameMap* gameMap, const Tile* tile, const Seat* seat)
+std::string SpellBreakWall::getRefusalReason(Tile* tile, Seat* seat)
 {
     // The client only knows what its tiles look like, so this is decided from the tile visual
-    // on both sides. Only a full rock wall is undiggable: rock ground can already be walked on.
-    if(tile->getTileVisual() != TileVisual::rockFull)
-        return "point at a rock wall";
+    // on both sides
+    if(tile->getTileVisual() != TileVisual::claimedFull)
+        return "point at a reinforced wall";
 
-    // The rock around the map holds everything in. Opening it would let creatures walk to the
-    // edge of the world.
-    if((tile->getX() <= 0) || (tile->getY() <= 0) ||
-       (tile->getX() >= gameMap->getMapSizeX() - 1) || (tile->getY() >= gameMap->getMapSizeY() - 1))
-    {
-        return "the rock around the map cannot be softened";
-    }
+    // The caster's own walls, and its allies', can already be dug by its workers
+    Seat* tileSeat = tile->getSeat();
+    if((tileSeat == nullptr) || !tileSeat->canOwnedTileBeClaimedBy(seat))
+        return "the wall must belong to an enemy";
 
-    // The rock has to touch the caster's territory, the way a worker can only claim a wall next
-    // to claimed ground: the spell is for widening a dungeon, not for opening a way anywhere.
-    for(const Tile* neighbor : tile->getAllNeighbors())
-    {
-        if(neighbor->isFullTile())
-            continue;
+    if(!seat->hasVisionOnTile(tile))
+        return "you must see the wall";
 
-        if(!neighbor->isClaimedForSeat(seat))
-            continue;
-
-        return std::string();
-    }
-
-    return "the rock must touch ground you have claimed";
+    return std::string();
 }
 
-void SpellSoftenRock::checkSpellCast(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand)
+void SpellBreakWall::checkSpellCast(GameMap* gameMap, const InputManager& inputManager, InputCommand& inputCommand)
 {
     Player* player = gameMap->getLocalPlayer();
-    int32_t pricePerTile = ConfigManager::getSingleton().getSpellConfigInt32("SoftenRockPrice");
+    int32_t pricePerTile = ConfigManager::getSingleton().getSpellConfigInt32("BreakWallPrice");
     int32_t playerMana = static_cast<int32_t>(player->getSeat()->getMana());
-    // Most rock does not qualify, so the player is told why the wall pointed at cannot be
-    // softened rather than seeing nothing happen
+    // The player is told why the wall pointed at cannot be broken rather than seeing nothing
+    // happen
     Tile* tilePointed = gameMap->getTile(inputManager.mXPos, inputManager.mYPos);
     std::string refusalReason;
     if(tilePointed != nullptr)
-        refusalReason = getRefusalReason(gameMap, tilePointed, player->getSeat());
+        refusalReason = getRefusalReason(tilePointed, player->getSeat());
 
     if(inputManager.mCommandState == InputCommandState::infoOnly)
     {
-        std::string txt = formatCastSpell(SpellType::softenRock, pricePerTile);
+        std::string txt = formatCastSpell(SpellType::breakWall, pricePerTile);
         if(!refusalReason.empty())
             inputCommand.displayText(Ogre::ColourValue::Red, txt + ": " + refusalReason);
         else if(playerMana < pricePerTile)
@@ -131,7 +118,7 @@ void SpellSoftenRock::checkSpellCast(GameMap* gameMap, const InputManager& input
         return;
     }
 
-    // Rock walls are what this spell is cast on, and GameMap::playerSelects() only ever selects
+    // Walls are what this spell is cast on, and GameMap::playerSelects() only ever selects
     // ground, so the tiles are picked here.
     std::vector<Tile*> tilesRegion = gameMap->rectangularRegion(inputManager.mXPos, inputManager.mYPos,
         inputManager.mLStartDragX, inputManager.mLStartDragY);
@@ -139,7 +126,7 @@ void SpellSoftenRock::checkSpellCast(GameMap* gameMap, const InputManager& input
     std::vector<Tile*> tiles;
     for(Tile* tile : tilesRegion)
     {
-        if(!canSoftenTile(gameMap, tile, player->getSeat()))
+        if(!canBreakTile(tile, player->getSeat()))
             continue;
 
         int32_t newPrice = priceTotal + pricePerTile;
@@ -152,7 +139,7 @@ void SpellSoftenRock::checkSpellCast(GameMap* gameMap, const InputManager& input
 
     if(inputManager.mCommandState == InputCommandState::building)
     {
-        std::string txt = formatCastSpell(SpellType::softenRock, priceTotal);
+        std::string txt = formatCastSpell(SpellType::breakWall, priceTotal);
         if(tiles.empty() && !refusalReason.empty())
             inputCommand.displayText(Ogre::ColourValue::Red, txt + ": " + refusalReason);
         else
@@ -166,7 +153,7 @@ void SpellSoftenRock::checkSpellCast(GameMap* gameMap, const InputManager& input
     if(tiles.empty())
         return;
 
-    ClientNotification *clientNotification = SpellManager::createSpellClientNotification(SpellType::softenRock);
+    ClientNotification *clientNotification = SpellManager::createSpellClientNotification(SpellType::breakWall);
     uint32_t nbTiles = tiles.size();
     clientNotification->mPacket << nbTiles;
     for(Tile* tile : tiles)
@@ -175,7 +162,7 @@ void SpellSoftenRock::checkSpellCast(GameMap* gameMap, const InputManager& input
     ODClient::getSingleton().queueClientNotification(clientNotification);
 }
 
-bool SpellSoftenRock::castSpell(GameMap* gameMap, Player* player, ODPacket& packet)
+bool SpellBreakWall::castSpell(GameMap* gameMap, Player* player, ODPacket& packet)
 {
     uint32_t nbTiles;
     OD_ASSERT_TRUE(packet >> nbTiles);
@@ -188,9 +175,9 @@ bool SpellSoftenRock::castSpell(GameMap* gameMap, Player* player, ODPacket& pack
             return false;
 
         // The client decided from what it saw, which may be a turn old: the server checks again.
-        if(!canSoftenTile(gameMap, tile, player->getSeat()))
+        if(!canBreakTile(tile, player->getSeat()))
         {
-            OD_LOG_WRN("Cannot soften tile=" + Tile::displayAsString(tile) + " for seatId="
+            OD_LOG_WRN("Cannot break tile=" + Tile::displayAsString(tile) + " for seatId="
                 + Helper::toString(player->getSeat()->getId()));
             continue;
         }
@@ -201,7 +188,7 @@ bool SpellSoftenRock::castSpell(GameMap* gameMap, Player* player, ODPacket& pack
     if(tiles.empty())
         return false;
 
-    int32_t pricePerTile = ConfigManager::getSingleton().getSpellConfigInt32("SoftenRockPrice");
+    int32_t pricePerTile = ConfigManager::getSingleton().getSpellConfigInt32("BreakWallPrice");
     int32_t playerMana = static_cast<int32_t>(player->getSeat()->getMana());
     int32_t nbAffordable = (pricePerTile > 0) ? (playerMana / pricePerTile) : static_cast<int32_t>(tiles.size());
     if(nbAffordable <= 0)
@@ -213,26 +200,26 @@ bool SpellSoftenRock::castSpell(GameMap* gameMap, Player* player, ODPacket& pack
     if(!player->getSeat()->takeMana(static_cast<double>(pricePerTile) * static_cast<double>(tiles.size())))
         return false;
 
-    // The walls keep their fullness: they only become earth, which the workers dig out at the
-    // usual pace once the player marks them.
+    // The walls keep their fullness: they only lose their owner, and the workers dig them out at
+    // the usual pace once the player marks them.
     for(Tile* tile : tiles)
     {
-        OD_LOG_INF("Softening rock tile=" + Tile::displayAsString(tile) + " for seatId="
+        OD_LOG_INF("Breaking wall tile=" + Tile::displayAsString(tile) + " for seatId="
             + Helper::toString(player->getSeat()->getId()));
-        tile->softenRock();
+        tile->unclaimTile();
     }
 
     return true;
 }
 
-Spell* SpellSoftenRock::getSpellFromStream(GameMap* gameMap, std::istream &is)
+Spell* SpellBreakWall::getSpellFromStream(GameMap* gameMap, std::istream &is)
 {
-    OD_LOG_ERR("SpellSoftenRock cannot be read from stream");
+    OD_LOG_ERR("SpellBreakWall cannot be read from stream");
     return nullptr;
 }
 
-Spell* SpellSoftenRock::getSpellFromPacket(GameMap* gameMap, ODPacket &is)
+Spell* SpellBreakWall::getSpellFromPacket(GameMap* gameMap, ODPacket &is)
 {
-    OD_LOG_ERR("SpellSoftenRock cannot be read from packet");
+    OD_LOG_ERR("SpellBreakWall cannot be read from packet");
     return nullptr;
 }

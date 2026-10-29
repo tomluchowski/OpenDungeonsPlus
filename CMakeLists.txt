@@ -477,7 +477,7 @@ set(OD_SOURCEFILES
     ${SRC}/spells/SpellCreatureWeak.cpp
     ${SRC}/spells/SpellEyeEvil.cpp
     ${SRC}/spells/SpellManager.cpp
-    ${SRC}/spells/SpellSoftenRock.cpp
+    ${SRC}/spells/SpellBreakWall.cpp
     ${SRC}/spells/SpellSummonWorker.cpp
     ${SRC}/spells/SpellType.cpp
 

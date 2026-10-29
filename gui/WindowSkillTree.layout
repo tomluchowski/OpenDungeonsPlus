@@ -480,11 +480,11 @@
                         <Property name="ReversedProgress" value="True" />
                     </Window>
                 </Window>
-                <Window type="OD/ImageButton" name="SpellSoftenRockButton" >
+                <Window type="OD/ImageButton" name="SpellBreakWallButton" >
                     <Property name="Area" value="{{0.5,-25},{0,195},{0.5,25},{0,245}}" />
-                    <Property name="ButtonImage" value="OpenDungeonsIcons/SpellSoftenRockButton" />
-                    <Property name="TooltipText" value="Spell: Soften rock into diggable earth" />
-                    <Window type="OD/ProgressBar" name="SpellSoftenRockButtonProgressBar" >
+                    <Property name="ButtonImage" value="OpenDungeonsIcons/SpellBreakWallButton" />
+                    <Property name="TooltipText" value="Spell: Break enemy reinforced walls" />
+                    <Window type="OD/ProgressBar" name="SpellBreakWallButtonProgressBar" >
                         <Property name="Area" value="{{0.0,-20},{0.0,0},{1.0,20},{1.0,0}}" />
                         <Property name="InheritsTooltipText" value="True" />
                         <Property name="CurrentProgress" value="0.0" />
