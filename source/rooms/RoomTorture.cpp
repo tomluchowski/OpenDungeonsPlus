@@ -169,10 +169,39 @@ void RoomTorture::absorbRoom(Room* room)
         return;
     }
 
+    RoomTorture* roomAbs = static_cast<RoomTorture*>(room);
+
+    // Room::absorbRoom sends the creatures tortured in the absorbed room looking for a job,
+    // which for a prisoner means walking out. They are put back to torture below
+    std::vector<Creature*> prisoners;
+    for(std::pair<Tile* const,RoomTortureCreatureInfo>& p : roomAbs->mCreaturesSpots)
+    {
+        if(p.second.mCreature != nullptr)
+            prisoners.push_back(p.second.mCreature);
+    }
+
     Room::absorbRoom(room);
 
-    RoomTorture* roomAbs = static_cast<RoomTorture*>(room);
-    OD_ASSERT_TRUE_MSG(roomAbs->mCreaturesSpots.empty(), "room=" + getName() + ", roomAbs=" + roomAbs->getName());
+    // The absorbed active spots, and the torture devices on them, are ours now. Their seats
+    // must come with them: otherwise the devices are there but nobody can be put on them
+    for(std::pair<Tile* const,RoomTortureCreatureInfo>& p : roomAbs->mCreaturesSpots)
+    {
+        OD_ASSERT_TRUE_MSG(p.second.mCreature == nullptr, "room=" + getName() + ", roomAbs=" + roomAbs->getName() + ", creature=" + p.second.mCreature->getName());
+        mCreaturesSpots.emplace(std::make_pair(p.first, RoomTortureCreatureInfo()));
+    }
+    roomAbs->mCreaturesSpots.clear();
+
+    for(Creature* creature : prisoners)
+    {
+        if(!creature->isAlive() || !creature->getIsOnMap())
+            continue;
+
+        if(!hasOpenCreatureSpot(creature))
+            continue;
+
+        creature->clearActionQueue();
+        creature->pushAction(Utils::make_unique<CreatureActionUseRoom>(*creature, *this, true));
+    }
 }
 
 void RoomTorture::notifyActiveSpotRemoved(ActiveSpotPlace place, Tile* tile)
