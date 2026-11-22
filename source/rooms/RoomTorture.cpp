@@ -351,7 +351,10 @@ bool RoomTorture::useRoom(Creature& creature, bool forced)
             {
                 ServerNotification *serverNotification = new ServerNotification(
                     ServerNotificationType::chatServer, getSeat()->getPlayer());
-                std::string msg = "Your tormentors have convinced another creature how sweet it is to live under your rule";
+                // Named, because a converted creature walks out of the room as any of ours
+                // would, which is easily taken for an escape
+                std::string msg = "Your tormentors have convinced " + creature.getName()
+                    + " how sweet it is to live under your rule: it now serves you";
                 serverNotification->mPacket << msg << EventShortNoticeType::aboutCreatures;
                 ODServer::getSingleton().queueServerNotification(serverNotification);
             }
