@@ -1212,6 +1212,11 @@ void Tile::setCoveringBuilding(Building *building)
         fireTileSound(TileSound::BuildRoom);
     }
 
+    // The clients learn about bridges from the tile state they are sent. The server has to know
+    // too, as it places the creatures on them.
+    if(getIsOnServerMap())
+        setHasBridge((getCoveringRoom() != nullptr) && getCoveringRoom()->isBridge());
+
     mIsTrap = false;
     if(getCoveringTrap() != nullptr)
     {
@@ -1232,6 +1237,31 @@ void Tile::setCoveringBuilding(Building *building)
         // Set the tile as claimed and of the team color of the building
         setSeat(mCoveringBuilding->getSeat());
         mClaimedPercentage = 1.0;
+    }
+}
+
+void Tile::setHasBridge(bool hasBridge)
+{
+    if(mHasBridge == hasBridge)
+        return;
+
+    mHasBridge = hasBridge;
+    if(mEntitiesInTile.empty())
+        return;
+
+    // An entity takes the height of a tile when it steps on it. One already standing here would
+    // stay down in the water or the lava under a bridge built over it, or float where a bridge
+    // was taken away.
+    float height = getGameMap()->getHeightFromTile(this);
+    std::vector<GameEntity*> entities = mEntitiesInTile;
+    for(GameEntity* entity : entities)
+    {
+        Ogre::Vector3 position = entity->getPosition();
+        if(position.z == height)
+            continue;
+
+        position.z = height;
+        entity->setPosition(position);
     }
 }
 
@@ -1281,7 +1311,8 @@ void Tile::updateFromPacket(ODPacket& is)
 
     OD_ASSERT_TRUE(is >> mDisplayTileMesh);
     OD_ASSERT_TRUE(is >> mColorCustomMesh);
-    OD_ASSERT_TRUE(is >> mHasBridge);
+    bool hasBridge;
+    OD_ASSERT_TRUE(is >> hasBridge);
 
     OD_ASSERT_TRUE(is >> seatId);
 
@@ -1297,6 +1328,9 @@ void Tile::updateFromPacket(ODPacket& is)
     setName(ss.str());
 
     OD_ASSERT_TRUE(is >> mTileVisual);
+
+    // After the tile visual, which gives the height of the tile when there is no bridge
+    setHasBridge(hasBridge);
 
     if(seatId == -1)
     {

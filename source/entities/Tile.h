@@ -513,6 +513,10 @@ public:
     inline bool getHasBridge() const
     { return mHasBridge; }
 
+    //! \brief Sets whether a bridge stands on this tile, and moves what is on the tile to the height
+    //! it now stands at: on the bridge, or down in the water or the lava when the bridge is gone.
+    void setHasBridge(bool hasBridge);
+
     //! \brief returns true if there is a building on this tile and false otherwise.
     //! client side function
     inline bool getIsBuilding() const
