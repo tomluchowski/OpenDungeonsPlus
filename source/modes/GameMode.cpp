@@ -91,6 +91,12 @@ const Ogre::Real POSSESSION_VIEW_HALF_SIZE = 16.0f;
 const Ogre::Real POSSESSION_CREATURE_RADIUS = 0.25f;
 //! How often the position of a possessed creature is sent to the server, in seconds
 const Ogre::Real POSSESSION_MOVE_PERIOD = 0.15f;
+//! The longest step a possessed creature takes at once, in tiles, so that a long frame does not
+//! take it through a wall
+const Ogre::Real POSSESSION_MAX_STEP = 0.1f;
+//! How far apart the points sent to the server are, in tiles. The server walks the creature
+//! straight from one to the next, which has to stay clear of the walls it went round.
+const Ogre::Real POSSESSION_POINT_SPACING = 0.25f;
 //! How often a possessed creature is asked to act while the mouse button is held, in seconds.
 //! The server lets it act once per turn.
 const Ogre::Real POSSESSION_ACTION_PERIOD = 0.3f;
@@ -2209,6 +2215,7 @@ void GameMode::startPossession(const std::string& creatureName)
     mPossessionMoveTimer = 0.0;
     const Ogre::Vector3& position = creature->getPosition();
     mPossessionLastSentPosition = Ogre::Vector2(position.x, position.y);
+    mPossessionPendingPoints.clear();
 
     // The creature looks where it was going
     const Ogre::Vector3& walkDirection = creature->getWalkDirection();
@@ -2311,6 +2318,8 @@ void GameMode::correctPossessionPosition(const Ogre::Vector2& position)
 
     creature->setPosition(Ogre::Vector3(position.x, position.y, creature->getPosition().z));
     mPossessionLastSentPosition = position;
+    // The way walked since is not walked any more
+    mPossessionPendingPoints.clear();
 }
 
 Creature* GameMode::getPossessedCreature() const
@@ -2378,15 +2387,30 @@ void GameMode::updatePossession(Ogre::Real timeSinceLastFrame)
     if(!direction.isZeroLength() && (timeSinceLastFrame > 0.0))
     {
         // The client moves the creature at once, at the speed the server walks it, and sends
-        // the server where it got to. Against a wall, it slides along it.
+        // the server the way it went. Against a wall, it slides along it. A long frame is
+        // walked in short steps, each checked against the walls.
         direction.normalise();
         Ogre::Real distance = static_cast<Ogre::Real>(creature->getMoveSpeed() * ODApplication::turnsPerSecond) * timeSinceLastFrame;
-        Ogre::Vector2 step = direction * distance;
+        int32_t nbSteps = static_cast<int32_t>(std::ceil(distance / POSSESSION_MAX_STEP));
+        Ogre::Vector2 step = direction * (distance / static_cast<Ogre::Real>(std::max(nbSteps, 1)));
         Ogre::Vector2 newPosition = position;
-        if(canPossessedCreatureStandAt(*creature, Ogre::Vector2(newPosition.x + step.x, newPosition.y)))
-            newPosition.x += step.x;
-        if(canPossessedCreatureStandAt(*creature, Ogre::Vector2(newPosition.x, newPosition.y + step.y)))
-            newPosition.y += step.y;
+        for(int32_t i = 0; i < nbSteps; ++i)
+        {
+            Ogre::Vector2 stepStart = newPosition;
+            if(canPossessedCreatureStandAt(*creature, Ogre::Vector2(newPosition.x + step.x, newPosition.y)))
+                newPosition.x += step.x;
+            if(canPossessedCreatureStandAt(*creature, Ogre::Vector2(newPosition.x, newPosition.y + step.y)))
+                newPosition.y += step.y;
+
+            // Stuck in a corner
+            if(newPosition == stepStart)
+                break;
+
+            const Ogre::Vector2& lastPoint = mPossessionPendingPoints.empty() ?
+                mPossessionLastSentPosition : mPossessionPendingPoints.back();
+            if(newPosition.distance(lastPoint) >= POSSESSION_POINT_SPACING)
+                mPossessionPendingPoints.push_back(newPosition);
+        }
 
         if(newPosition != position)
         {
@@ -2403,9 +2427,16 @@ void GameMode::updatePossession(Ogre::Real timeSinceLastFrame)
     mPossessionMoveTimer -= timeSinceLastFrame;
     if((mPossessionMoveTimer <= 0.0) && (position.squaredDistance(mPossessionLastSentPosition) > 0.0001f))
     {
+        if(mPossessionPendingPoints.empty() || (mPossessionPendingPoints.back() != position))
+            mPossessionPendingPoints.push_back(position);
+
         ClientNotification* clientNotification = new ClientNotification(ClientNotificationType::askPossessionMove);
-        clientNotification->mPacket << position;
+        uint32_t nbPoints = static_cast<uint32_t>(mPossessionPendingPoints.size());
+        clientNotification->mPacket << nbPoints;
+        for(const Ogre::Vector2& point : mPossessionPendingPoints)
+            clientNotification->mPacket << point;
         ODClient::getSingleton().queueClientNotification(clientNotification);
+        mPossessionPendingPoints.clear();
         mPossessionLastSentPosition = position;
         mPossessionMoveTimer = POSSESSION_MOVE_PERIOD;
     }

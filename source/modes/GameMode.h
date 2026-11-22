@@ -346,6 +346,9 @@ private:
     Ogre::Real mPossessionMoveTimer = 0.0;
     //! \brief The last position of the possessed creature sent to the server
     Ogre::Vector2 mPossessionLastSentPosition = Ogre::Vector2::ZERO;
+    //! \brief The points the possessed creature went through since the position was last
+    //! sent, a short step apart, sent with it so that the server walks it the same way
+    std::vector<Ogre::Vector2> mPossessionPendingPoints;
     //! \brief Whether the left mouse button is held: the creature keeps acting while it is
     bool mPossessionActionHeld = false;
     //! \brief Time left before the next action is asked for while the button is held

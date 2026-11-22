@@ -84,7 +84,8 @@ enum class ClientNotificationType
     // Append new messages to preserve existing network and replay identifiers.
     changeNick,
 
-    //! \brief The player walks the creature they possess to a point (x, y), facing yaw
+    //! \brief The player walks the creature they possess: the number of points, then the points
+    //! (x, y) it went through since the last one sent, a short step apart
     askPossessionMove,
     //! \brief The player acts with the creature they possess (attack, dig, claim), facing yaw
     askPossessionAction,

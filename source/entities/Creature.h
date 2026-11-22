@@ -654,9 +654,14 @@ public:
 
     //! \brief Called on server side when the possessing player walks the creature to dest. The
     //! client moves the creature itself and sends where it got to every few frames. The server
-    //! follows if the creature can walk there in a straight line from where the server has it,
-    //! and returns false otherwise, leaving the creature where it is.
+    //! follows the same way, from point to point, if the creature can walk in a straight line
+    //! from the last point it was given to dest, and returns false otherwise.
     bool possessedMoveTo(const Ogre::Vector2& dest);
+
+    //! \brief Where the server will have the possessed creature once it has walked all the
+    //! way the client sent it: the last point it was given, or where it is if it got there.
+    //! The client is put back there when it sends the creature somewhere it cannot go.
+    Ogre::Vector2 getPossessedWalkEnd() const;
 
     //! \brief Called on server side when the possessing player acts, facing yaw (in radians,
     //! 0 looking along +Y and growing counterclockwise). The creature attacks the closest enemy in

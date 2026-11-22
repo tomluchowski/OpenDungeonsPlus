@@ -1596,22 +1596,43 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
 
         case ClientNotificationType::askPossessionMove:
         {
-            Ogre::Vector2 dest;
-            OD_ASSERT_TRUE(packetReceived >> dest);
+            // The way the client walked the creature since it last sent it, point by point
+            uint32_t nbPoints;
+            OD_ASSERT_TRUE(packetReceived >> nbPoints);
+            std::vector<Ogre::Vector2> points;
+            while(nbPoints > 0)
+            {
+                --nbPoints;
+                Ogre::Vector2 point;
+                if(!(packetReceived >> point))
+                    break;
+
+                points.push_back(point);
+            }
+
             Player* player = clientSocket->getPlayer();
             Creature* creature = player->getPossessedCreature();
             // The possession may have ended while the message was on its way
             if(creature == nullptr)
                 break;
 
-            if(creature->possessedMoveTo(dest))
+            bool isWalkable = true;
+            for(const Ogre::Vector2& point : points)
+            {
+                if(creature->possessedMoveTo(point))
+                    continue;
+
+                isWalkable = false;
+                break;
+            }
+
+            if(isWalkable)
                 break;
 
-            // The client walked the creature where it cannot go from where the server has it:
-            // it is put back there
+            // The client walked the creature where it cannot go: it is put back where it was
+            // last allowed to be
             ServerNotification notif(ServerNotificationType::possessionCorrection, player);
-            const Ogre::Vector3& position = creature->getPosition();
-            notif.mPacket << creature->getName() << Ogre::Vector2(position.x, position.y);
+            notif.mPacket << creature->getName() << creature->getPossessedWalkEnd();
             sendAsyncMsg(notif);
             break;
         }

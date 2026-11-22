@@ -3836,13 +3836,16 @@ bool Creature::possessedMoveTo(const Ogre::Vector2& dest)
     if((mPossessor == nullptr) || !getIsOnMap() || !isAlive())
         return false;
 
-    const Ogre::Vector3& position = getPosition();
-    Ogre::Vector2 start(position.x, position.y);
+    // The client runs ahead of the server by the network delay and up to a turn of walking, as
+    // the server only moves creatures at each turn. The step is checked from where the client
+    // was last time, not from where the server has got to: going round a corner or along a
+    // wall, the straight line from a point that far behind would go through the wall, and
+    // the creature would be sent back to it, a moment into the past.
+    Ogre::Vector2 start = getPossessedWalkEnd();
     Ogre::Vector2 path = dest - start;
     Ogre::Real length = path.length();
 
-    // The client runs ahead of the server by the network delay and up to a turn of walking, as
-    // the server only moves creatures at each turn. Anything farther is not a walk.
+    // Anything farther than a couple of seconds of walking is not a walk
     Ogre::Real maxLength = static_cast<Ogre::Real>(getMoveSpeed() * ODApplication::turnsPerSecond * 2.0 + 1.0);
     if(length > maxLength)
         return false;
@@ -3864,10 +3867,20 @@ bool Creature::possessedMoveTo(const Ogre::Vector2& dest)
             return false;
     }
 
-    std::vector<Ogre::Vector2> walkPath;
+    // The creature walks the way the client did, point after point
+    std::vector<Ogre::Vector2> walkPath(mWalkQueue.begin(), mWalkQueue.end());
     walkPath.push_back(dest);
     setWalkPath(EntityAnimation::walk_anim, EntityAnimation::idle_anim, true, true, walkPath, false);
     return true;
+}
+
+Ogre::Vector2 Creature::getPossessedWalkEnd() const
+{
+    if(!mWalkQueue.empty())
+        return mWalkQueue.back();
+
+    const Ogre::Vector3& position = getPosition();
+    return Ogre::Vector2(position.x, position.y);
 }
 
 void Creature::possessedAct(Ogre::Real yaw)
