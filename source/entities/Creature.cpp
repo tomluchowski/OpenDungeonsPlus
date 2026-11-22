@@ -941,22 +941,32 @@ void Creature::doUpkeep()
             {
                 
                 RoomArena* myRoomArena = static_cast<RoomArena*>(myRoom);
-                Ogre::Vector3 dest = myRoomArena->getGateTile()->getPosition();
-                setPosition(dest);
-
-                for(Seat* seat : mSeatsWithVisionNotified)
+                // An arena that has lost tiles (for example to an enemy claiming them)
+                // may have no gate left. Then the creature stays where it is
+                Tile* gateTile = myRoomArena->getGateTile();
+                if(gateTile == nullptr)
                 {
-                    if(seat->getPlayer() == nullptr)
-                        continue;
-                    if(!seat->getPlayer()->getIsHuman())
-                        continue;
-
-                    ServerNotification* serverNotification = new ServerNotification(
-                        ServerNotificationType::entityTeleported, seat->getPlayer());
-                    serverNotification->mPacket << getName() << dest;
-                    ODServer::getSingleton().queueServerNotification(serverNotification);
+                    OD_LOG_WRN("name=" + getName() + ", arena=" + myRoomArena->getName() + " has no gate tile");
                 }
-            }  
+                else
+                {
+                    Ogre::Vector3 dest = gateTile->getPosition();
+                    setPosition(dest);
+
+                    for(Seat* seat : mSeatsWithVisionNotified)
+                    {
+                        if(seat->getPlayer() == nullptr)
+                            continue;
+                        if(!seat->getPlayer()->getIsHuman())
+                            continue;
+
+                        ServerNotification* serverNotification = new ServerNotification(
+                            ServerNotificationType::entityTeleported, seat->getPlayer());
+                        serverNotification->mPacket << getName() << dest;
+                        ODServer::getSingleton().queueServerNotification(serverNotification);
+                    }
+                }
+            }
             
         }
 
