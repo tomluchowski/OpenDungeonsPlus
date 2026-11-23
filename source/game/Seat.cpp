@@ -1265,6 +1265,10 @@ bool Seat::exportSeatToStream(std::ostream& os) const
         os << "player\t";
         if(getPlayer()->getIsHuman())
             os << PLAYER_TYPE_HUMAN;
+        // An inactive seat has a player too, with no AI behind it. Saved as an AI, it would
+        // wake up as a keeper building and digging when the game is loaded.
+        else if(mConfigPlayerId == PLAYER_TYPE_INACTIVE_ID)
+            os << PLAYER_TYPE_INACTIVE;
         else
             os << PLAYER_TYPE_AI;
 
