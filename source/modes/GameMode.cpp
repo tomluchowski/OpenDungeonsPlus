@@ -63,6 +63,8 @@
 #include <OgreRoot.h>
 #include <OgreRenderWindow.h>
 #include <OgreSceneNode.h>
+#include <OgreEntity.h>
+#include <OgreMesh.h>
 
 
 #include <algorithm>
@@ -89,6 +91,12 @@ const Ogre::Real POSSESSION_PITCH_MAX = 1.3f;
 const Ogre::Real POSSESSION_VIEW_HALF_SIZE = 16.0f;
 //! How close to a wall a possessed creature can get, so that the camera at its eyes stays out of it
 const Ogre::Real POSSESSION_CREATURE_RADIUS = 0.25f;
+//! The eyes of a possessed creature are this far up its model
+const Ogre::Real POSSESSION_EYE_RATIO = 0.85f;
+//! The lowest and highest the eyes of a possessed creature can be. The walls are about 1.4 high:
+//! even the tallest creature, grown with its level, must not see over them.
+const Ogre::Real POSSESSION_EYE_HEIGHT_MIN = 0.3f;
+const Ogre::Real POSSESSION_EYE_HEIGHT_MAX = 1.2f;
 //! How often the position of a possessed creature is sent to the server, in seconds
 const Ogre::Real POSSESSION_MOVE_PERIOD = 0.15f;
 //! The longest step a possessed creature takes at once, in tiles, so that a long frame does not
@@ -2237,9 +2245,20 @@ void GameMode::startPossession(const std::string& creatureName)
     Ogre::SceneNode* node = creature->getEntityNode();
     if(node != nullptr)
     {
-        const Ogre::AxisAlignedBox& box = node->_getWorldAABB();
-        if(box.isFinite())
-            mPossessionEyeHeight = std::max(static_cast<Ogre::Real>(0.3), (box.getMaximum().z - position.z) * 0.85f);
+        // The height of the model is taken from its mesh, grown as the creature is with its
+        // level. Not from the bounds of the node: the particles of the spells cast on the
+        // creature hang from the node too, and would put its eyes above the walls.
+        for(Ogre::MovableObject* object : node->getAttachedObjects())
+        {
+            if(object->getMovableType() != Ogre::EntityFactory::FACTORY_TYPE_NAME)
+                continue;
+
+            Ogre::Entity* entity = static_cast<Ogre::Entity*>(object);
+            Ogre::Real modelHeight = entity->getMesh()->getBounds().getMaximum().z * node->getScale().z;
+            mPossessionEyeHeight = std::max(POSSESSION_EYE_HEIGHT_MIN,
+                std::min(POSSESSION_EYE_HEIGHT_MAX, modelHeight * POSSESSION_EYE_RATIO));
+            break;
+        }
 
         node->setVisible(false);
     }
