@@ -343,9 +343,29 @@ void RoomPrison::doUpkeep()
             // Create a new creature and copy over the class-based creature parameters.
             Creature* newCreature = new Creature(getGameMap(), classToSpawn, getSeat());
 
+            // Nobody can walk on the cells (see getCreatureSpeed), so the new creature would be
+            // stuck where the prisoner died. It rises on the closest tile of the fence instead,
+            // from where it can go about its business.
+            Tile* spawnTile = creatureTile;
+            int bestDist = -1;
+            for(Tile* tile : mFenceTiles)
+            {
+                if(!newCreature->canGoThroughTile(tile))
+                    continue;
+
+                int dx = tile->getX() - creatureTile->getX();
+                int dy = tile->getY() - creatureTile->getY();
+                int dist = dx * dx + dy * dy;
+                if((bestDist >= 0) && (dist >= bestDist))
+                    continue;
+
+                bestDist = dist;
+                spawnTile = tile;
+            }
+
             // Add the creature to the gameMap and create meshes so it is visible.
             newCreature->addToGameMap();
-            newCreature->setPosition(Ogre::Vector3(creatureTile->getX(), creatureTile->getY(), 0.0f));
+            newCreature->setPosition(Ogre::Vector3(spawnTile->getX(), spawnTile->getY(), 0.0f));
             newCreature->createMesh();
         }
     }
