@@ -263,6 +263,17 @@ void RoomPortalWave::updatePortalPosition()
     mPortalObject->setAnimationState("Idle");
 }
 
+void RoomPortalWave::removeFromGameMap(GameMap* gameMap)
+{
+    if(mTargetDungeon != nullptr)
+    {
+        mTargetDungeon->removeGameEntityListener(this);
+        mTargetDungeon = nullptr;
+    }
+
+    Room::removeFromGameMap(gameMap);
+}
+
 void RoomPortalWave::destroyMeshLocal(NodeType nt)
 {
     Room::destroyMeshLocal();
