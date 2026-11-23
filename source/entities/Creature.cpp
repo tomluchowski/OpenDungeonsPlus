@@ -3883,7 +3883,7 @@ Ogre::Vector2 Creature::getPossessedWalkEnd() const
     return Ogre::Vector2(position.x, position.y);
 }
 
-void Creature::possessedAct(Ogre::Real yaw)
+void Creature::possessedAct(Ogre::Real yaw, bool reinforce)
 {
     if((mPossessor == nullptr) || !getIsOnMap() || !isAlive())
         return;
@@ -3892,14 +3892,18 @@ void Creature::possessedAct(Ogre::Real yaw)
     if(turn == mPossessionLastActionTurn)
         return;
 
+    // Reinforcing is a worker's business: anything else acts as with the main button
+    if(!getDefinition()->isWorker())
+        reinforce = false;
+
     Ogre::Vector2 facing(-std::sin(yaw), std::cos(yaw));
-    if(!isWarmup() && possessedAttack(facing))
+    if(!reinforce && !isWarmup() && possessedAttack(facing))
     {
         mPossessionLastActionTurn = turn;
         return;
     }
 
-    if(possessedWork(facing))
+    if(possessedWork(facing, reinforce))
         mPossessionLastActionTurn = turn;
 }
 
@@ -3976,7 +3980,7 @@ bool Creature::possessedAttack(const Ogre::Vector2& facing)
     return true;
 }
 
-bool Creature::possessedWork(const Ogre::Vector2& facing)
+bool Creature::possessedWork(const Ogre::Vector2& facing, bool reinforce)
 {
     if((mDigRate <= 0.0) && (mClaimRate <= 0.0))
         return false;
@@ -4008,8 +4012,9 @@ bool Creature::possessedWork(const Ogre::Vector2& facing)
             static_cast<Ogre::Real>(tileFront->getY()) - position.y, 0);
         walkDirection.normalise();
 
-        // A possessed worker digs what it faces, without the tile having to be marked first
-        if((mDigRate > 0.0) && tileFront->isDiggable(getSeat()))
+        // A possessed worker digs what it faces, without the tile having to be marked first,
+        // unless its keeper wants the wall reinforced instead
+        if(!reinforce && (mDigRate > 0.0) && tileFront->isDiggable(getSeat()))
         {
             setAnimationState(EntityAnimation::dig_anim, false, walkDirection, true);
             TileType tileType = tileFront->getType();

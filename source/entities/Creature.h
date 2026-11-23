@@ -666,8 +666,10 @@ public:
     //! \brief Called on server side when the possessing player acts, facing yaw (in radians,
     //! 0 looking along +Y and growing counterclockwise). The creature attacks the closest enemy in
     //! front of it that it can reach with a skill ready. Failing that, a worker digs or claims the
-    //! wall it faces, or claims the ground it stands on. Once per turn at most.
-    void possessedAct(Ogre::Real yaw);
+    //! wall it faces, or claims the ground it stands on. With reinforce, a worker does not fight or
+    //! dig: it claims (reinforces) the wall it faces, or claims the ground it stands on. Once per
+    //! turn at most.
+    void possessedAct(Ogre::Real yaw, bool reinforce);
 
 protected:
     virtual void exportToPacket(ODPacket& os, const Seat* seat) const override;
@@ -874,8 +876,9 @@ private:
     bool possessedAttack(const Ogre::Vector2& facing);
 
     //! \brief Digs or claims the wall the creature faces, or claims the ground it stands on, if it
-    //! is a worker that can. Returns true if it did something.
-    bool possessedWork(const Ogre::Vector2& facing);
+    //! is a worker that can. With reinforce, it never digs: it claims the wall rather than digging
+    //! it. Returns true if it did something.
+    bool possessedWork(const Ogre::Vector2& facing, bool reinforce);
 
     //! \brief A sub-function called by doTurn()
     //! This one checks if there is something prioritary to do (like fighting). If it is the case,

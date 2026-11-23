@@ -590,12 +590,14 @@ bool GameMode::isMouseWheelOnCEGUIWindow()
 
 bool GameMode::mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id)
 {
-    // The left button makes a possessed creature act for as long as it is held
+    // The left button makes a possessed creature act for as long as it is held. The right one
+    // makes a worker reinforce the wall it faces instead of digging it.
     if(!mPossessedCreatureName.empty())
     {
-        if(id == OIS::MB_Left)
+        if((id == OIS::MB_Left) || (id == OIS::MB_Right))
         {
             mPossessionActionHeld = true;
+            mPossessionActionReinforce = (id == OIS::MB_Right);
             mPossessionActionTimer = 0.0;
         }
         return true;
@@ -810,8 +812,12 @@ bool GameMode::mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id)
 {
     if(!mPossessedCreatureName.empty())
     {
-        if(id == OIS::MB_Left)
+        // Only letting go of the button that is acting stops the action
+        if(((id == OIS::MB_Left) && !mPossessionActionReinforce) ||
+           ((id == OIS::MB_Right) && mPossessionActionReinforce))
+        {
             mPossessionActionHeld = false;
+        }
         return true;
     }
 
@@ -2448,7 +2454,7 @@ void GameMode::updatePossession(Ogre::Real timeSinceLastFrame)
         {
             ClientNotification* clientNotification = new ClientNotification(ClientNotificationType::askPossessionAction);
             float yaw = static_cast<float>(mPossessionYaw);
-            clientNotification->mPacket << yaw;
+            clientNotification->mPacket << yaw << mPossessionActionReinforce;
             ODClient::getSingleton().queueClientNotification(clientNotification);
             mPossessionActionTimer = POSSESSION_ACTION_PERIOD;
         }
@@ -2464,7 +2470,7 @@ void GameMode::refreshPossessionText(Creature& creature)
         + Helper::toString(static_cast<int32_t>(creature.getMaxHp()))
         + " - Mana " + Helper::toString(static_cast<int32_t>(mGameMap->getLocalPlayer()->getSeat()->getMana()));
     if(creature.getDefinition()->isWorker())
-        text += "\nWASD: walk  Mouse: look  Left button: fight, dig and claim  Esc: leave";
+        text += "\nWASD: walk  Mouse: look  Left button: fight, dig and claim  Right button: reinforce  Esc: leave";
     else
         text += "\nWASD: walk  Mouse: look  Left button: fight  Esc: leave";
 

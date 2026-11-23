@@ -87,7 +87,8 @@ enum class ClientNotificationType
     //! \brief The player walks the creature they possess: the number of points, then the points
     //! (x, y) it went through since the last one sent, a short step apart
     askPossessionMove,
-    //! \brief The player acts with the creature they possess (attack, dig, claim), facing yaw
+    //! \brief The player acts with the creature they possess (attack, dig, claim), facing yaw, then
+    //! whether a worker should reinforce the wall it faces rather than fight or dig it
     askPossessionAction,
     //! \brief The player leaves the creature they possess
     askPossessionExit

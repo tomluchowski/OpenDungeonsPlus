@@ -351,6 +351,9 @@ private:
     std::vector<Ogre::Vector2> mPossessionPendingPoints;
     //! \brief Whether the left mouse button is held: the creature keeps acting while it is
     bool mPossessionActionHeld = false;
+    //! \brief Whether the button held is the right one: a possessed worker then reinforces the wall it
+    //! faces instead of digging it
+    bool mPossessionActionReinforce = false;
     //! \brief Time left before the next action is asked for while the button is held
     Ogre::Real mPossessionActionTimer = 0.0;
 

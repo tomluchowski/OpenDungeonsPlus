@@ -1640,13 +1640,14 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
         case ClientNotificationType::askPossessionAction:
         {
             float yaw;
-            OD_ASSERT_TRUE(packetReceived >> yaw);
+            bool reinforce;
+            OD_ASSERT_TRUE(packetReceived >> yaw >> reinforce);
             Player* player = clientSocket->getPlayer();
             Creature* creature = player->getPossessedCreature();
             if(creature == nullptr)
                 break;
 
-            creature->possessedAct(yaw);
+            creature->possessedAct(yaw, reinforce);
             break;
         }
 
