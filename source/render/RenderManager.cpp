@@ -2339,6 +2339,16 @@ void RenderManager::rrToggleHandSelectorVisibility()
     mHandKeeperNode->setVisible(mHandKeeperHandVisibility == 0);
 }
 
+void RenderManager::rrSetHandHiddenForPossession(bool hidden)
+{
+    if(hidden)
+        mHandKeeperHandVisibility |= 0x02;
+    else
+        mHandKeeperHandVisibility &= ~0x02;
+
+    mHandKeeperNode->setVisible(mHandKeeperHandVisibility == 0);
+}
+
 void RenderManager::setEntityOpacity(Ogre::Entity* ent, float opacity)
 {
     for (unsigned int i = 0; i < ent->getNumSubEntities(); ++i)

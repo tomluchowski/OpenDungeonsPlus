@@ -243,6 +243,14 @@ public:
     //! of this seat are doing. The worker should try the actions on the given order
     std::vector<CreatureActionType> getWorkerPreferredActions(Creature& worker) const;
 
+    //! \brief The creature this player has taken over with the possession spell, if any. Set
+    //! and cleared by Creature::startPossession() and Creature::stopPossession() on the server.
+    inline Creature* getPossessedCreature() const
+    { return mPossessedCreature; }
+
+    inline void setPossessedCreature(Creature* creature)
+    { mPossessedCreature = creature; }
+
 private:
     //! \brief Player ID is only used during seat configuration phase
     //! During the game, one should use the seat ID to identify a player because
@@ -296,6 +304,9 @@ private:
     //! \brief Used to know what the workers are doing. That will help to change
     //! probability to choose the action to do
     std::vector<uint32_t> mWorkersActions;
+
+    //! \brief See getPossessedCreature(). Used on server side only.
+    Creature* mPossessedCreature = nullptr;
 
     //! \brief A simple mutator function to put the given entity into the player's hand,
     //! note this should NOT be called directly for creatures on the map,

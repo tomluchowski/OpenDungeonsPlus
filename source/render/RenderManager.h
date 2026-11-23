@@ -172,6 +172,9 @@ public:
         const std::string& particleScript);
     void rrEntityRemoveParticleEffect(GameEntity* entity, Ogre::ParticleSystem* particleSystem);
     void rrToggleHandSelectorVisibility();
+    //! \brief Hides the keeper hand while the player looks through a possessed creature's eyes,
+    //! whatever rrToggleHandSelectorVisibility() was set to
+    void rrSetHandHiddenForPossession(bool hidden);
 
     //! \brief Toggles the creatures text overlay
     void rrSetCreaturesTextOverlay(GameMap& gameMap, bool value);

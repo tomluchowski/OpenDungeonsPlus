@@ -525,6 +525,15 @@ SkillManager::SkillManager() :
     def->mapSkill(mSkillsFamily);
     mSkills[index] = def;
     lvl4depends.push_back(skill);
+
+    // Lvl 5 skills
+    resType = SkillType::spellPossessCreature;
+    index = static_cast<uint32_t>(resType);
+    points = ConfigManager::getSingleton().getSkillPoints(Skills::toString(resType));
+    skill = new Skill(resType, points, lvl4depends);
+    def = new SkillDefSpell("MagicSkills/", "SpellPossessCreatureButton", skill, SpellType::possessCreature);
+    def->mapSkill(mSkillsFamily);
+    mSkills[index] = def;
 }
 
 SkillManager::~SkillManager()

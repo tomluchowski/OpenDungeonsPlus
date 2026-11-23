@@ -634,7 +634,43 @@ public:
     void maxAmbient();
 
     void normalizeAmbient();
-    
+
+    //! \brief Whether a keeper could take this creature over with the possession spell now: it
+    //! has to be alive, on the map, neither knocked out nor in prison, and not possessed already.
+    bool canBePossessed() const;
+
+    //! \brief Called on server side when the given player takes this creature over. Until
+    //! stopPossession() is called, the creature does nothing on its own: it only walks and acts
+    //! when the player asks it to.
+    void startPossession(Player& player);
+
+    //! \brief Called on server side to give the creature back to its own will. The reason is
+    //! shown to the player who possessed it.
+    void stopPossession(const std::string& reason);
+
+    //! \brief The player possessing this creature, nullptr if none. Server side only.
+    inline Player* getPossessor() const
+    { return mPossessor; }
+
+    //! \brief Called on server side when the possessing player walks the creature to dest. The
+    //! client moves the creature itself and sends where it got to every few frames. The server
+    //! follows the same way, from point to point, if the creature can walk in a straight line
+    //! from the last point it was given to dest, and returns false otherwise.
+    bool possessedMoveTo(const Ogre::Vector2& dest);
+
+    //! \brief Where the server will have the possessed creature once it has walked all the
+    //! way the client sent it: the last point it was given, or where it is if it got there.
+    //! The client is put back there when it sends the creature somewhere it cannot go.
+    Ogre::Vector2 getPossessedWalkEnd() const;
+
+    //! \brief Called on server side when the possessing player acts, facing yaw (in radians,
+    //! 0 looking along +Y and growing counterclockwise). The creature attacks the closest enemy in
+    //! front of it that it can reach with a skill ready. Failing that, a worker digs or claims the
+    //! wall it faces, or claims the ground it stands on. With reinforce, a worker does not fight or
+    //! dig: it claims (reinforces) the wall it faces, or claims the ground it stands on. Once per
+    //! turn at most.
+    void possessedAct(Ogre::Real yaw, bool reinforce);
+
 protected:
     virtual void exportToPacket(ODPacket& os, const Seat* seat) const override;
     virtual void importFromPacket(ODPacket& is) override;
@@ -822,6 +858,27 @@ private:
     double mExperienceProgress = 0.0;
     //! \brief Whether the progress values above were received from the server. Only used on a client.
     bool mHasProgressInformation = false;
+
+    //! \brief See getPossessor(). Server side only.
+    Player* mPossessor = nullptr;
+    //! \brief The turn the possessing player last acted, so that they act once per turn at most
+    int64_t mPossessionLastActionTurn = -1;
+
+    //! \brief A sub-function called by doUpkeep() while the creature is possessed: pays the
+    //! possession upkeep, and picks up and deposits gold where the creature stands.
+    void doPossessedUpkeep();
+
+    //! \brief The reason why the possession should end now, or an empty string if it can go on
+    std::string getPossessionEndReason() const;
+
+    //! \brief Attacks the closest enemy in front of the creature (facing is a unit vector), if one is
+    //! within reach of a skill that is ready. Returns true if it attacked.
+    bool possessedAttack(const Ogre::Vector2& facing);
+
+    //! \brief Digs or claims the wall the creature faces, or claims the ground it stands on, if it
+    //! is a worker that can. With reinforce, it never digs: it claims the wall rather than digging
+    //! it. Returns true if it did something.
+    bool possessedWork(const Ogre::Vector2& facing, bool reinforce);
 
     //! \brief A sub-function called by doTurn()
     //! This one checks if there is something prioritary to do (like fighting). If it is the case,

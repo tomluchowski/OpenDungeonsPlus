@@ -42,6 +42,11 @@ public:
     void displayHealthOverlay(Ogre::Real timeToDisplay);
     void update(Ogre::Real timeSincelastFrame);
     MovableTextOverlay* getMovableTextOverlay(){ return mMovableTextOverlay; }
+
+    //! \brief Hides the overlays whatever else asks for them, while the player looks through the
+    //! creature's eyes
+    inline void setSuppressed(bool suppressed)
+    { mSuppressed = suppressed; }
 private:
     
     void updateHealth();
@@ -58,6 +63,8 @@ private:
     Ogre::Real mRecoveryElapsed = 0.0f;
 
     bool mVisible;
+    //! \brief See setSuppressed()
+    bool mSuppressed = false;
     Creature* mCreature;
     Seat* mSeat;
     MovableTextOverlay* mMovableTextOverlay;

@@ -129,6 +129,12 @@ std::string ClientNotification::typeString(ClientNotificationType type)
             return "editorSetPortalWaveData";
         case ClientNotificationType::changeNick:
             return "changeNick";
+        case ClientNotificationType::askPossessionMove:
+            return "askPossessionMove";
+        case ClientNotificationType::askPossessionAction:
+            return "askPossessionAction";
+        case ClientNotificationType::askPossessionExit:
+            return "askPossessionExit";
         default:
             OD_LOG_ERR("Unknown enum for ClientNotificationType="
                 + Helper::toString(static_cast<int>(type)));

@@ -1594,6 +1594,74 @@ bool ODServer::processClientNotifications(ODSocketClient* clientSocket)
             break;
         }
 
+        case ClientNotificationType::askPossessionMove:
+        {
+            // The way the client walked the creature since it last sent it, point by point
+            uint32_t nbPoints;
+            OD_ASSERT_TRUE(packetReceived >> nbPoints);
+            std::vector<Ogre::Vector2> points;
+            while(nbPoints > 0)
+            {
+                --nbPoints;
+                Ogre::Vector2 point;
+                if(!(packetReceived >> point))
+                    break;
+
+                points.push_back(point);
+            }
+
+            Player* player = clientSocket->getPlayer();
+            Creature* creature = player->getPossessedCreature();
+            // The possession may have ended while the message was on its way
+            if(creature == nullptr)
+                break;
+
+            bool isWalkable = true;
+            for(const Ogre::Vector2& point : points)
+            {
+                if(creature->possessedMoveTo(point))
+                    continue;
+
+                isWalkable = false;
+                break;
+            }
+
+            if(isWalkable)
+                break;
+
+            // The client walked the creature where it cannot go: it is put back where it was
+            // last allowed to be
+            ServerNotification notif(ServerNotificationType::possessionCorrection, player);
+            notif.mPacket << creature->getName() << creature->getPossessedWalkEnd();
+            sendAsyncMsg(notif);
+            break;
+        }
+
+        case ClientNotificationType::askPossessionAction:
+        {
+            float yaw;
+            bool reinforce;
+            OD_ASSERT_TRUE(packetReceived >> yaw >> reinforce);
+            Player* player = clientSocket->getPlayer();
+            Creature* creature = player->getPossessedCreature();
+            if(creature == nullptr)
+                break;
+
+            creature->possessedAct(yaw, reinforce);
+            break;
+        }
+
+        case ClientNotificationType::askPossessionExit:
+        {
+            Player* player = clientSocket->getPlayer();
+            Creature* creature = player->getPossessedCreature();
+            if(creature == nullptr)
+                break;
+
+            creature->stopPossession("you left it");
+            break;
+        }
+
         case ClientNotificationType::askSellTrapTiles:
         {
             Player* player = clientSocket->getPlayer();

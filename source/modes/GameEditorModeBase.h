@@ -162,6 +162,18 @@ protected:
     //! \brief Culling manager for the main map
     CullingManager* mMainCullingManager;
 
+    //! \brief The tile culling shows the tiles the camera looks at, which it finds by projecting
+    //! the corners of the view on the ground. A first person camera looks across the map, often
+    //! above the horizon, so while it is in use the culling shows the square of tiles of the given
+    //! half size around center instead, until clearTileCullingFocus() is called.
+    void setTileCullingFocus(const Ogre::Vector2& center, Ogre::Real halfSize);
+    void clearTileCullingFocus();
+
+    //! \brief See setTileCullingFocus()
+    bool mHasTileCullingFocus = false;
+    Ogre::Vector2 mTileCullingFocusCenter = Ogre::Vector2::ZERO;
+    Ogre::Real mTileCullingFocusHalfSize = 0.0;
+
     PlayerSelection mPlayerSelection;
 
     //! \brief This boolean is to be set by derived classes and will not erase the replay

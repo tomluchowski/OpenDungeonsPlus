@@ -108,7 +108,15 @@ enum class ServerNotificationType
     playerNickChanged,
 
     // Owner-only aggregate counts, sent only after creature-panel negotiation.
-    creaturePanel
+    creaturePanel,
+
+    //! \brief The player now possesses the given creature
+    possessionStarted,
+    //! \brief The player no longer possesses the given creature, with the reason why
+    possessionEnded,
+    //! \brief The server did not accept where the client walked the possessed creature: it is
+    //! put back where the server has it
+    possessionCorrection
 };
 
 ODPacket& operator<<(ODPacket& os, const ServerNotificationType& nt);
