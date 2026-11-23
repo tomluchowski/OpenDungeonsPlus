@@ -93,6 +93,9 @@ public:
     void absorbRoom(Room *r) override;
     bool removeCoveredTile(Tile* t) override;
 
+    //! Stops listening to the targeted dungeon, which would otherwise notify a deleted portal
+    void removeFromGameMap(GameMap* gameMap = nullptr) override;
+
     //! Room portal is claimable by enemy seats
     virtual bool isClaimable(Seat* seat) const override;
     virtual void claimForSeat(Seat* seat, Tile* tile, double danceRate) override;
